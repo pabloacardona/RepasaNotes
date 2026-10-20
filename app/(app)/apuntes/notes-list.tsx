@@ -39,10 +39,15 @@ export function NotesList({ notes }: { notes: NoteItem[] }) {
     return (
       <Card className="p-10 text-center">
         <p className="font-display text-xl font-bold">Aún no tienes apuntes</p>
-        <p className="mt-2 text-ink-soft">Pega las notas de una clase y conviértelas en un quiz.</p>
-        <LinkButton href="/apuntes/nuevo" className="mt-6">
-          Crear mi primer apunte
-        </LinkButton>
+        <p className="mt-2 text-ink-soft">
+          Pega las notas de una clase o deja que la IA las escriba por ti.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <LinkButton href="/apuntes/nuevo#ia" variant="ai">
+            💡 Crear con IA
+          </LinkButton>
+          <LinkButton href="/apuntes/nuevo">Escribir apunte</LinkButton>
+        </div>
       </Card>
     );
   }

@@ -6,13 +6,14 @@ import { NoteForm } from "../note-form";
 
 export const metadata: Metadata = { title: "Nuevo apunte" };
 
-export default async function NewNotePage() {
+export default async function NewNotePage({ searchParams }: PageProps<"/apuntes/nuevo">) {
   const user = await requireUser();
+  const { tema } = await searchParams;
   const topics = [...new Set((await listNotes(user.sub)).map((n) => n.topic))];
   return (
     <>
       <PageHeader title="Nuevo apunte" kicker="Mis apuntes" />
-      <NoteForm topics={topics} />
+      <NoteForm topics={topics} initialTopic={typeof tema === "string" ? tema.slice(0, 80) : ""} />
     </>
   );
 }

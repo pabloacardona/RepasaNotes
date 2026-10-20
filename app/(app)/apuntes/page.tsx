@@ -12,7 +12,15 @@ export default async function NotesPage() {
 
   return (
     <>
-      <PageHeader title="Mis apuntes" action={<LinkButton href="/apuntes/nuevo">+ Nuevo apunte</LinkButton>} />
+      <PageHeader
+        title="Mis apuntes"
+        action={
+          <div className="flex flex-wrap gap-2">
+            <LinkButton href="/apuntes/nuevo#ia" variant="ai">💡 Crear con IA</LinkButton>
+            <LinkButton href="/apuntes/nuevo">+ Nuevo apunte</LinkButton>
+          </div>
+        }
+      />
       <NotesList
         notes={notes.map((n) => ({
           id: n.id,

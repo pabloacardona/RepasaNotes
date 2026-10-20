@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb, quizzes } from "@/lib/db";
 import { requireApiUser } from "@/lib/auth";
 import { getNote, listQuizzes } from "@/lib/data";
-import { generateQuestions, QuizGenerationError } from "@/lib/ai";
+import { generateQuestions, AIGenerationError } from "@/lib/ai";
 import { generateQuizSchema, fieldErrors } from "@/lib/validators";
 
 export const maxDuration = 60;
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ quiz }, { status: 201 });
   } catch (err) {
-    if (err instanceof QuizGenerationError) {
+    if (err instanceof AIGenerationError) {
       return NextResponse.json({ errors: { form: err.message } }, { status: 502 });
     }
     console.error("quiz generation failed", err);

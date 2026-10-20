@@ -4,15 +4,18 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button, Card, FieldMessage, LinkButton, Spinner, inputClass } from "@/components/ui";
 import { NOTE_MAX, NOTE_MIN, noteSchema } from "@/lib/validators";
+import { AiNotePanel } from "./ai-note-panel";
 
 type Values = { title: string; topic: string; content: string };
 
 export function NoteForm({
   note,
   topics,
+  initialTopic,
 }: {
   note?: Values & { id: string };
   topics: string[];
+  initialTopic?: string;
 }) {
   const router = useRouter();
   const [values, setValues] = useState<Values>({
@@ -57,6 +60,21 @@ export function NoteForm({
   }
 
   return (
+    <>
+    {!note && (
+      <div id="ia" className="mb-5 scroll-mt-24">
+        <AiNotePanel
+          initialTopic={initialTopic}
+          hasContent={values.content.trim().length > 0}
+          onDraft={(draft) => {
+            setValues(draft);
+            setServerErrors({});
+            setSubmitted(true);
+            document.getElementById("title")?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }}
+        />
+      </div>
+    )}
     <form onSubmit={onSubmit} noValidate className="grid gap-5">
       <Card className="grid gap-5 p-5 sm:p-6">
         <div className="grid gap-5 sm:grid-cols-2">
@@ -127,5 +145,6 @@ export function NoteForm({
         </Button>
       </div>
     </form>
+    </>
   );
 }

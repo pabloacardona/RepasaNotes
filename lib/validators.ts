@@ -30,6 +30,12 @@ export const generateQuizSchema = z.object({
   difficulty: z.enum(["facil", "media", "dificil"]),
 });
 
+export const generateNoteSchema = z.object({
+  topic: z.string().trim().min(2, "Escribe el tema que quieres repasar").max(80, "Máximo 80 caracteres"),
+  focus: z.string().trim().max(200, "Máximo 200 caracteres").optional().default(""),
+  level: z.enum(["basico", "intermedio", "avanzado"]),
+});
+
 export const submitQuizSchema = z.object({
   answers: z.array(z.number().int().min(-1).max(3)),
 });

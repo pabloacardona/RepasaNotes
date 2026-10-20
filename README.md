@@ -10,6 +10,7 @@ Final project for *Desarrollo de Software Web* (UPB 2026).
 - **Login / Sign up** with field-level validation (Zod on client and server). Passwords are hashed with bcrypt, and sessions use a JWT in an `httpOnly` cookie.
 - **Dashboard** showing quizzes taken, overall average, saved notes, score per topic, and the weakest topic with a "Repasar ahora" button.
 - **Mis apuntes**: full CRUD with topic filter and search.
+- **Crear apunte con IA**: enter a topic, optional focus, and level (básico, intermedio, avanzado). The AI writes a specialized study note (introduction, key concepts, explanation, examples, common mistakes, summary) that the user reviews and edits before saving. Non-study topics are rejected.
 - **Generar quiz**: an open-weights model (`openai/gpt-oss-120b` via Vercel AI Gateway, falling back to `deepseek/deepseek-v4-flash`) writes 5/10/15 multiple-choice questions from a note, with three difficulty levels, structured JSON output, and note-length validation (200–8000 characters).
 - **Resolver quiz**: focus mode, one question at a time, a progress bar, and instant feedback with an explanation.
 - **Resultados**: score, each mistake with the correct answer, and "Repasar errores", which builds a new quiz from only the questions you missed.
@@ -30,6 +31,7 @@ Final project for *Desarrollo de Software Web* (UPB 2026).
 | POST | `/api/auth/login` | Log in |
 | POST | `/api/auth/logout` | Log out |
 | GET/POST | `/api/notes` | List / create notes |
+| POST | `/api/notes/generate` | Generate an AI note draft (not saved) |
 | GET/PUT/DELETE | `/api/notes/:id` | Read / update / delete a note |
 | GET/POST | `/api/quizzes` | List / generate a quiz with AI |
 | GET | `/api/quizzes/:id` | Quiz detail |
