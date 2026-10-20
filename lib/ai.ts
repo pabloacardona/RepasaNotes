@@ -80,6 +80,9 @@ ${opts.content}
     if (err instanceof Anthropic.AuthenticationError) {
       throw new QuizGenerationError("La clave de la IA no es válida. Revisa ANTHROPIC_API_KEY.");
     }
+    if (err instanceof Anthropic.BadRequestError && /credit balance/i.test(err.message)) {
+      throw new QuizGenerationError("La IA no tiene saldo disponible. Avisa al administrador.");
+    }
     if (err instanceof Anthropic.APIError) {
       throw new QuizGenerationError("No se pudo contactar a la IA. Intenta de nuevo.");
     }
