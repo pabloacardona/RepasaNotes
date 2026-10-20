@@ -11,8 +11,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.136.0",
     "@neondatabase/serverless": "^1.2.0",
+    "ai": "^7.0.147",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.13",

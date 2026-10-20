@@ -10,7 +10,7 @@ Final project for *Desarrollo de Software Web* (UPB 2026).
 - **Login / Sign up** with field-level validation (Zod on client and server). Passwords are hashed with bcrypt, and sessions use a JWT in an `httpOnly` cookie.
 - **Dashboard** showing quizzes taken, overall average, saved notes, score per topic, and the weakest topic with a "Repasar ahora" button.
 - **Mis apuntes**: full CRUD with topic filter and search.
-- **Generar quiz**: Claude (`claude-haiku-4-5`) writes 5/10/15 multiple-choice questions from a note, with three difficulty levels, structured JSON output, and note-length validation (200–8000 characters).
+- **Generar quiz**: an open-weights model (`openai/gpt-oss-120b` via Vercel AI Gateway, falling back to `deepseek/deepseek-v4-flash`) writes 5/10/15 multiple-choice questions from a note, with three difficulty levels, structured JSON output, and note-length validation (200–8000 characters).
 - **Resolver quiz**: focus mode, one question at a time, a progress bar, and instant feedback with an explanation.
 - **Resultados**: score, each mistake with the correct answer, and "Repasar errores", which builds a new quiz from only the questions you missed.
 
@@ -20,7 +20,7 @@ Final project for *Desarrollo de Software Web* (UPB 2026).
 - Tailwind CSS 4, Rubik + Nunito Sans
 - Postgres on Neon + Drizzle ORM
 - `jose` (JWT), `bcryptjs`, `zod`
-- `@anthropic-ai/sdk`
+- AI SDK + Vercel AI Gateway (OIDC auth on Vercel)
 
 ## REST API
 
@@ -40,7 +40,7 @@ Final project for *Desarrollo de Software Web* (UPB 2026).
 ## Local development
 
 ```bash
-cp .env.example .env.local   # fill in DATABASE_URL, JWT_SECRET, ANTHROPIC_API_KEY
+cp .env.example .env.local   # or: vercel env pull .env.local
 npm install
 npm run db:push              # create tables
 npm run dev
@@ -48,4 +48,4 @@ npm run dev
 
 ## Deploy
 
-Deployed on Vercel. Set `DATABASE_URL`, `JWT_SECRET`, and `ANTHROPIC_API_KEY` in the project's environment variables, then run `npm run db:push` once against the production database.
+Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environment variables, then run `npm run db:push` once against the production database.
