@@ -32,7 +32,13 @@ Reglas:
 
 let client: Anthropic | undefined;
 function getClient() {
-  if (!client) client = new Anthropic();
+  if (!client) {
+    // Org-level keys (not scoped to a workspace) need the workspace header.
+    const workspace = process.env.ANTHROPIC_WORKSPACE_ID;
+    client = new Anthropic(
+      workspace ? { defaultHeaders: { "anthropic-workspace-id": workspace } } : {},
+    );
+  }
   return client;
 }
 
@@ -67,6 +73,7 @@ ${opts.content}
       output_config: { format: zodOutputFormat(QuizSchema) },
     });
   } catch (err) {
+    console.error("anthropic request failed", err);
     if (err instanceof Anthropic.RateLimitError) {
       throw new QuizGenerationError("La IA está saturada. Intenta de nuevo en un minuto.");
     }
