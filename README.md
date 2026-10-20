@@ -12,8 +12,9 @@ Final project for *Desarrollo de Software Web* (UPB 2026).
 - **Mis apuntes**: full CRUD with topic filter and search.
 - **Crear apunte con IA**: enter a topic, optional focus, and level (básico, intermedio, avanzado). The AI writes a specialized study note (introduction, key concepts, explanation, examples, common mistakes, summary) that the user reviews and edits before saving. Non-study topics are rejected.
 - **Generar quiz**: an open-weights model (`openai/gpt-oss-120b` via Vercel AI Gateway, falling back to `deepseek/deepseek-v4-flash`) writes 5/10/15 multiple-choice questions from a note, with three difficulty levels, structured JSON output, and note-length validation (200–8000 characters).
-- **Resolver quiz**: focus mode, one question at a time, a progress bar, and instant feedback with an explanation.
-- **Resultados**: score, each mistake with the correct answer, and "Repasar errores", which builds a new quiz from only the questions you missed.
+- **Subir archivo**: drag and drop a .pdf, .docx, .txt, or .md (up to 4 MB). Short documents load as-is; long ones are condensed by AI into a note that fits the limit.
+- **Resolver quiz**: focus mode, one question at a time, points with streak bonus, confetti on correct answers, question navigator, timer, keyboard shortcuts (1-4 / A-D, arrows), and buttons to restart or finish early (unanswered questions count as wrong).
+- **Resultados**: animated score, points, best streak, confetti at 70% or more, each mistake with the correct answer, "Repasar errores" (new quiz with only the missed questions), and "Repetir quiz" (same questions, shuffled).
 
 ## Stack
 
@@ -31,12 +32,13 @@ Final project for *Desarrollo de Software Web* (UPB 2026).
 | POST | `/api/auth/login` | Log in |
 | POST | `/api/auth/logout` | Log out |
 | GET/POST | `/api/notes` | List / create notes |
+| POST | `/api/notes/import` | Read an uploaded file into a note draft (multipart, field `file`) |
 | POST | `/api/notes/generate` | Generate an AI note draft (not saved) |
 | GET/PUT/DELETE | `/api/notes/:id` | Read / update / delete a note |
 | GET/POST | `/api/quizzes` | List / generate a quiz with AI |
 | GET | `/api/quizzes/:id` | Quiz detail |
 | POST | `/api/quizzes/:id/submit` | Submit answers (score is computed on the server) |
-| POST | `/api/quizzes/:id/review` | New quiz with only the wrong answers |
+| POST | `/api/quizzes/:id/review` | New quiz from a finished one: `{"mode":"errors"}` (wrong answers) or `{"mode":"all"}` (shuffled repeat) |
 | GET | `/api/stats` | Dashboard stats |
 
 ## Local development

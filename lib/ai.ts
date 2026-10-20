@@ -149,8 +149,61 @@ Longitud del content: entre ${Math.round(NOTE_MAX * 0.4)} y ${Math.round(NOTE_MA
 
 Si el tema no es un tema de estudio (por ejemplo, texto sin sentido, algo dañino o una petición que no es académica), responde suitable=false con la razón y deja title, topic y content vacíos.`;
 
+const CONDENSE_SYSTEM = `Eres un profesor que convierte documentos largos en apuntes de estudio en español.
+Reglas:
+- Usa SOLO la información del documento. No agregues datos externos.
+- Conserva definiciones, datos, fórmulas, ejemplos y relaciones importantes; elimina relleno, índices, bibliografía y repeticiones.
+- Si el documento está en otro idioma, escribe el apunte en español conservando los términos técnicos.
+- Estructura el content en texto plano con encabezados '## ' y viñetas '- ', terminando con '## Resumen'.
+- Longitud del content: entre ${Math.round(NOTE_MAX * 0.5)} y ${Math.round(NOTE_MAX * 0.9)} caracteres.
+- suitable=false solo si el documento no tiene contenido de estudio (por ejemplo, está vacío o es ilegible).`;
+
+// Condenses a long uploaded document into a note that fits NOTE_MAX.
+export async function condenseDocument(opts: {
+  text: string;
+  titleHint: string;
+}): Promise<{ title: string; topic: string; content: string }> {
+  let output: z.infer<typeof NoteSchema>;
+  try {
+    const result = await generateText({
+      model: MODEL,
+      system: CONDENSE_SYSTEM,
+      prompt: `Nombre del archivo: ${opts.titleHint}
+
+<documento>
+${opts.text}
+</documento>`,
+      output: Output.object({ schema: NoteSchema }),
+      maxOutputTokens: 12000,
+      providerOptions: { gateway: { models: FALLBACK_MODELS } },
+    });
+    output = result.output;
+  } catch (err) {
+    throw toUserError(err);
+  }
+
+  if (!output.suitable) {
+    throw new AIGenerationError(output.reason?.trim() || "El documento no tiene contenido de estudio.");
+  }
+  const content = fitLength(output.content);
+  if (content.length < NOTE_MIN) {
+    throw new AIGenerationError("La IA generó un resumen demasiado corto. Intenta de nuevo.");
+  }
+  return {
+    title: output.title.trim().slice(0, 120) || opts.titleHint,
+    topic: output.topic.trim().slice(0, 60) || "General",
+    content,
+  };
+}
+
 function fitLength(text: string) {
-  const clean = text.replace(/\r\n/g, "\n").replace(/\*\*/g, "").replace(/\n{3,}/g, "\n\n").trim();
+  const clean = text
+    .replace(/\r\n/g, "\n")
+    .replace(/\*\*/g, "")
+    // Drop *italic* markers the model sometimes adds; keeps "- " bullets and math like "a * b".
+    .replace(/(^|[\s(])\*([^*\s](?:[^*\n]*[^*\s])?)\*(?=[\s.,;:)]|$)/gm, "$1$2")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   if (clean.length <= NOTE_MAX) return clean;
   // Cut at the last paragraph break that fits.
   const cut = clean.slice(0, NOTE_MAX);

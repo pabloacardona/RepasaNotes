@@ -40,11 +40,14 @@ export function NotesList({ notes }: { notes: NoteItem[] }) {
       <Card className="p-10 text-center">
         <p className="font-display text-xl font-bold">Aún no tienes apuntes</p>
         <p className="mt-2 text-ink-soft">
-          Pega las notas de una clase o deja que la IA las escriba por ti.
+          Sube un PDF o Word, pega tus notas o deja que la IA las escriba por ti.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <LinkButton href="/apuntes/nuevo#ia" variant="ai">
             💡 Crear con IA
+          </LinkButton>
+          <LinkButton href="/apuntes/nuevo#archivo" variant="outline">
+            📎 Subir archivo
           </LinkButton>
           <LinkButton href="/apuntes/nuevo">Escribir apunte</LinkButton>
         </div>

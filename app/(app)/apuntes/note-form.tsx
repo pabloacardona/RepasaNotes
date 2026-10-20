@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button, Card, FieldMessage, LinkButton, Spinner, inputClass } from "@/components/ui";
 import { NOTE_MAX, NOTE_MIN, noteSchema } from "@/lib/validators";
-import { AiNotePanel } from "./ai-note-panel";
+import { NoteSources } from "./note-sources";
 
 type Values = { title: string; topic: string; content: string };
 
@@ -62,18 +62,16 @@ export function NoteForm({
   return (
     <>
     {!note && (
-      <div id="ia" className="mb-5 scroll-mt-24">
-        <AiNotePanel
-          initialTopic={initialTopic}
-          hasContent={values.content.trim().length > 0}
-          onDraft={(draft) => {
-            setValues(draft);
-            setServerErrors({});
-            setSubmitted(true);
-            document.getElementById("title")?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }}
-        />
-      </div>
+      <NoteSources
+        initialTopic={initialTopic}
+        hasContent={values.content.trim().length > 0}
+        onDraft={(draft) => {
+          setValues((v) => ({ ...draft, topic: draft.topic || v.topic }));
+          setServerErrors({});
+          setSubmitted(true);
+          document.getElementById("title")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }}
+      />
     )}
     <form onSubmit={onSubmit} noValidate className="grid gap-5">
       <Card className="grid gap-5 p-5 sm:p-6">

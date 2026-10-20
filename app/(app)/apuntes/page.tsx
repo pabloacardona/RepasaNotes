@@ -17,6 +17,7 @@ export default async function NotesPage() {
         action={
           <div className="flex flex-wrap gap-2">
             <LinkButton href="/apuntes/nuevo#ia" variant="ai">💡 Crear con IA</LinkButton>
+            <LinkButton href="/apuntes/nuevo#archivo" variant="outline">📎 Subir archivo</LinkButton>
             <LinkButton href="/apuntes/nuevo">+ Nuevo apunte</LinkButton>
           </div>
         }
