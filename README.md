@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Repasa
 
-## Getting Started
+Your notes → an AI-generated quiz → you know what to review.
 
-First, run the development server:
+Final project for *Desarrollo de Software Web* (UPB 2026).
+
+## Features
+
+- **Landing** with SEO metadata, `robots.txt`, and `sitemap.xml`.
+- **Login / Sign up** with field-level validation (Zod on client and server). Passwords are hashed with bcrypt, and sessions use a JWT in an `httpOnly` cookie.
+- **Dashboard** showing quizzes taken, overall average, saved notes, score per topic, and the weakest topic with a "Repasar ahora" button.
+- **Mis apuntes**: full CRUD with topic filter and search.
+- **Generar quiz**: Claude (`claude-haiku-4-5`) writes 5/10/15 multiple-choice questions from a note, with three difficulty levels, structured JSON output, and note-length validation (200–8000 characters).
+- **Resolver quiz**: focus mode, one question at a time, a progress bar, and instant feedback with an explanation.
+- **Resultados**: score, each mistake with the correct answer, and "Repasar errores", which builds a new quiz from only the questions you missed.
+
+## Stack
+
+- Next.js 16 (App Router, route handlers as REST API, `proxy.ts` for route protection)
+- Tailwind CSS 4, Rubik + Nunito Sans
+- Postgres on Neon + Drizzle ORM
+- `jose` (JWT), `bcryptjs`, `zod`
+- `@anthropic-ai/sdk`
+
+## REST API
+
+| Method | Route | Description |
+| --- | --- | --- |
+| POST | `/api/auth/register` | Create account |
+| POST | `/api/auth/login` | Log in |
+| POST | `/api/auth/logout` | Log out |
+| GET/POST | `/api/notes` | List / create notes |
+| GET/PUT/DELETE | `/api/notes/:id` | Read / update / delete a note |
+| GET/POST | `/api/quizzes` | List / generate a quiz with AI |
+| GET | `/api/quizzes/:id` | Quiz detail |
+| POST | `/api/quizzes/:id/submit` | Submit answers (score is computed on the server) |
+| POST | `/api/quizzes/:id/review` | New quiz with only the wrong answers |
+| GET | `/api/stats` | Dashboard stats |
+
+## Local development
 
 ```bash
+cp .env.example .env.local   # fill in DATABASE_URL, JWT_SECRET, ANTHROPIC_API_KEY
+npm install
+npm run db:push              # create tables
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployed on Vercel. Set `DATABASE_URL`, `JWT_SECRET`, and `ANTHROPIC_API_KEY` in the project's environment variables, then run `npm run db:push` once against the production database.
