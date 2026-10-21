@@ -7,6 +7,7 @@ import { Card, LinkButton } from "@/components/ui";
 import { ReviewButton } from "./review-button";
 import { ScoreCard } from "./score-card";
 import { ReinforceCard } from "./reinforce-card";
+import { ResultsWorld } from "./results-world";
 
 export const metadata: Metadata = { title: "Resultados" };
 
@@ -32,12 +33,14 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
 
   return (
     <>
+      <ResultsWorld score={quiz.score} total={quiz.total} bestStreak={bestStreak} />
+      <div className="mt-[26vh] max-w-[640px] rounded-3xl md:mt-0 border border-white/50 bg-paper/75 p-4 shadow-2xl backdrop-blur-xl sm:p-6">
       <p className="text-muted">
         {quiz.topic} · {quiz.title}
       </p>
       <h1 className="mb-6 text-2xl font-bold sm:text-3xl">Resultados del quiz</h1>
 
-      <div className="grid gap-6 md:grid-cols-[18rem_1fr]">
+      <div className="grid gap-6">
         <div className="space-y-3">
           <ScoreCard
             score={quiz.score}
@@ -93,6 +96,7 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
             </>
           )}
         </section>
+      </div>
       </div>
     </>
   );

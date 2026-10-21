@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui";
 import { celebrate } from "@/components/confetti";
-import { TrophyScene } from "@/components/three/lazy";
 
 export function ScoreCard({
   score,
@@ -55,25 +54,13 @@ export function ScoreCard({
   const barColor = tone === "green" ? "bg-green" : tone === "yellow" ? "bg-yellow" : "bg-red";
   const textColor = tone === "green" ? "text-green" : tone === "yellow" ? "text-ink" : "text-red";
 
-  const tier = pct >= 90 ? "gold" : pct >= 70 ? "silver" : pct >= 50 ? "bronze" : null;
-
   return (
     <Card className="anim-rise overflow-hidden p-6">
-      {tier && (
-        <div className="-mx-6 -mt-6 mb-2 h-44 bg-gradient-to-b from-yellow-soft to-transparent">
-          <TrophyScene
-            tier={tier}
-            fallback={<div aria-hidden className="grid h-full place-items-center text-6xl">{verdict.emoji}</div>}
-          />
-        </div>
-      )}
       <div className="flex items-start justify-between">
         <p className="text-ink-soft">Tu puntaje</p>
-        {!tier && (
-          <span aria-hidden className={`text-4xl ${fresh ? "anim-pop" : ""}`}>
-            {verdict.emoji}
-          </span>
-        )}
+        <span aria-hidden className={`text-4xl ${fresh ? "anim-pop" : ""}`}>
+          {verdict.emoji}
+        </span>
       </div>
       <p className="font-display text-6xl font-extrabold tabular-nums" aria-label={`${score} de ${total}`}>
         {shown}/{total}

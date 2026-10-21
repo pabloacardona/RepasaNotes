@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
 import { Button, Spinner } from "@/components/ui";
 import { burstAt } from "@/components/confetti";
 import { pointsFor } from "@/lib/score";
+import { MOOD_LABEL, moodFor, weatherFor, type WorldState } from "@/lib/mood";
+import { WorldBackdrop } from "@/components/world/world-backdrop";
 import type { Question } from "@/lib/db/schema";
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -17,6 +19,18 @@ const NUDGES = ["¡Casi! Lee la explicación.", "No pasa nada, así se aprende."
 
 type Feedback = { kind: "hit" | "miss"; message: string; gained: number; key: number };
 type Dialog = "restart" | "finish" | null;
+
+// What the mascot remembers about recent answers.
+type Track = {
+  missStreak: number;
+  brokenStreak: number;
+  missStreakBefore: number;
+  lastResult: "hit" | "miss" | null;
+  answeredAt: number; // seconds on the quiz clock
+  questionStart: number;
+  pulse: number;
+};
+const TRACK0: Track = { missStreak: 0, brokenStreak: 0, missStreakBefore: 0, lastResult: null, answeredAt: -99, questionStart: 0, pulse: 0 };
 
 function pick<T>(list: T[]) {
   return list[Math.floor(Math.random() * list.length)];
@@ -51,6 +65,7 @@ export function QuizRunner({
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const reduce = useReducedMotion();
   const [direction, setDirection] = useState(1);
+  const [track, setTrack] = useState<Track>(TRACK0);
 
   const q = questions[current];
   const chosen = answers[current];
@@ -59,6 +74,31 @@ export function QuizRunner({
   const answeredCount = answers.filter((a) => a !== -1).length;
   const unanswered = questions.length - answeredCount;
   const hits = answers.filter((a, i) => a !== -1 && a === questions[i].correctIndex).length;
+
+  const mood = moodFor({
+    total: questions.length,
+    answered: answeredCount,
+    hits,
+    streak,
+    missStreak: track.missStreak,
+    brokenStreak: track.brokenStreak,
+    missStreakBefore: track.missStreakBefore,
+    lastResult: track.lastResult,
+    msSinceAnswer: (seconds - track.answeredAt) * 1000,
+    msOnQuestion: (seconds - track.questionStart) * 1000,
+    currentAnswered: answered,
+    finished: submitting,
+  });
+  const world = useMemo<WorldState>(
+    () => ({
+      mood,
+      weather: weatherFor(hits, answeredCount, streak, track.missStreak),
+      bloom: questions.length ? hits / questions.length : 0,
+      streak,
+      pulse: track.pulse,
+    }),
+    [mood, hits, answeredCount, streak, track.missStreak, track.pulse, questions.length],
+  );
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -81,12 +121,14 @@ export function QuizRunner({
           key: Date.now(),
         });
         burstAt(optionRefs.current[i]);
+        setTrack((tr) => ({ ...tr, missStreakBefore: tr.missStreak, missStreak: 0, brokenStreak: 0, lastResult: "hit", answeredAt: seconds, pulse: tr.pulse + 1 }));
       } else {
+        setTrack((tr) => ({ ...tr, missStreakBefore: 0, missStreak: tr.missStreak + 1, brokenStreak: streak, lastResult: "miss", answeredAt: seconds, pulse: tr.pulse + 1 }));
         setStreak(0);
         setFeedback({ kind: "miss", message: pick(NUDGES), gained: 0, key: Date.now() });
       }
     },
-    [answers, current, dialog, q.correctIndex, streak],
+    [answers, current, dialog, q.correctIndex, streak, seconds],
   );
 
   const goTo = useCallback(
@@ -95,8 +137,9 @@ export function QuizRunner({
       setDirection(i >= current ? 1 : -1);
       setCurrent(i);
       setFeedback(null);
+      setTrack((tr) => ({ ...tr, questionStart: seconds }));
     },
-    [current, questions.length],
+    [current, questions.length, seconds],
   );
 
   async function finish() {
@@ -125,6 +168,7 @@ export function QuizRunner({
     setCurrent(0);
     setDialog(null);
     setError(null);
+    setTrack(TRACK0);
   }
 
   // Keyboard: 1-4 / A-D answer, arrows or Enter navigate, Esc closes dialogs.
@@ -152,8 +196,9 @@ export function QuizRunner({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 bg-ink text-white">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
+      <WorldBackdrop state={world} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
+      <header className="sticky top-0 z-20 bg-ink/80 text-white backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
           <span className="hidden font-display text-2xl font-bold text-yellow sm:inline">Repasa</span>
           <div
             className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/20"
@@ -180,7 +225,19 @@ export function QuizRunner({
         <div className="h-1 bg-yellow" />
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-5 sm:px-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-8 pt-[30vh] sm:px-6 md:pt-6">
+        {/* Mood badge for the mascot */}
+        <div className="pointer-events-none fixed bottom-5 right-5 z-10 hidden md:block" aria-live="polite">
+          <motion.span
+            key={mood}
+            initial={reduce ? false : { opacity: 0, y: 8, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="inline-flex items-center gap-2 rounded-full bg-ink/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-md"
+          >
+            Repi · {MOOD_LABEL[mood]}
+          </motion.span>
+        </div>
+        <div className="w-full max-w-[600px] rounded-3xl border border-white/50 bg-paper/75 p-4 shadow-2xl backdrop-blur-xl sm:p-6">
         {/* Score bar */}
         <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3">
           <Stat label="Puntos" value={<AnimatedNumber value={points} />} bumpKey={feedback?.kind === "hit" ? feedback.key : 0}>
@@ -346,6 +403,7 @@ export function QuizRunner({
         <p className="mt-3 hidden text-center text-xs text-muted sm:block">
           Atajos: teclas 1-4 o A-D para responder · ← → para moverte
         </p>
+        </div>
       </main>
 
       {dialog && (

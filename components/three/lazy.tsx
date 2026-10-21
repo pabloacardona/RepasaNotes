@@ -2,11 +2,9 @@
 
 import dynamic from "next/dynamic";
 import { useSyncExternalStore, type ReactNode } from "react";
-import type { TrophyTier } from "./trophy-scene";
 
 // three.js only loads in the browser, in its own chunk.
 const HeroSceneImpl = dynamic(() => import("./hero-scene"), { ssr: false });
-const TrophySceneImpl = dynamic(() => import("./trophy-scene"), { ssr: false });
 
 function supportsWebGL() {
   try {
@@ -35,6 +33,3 @@ export function HeroScene({ fallback }: { fallback: ReactNode }) {
   return useCan3D() ? <HeroSceneImpl /> : <>{fallback}</>;
 }
 
-export function TrophyScene({ tier, fallback }: { tier: TrophyTier; fallback: ReactNode }) {
-  return useCan3D() ? <TrophySceneImpl tier={tier} /> : <>{fallback}</>;
-}
