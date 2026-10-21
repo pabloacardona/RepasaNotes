@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatedNumber } from "@/components/motion/animated-number";
 import { Button, Spinner } from "@/components/ui";
 import { burstAt } from "@/components/confetti";
 import { pointsFor } from "@/lib/score";
@@ -47,6 +49,8 @@ export function QuizRunner({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const reduce = useReducedMotion();
+  const [direction, setDirection] = useState(1);
 
   const q = questions[current];
   const chosen = answers[current];
@@ -88,10 +92,11 @@ export function QuizRunner({
   const goTo = useCallback(
     (i: number) => {
       if (i < 0 || i >= questions.length) return;
+      setDirection(i >= current ? 1 : -1);
       setCurrent(i);
       setFeedback(null);
     },
-    [questions.length],
+    [current, questions.length],
   );
 
   async function finish() {
@@ -158,9 +163,11 @@ export function QuizRunner({
             aria-valuemin={0}
             aria-valuemax={questions.length}
           >
-            <div
-              className="h-full rounded-full bg-yellow transition-all duration-500"
-              style={{ width: `${(answeredCount / questions.length) * 100}%` }}
+            <motion.div
+              className="h-full rounded-full bg-yellow"
+              initial={false}
+              animate={{ width: `${(answeredCount / questions.length) * 100}%` }}
+              transition={{ type: "spring", stiffness: 120, damping: 20 }}
             />
           </div>
           <span className="tabular-nums text-sm text-white/75" aria-label="Tiempo">
@@ -176,7 +183,7 @@ export function QuizRunner({
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-5 sm:px-6">
         {/* Score bar */}
         <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3">
-          <Stat label="Puntos" value={points.toLocaleString("es-CO")} bumpKey={feedback?.kind === "hit" ? feedback.key : 0}>
+          <Stat label="Puntos" value={<AnimatedNumber value={points} />} bumpKey={feedback?.kind === "hit" ? feedback.key : 0}>
             {feedback?.kind === "hit" && (
               <span key={feedback.key} className="anim-float-up absolute -top-1 right-2 font-bold text-green">
                 +{feedback.gained}
@@ -198,8 +205,11 @@ export function QuizRunner({
             const a = answers[i];
             const state = a === -1 ? "pending" : a === qq.correctIndex ? "hit" : "miss";
             return (
-              <button
+              <motion.button
                 key={i}
+                layout
+                whileHover={reduce ? undefined : { scale: 1.12 }}
+                whileTap={reduce ? undefined : { scale: 0.9 }}
                 onClick={() => goTo(i)}
                 aria-label={`Pregunta ${i + 1}${state === "hit" ? ", correcta" : state === "miss" ? ", incorrecta" : ""}`}
                 aria-current={i === current ? "step" : undefined}
@@ -212,7 +222,7 @@ export function QuizRunner({
                 } ${i === current ? "ring-3 ring-blue ring-offset-2 ring-offset-paper" : ""}`}
               >
                 {state === "hit" ? "✓" : state === "miss" ? "✗" : i + 1}
-              </button>
+              </motion.button>
             );
           })}
         </nav>
@@ -226,9 +236,15 @@ export function QuizRunner({
           </p>
         </div>
 
-        <section
+        <AnimatePresence mode="wait" initial={false} custom={direction}>
+        <motion.section
           key={current}
-          className={`anim-slide-in rounded-2xl border border-line bg-card p-5 sm:p-6 ${
+          custom={direction}
+          initial={reduce ? false : { opacity: 0, x: 60 * direction, rotate: 1.5 * direction }}
+          animate={{ opacity: 1, x: 0, rotate: 0 }}
+          exit={reduce ? undefined : { opacity: 0, x: -60 * direction, rotate: -1.5 * direction }}
+          transition={{ type: "spring", stiffness: 260, damping: 26 }}
+          className={`rounded-2xl border border-line bg-card p-5 sm:p-6 ${
             feedback?.kind === "miss" ? "anim-shake" : ""
           }`}
         >
@@ -252,7 +268,8 @@ export function QuizRunner({
               }
               return (
                 <li key={i} className="anim-rise" style={{ animationDelay: `${i * 50}ms` }}>
-                  <button
+                  <motion.button
+                    whileTap={answered || reduce ? undefined : { scale: 0.97 }}
                     ref={(el) => {
                       optionRefs.current[i] = el;
                     }}
@@ -273,7 +290,7 @@ export function QuizRunner({
                     </span>
                     <span className={`flex-1 ${answered && (isCorrect || isChosen) ? "font-bold" : ""}`}>{opt}</span>
                     {tag}
-                  </button>
+                  </motion.button>
                 </li>
               );
             })}
@@ -293,7 +310,8 @@ export function QuizRunner({
               </div>
             )}
           </div>
-        </section>
+        </motion.section>
+        </AnimatePresence>
 
         {error && (
           <p role="alert" className="mt-4 rounded-lg bg-red-soft px-3 py-2 font-bold text-red">
@@ -358,7 +376,7 @@ function Stat({
   children,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   bumpKey?: number;
   highlight?: boolean;
   children?: React.ReactNode;

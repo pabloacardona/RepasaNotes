@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { getStats } from "@/lib/data";
 import { Card, LinkButton } from "@/components/ui";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
+import { AnimatedBar } from "@/components/motion/animated-bar";
+import { AnimatedNumber } from "@/components/motion/animated-number";
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -27,11 +30,20 @@ export default async function Dashboard() {
         <LinkButton href="/quizzes/nuevo">+ Nuevo quiz</LinkButton>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Stat label="Quizzes realizados" value={String(stats.quizzesDone)} />
-        <Stat label="Promedio general" value={stats.average === null ? "—" : `${stats.average}%`} />
-        <Stat label="Apuntes guardados" value={String(stats.notesCount)} className="col-span-2 sm:col-span-1" />
-      </div>
+      <Stagger className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <StaggerItem>
+          <Stat label="Quizzes realizados" value={<AnimatedNumber from={0} value={stats.quizzesDone} />} />
+        </StaggerItem>
+        <StaggerItem>
+          <Stat
+            label="Promedio general"
+            value={stats.average === null ? "—" : <><AnimatedNumber from={0} value={stats.average} />%</>}
+          />
+        </StaggerItem>
+        <StaggerItem className="col-span-2 sm:col-span-1">
+          <Stat label="Apuntes guardados" value={<AnimatedNumber from={0} value={stats.notesCount} />} />
+        </StaggerItem>
+      </Stagger>
 
       <div className="mt-4 grid gap-4 md:grid-cols-[1.5fr_1fr]">
         <Card className="p-6">
@@ -53,10 +65,7 @@ export default async function Dashboard() {
                       aria-valuemax={100}
                       aria-label={`${t.topic}: ${t.average}%`}
                     >
-                      <span
-                        className={`block h-full rounded-full ${weak ? "bg-red" : "bg-blue"}`}
-                        style={{ width: `${Math.max(t.average, 3)}%` }}
-                      />
+                      <AnimatedBar percent={t.average} className={weak ? "bg-red" : "bg-blue"} delay={0.1} />
                     </span>
                     <span className={`text-right font-bold ${weak ? "text-red" : ""}`}>{t.average}%</span>
                   </li>
@@ -105,9 +114,9 @@ export default async function Dashboard() {
   );
 }
 
-function Stat({ label, value, className = "" }: { label: string; value: string; className?: string }) {
+function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <Card className={`p-5 ${className}`}>
+    <Card className="h-full p-5 transition hover:-translate-y-1 hover:shadow-lg">
       <p className="text-ink-soft">{label}</p>
       <p className="mt-1 font-display text-3xl font-bold sm:text-4xl">{value}</p>
     </Card>

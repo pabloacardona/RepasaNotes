@@ -108,6 +108,78 @@ ${opts.content}
   return valid;
 }
 
+// ---------- Reinforcement quiz (from missed questions) ----------
+
+const REINFORCE_SYSTEM = `${QUIZ_SYSTEM}
+
+Tarea especial: el estudiante falló algunas preguntas. Crea preguntas NUEVAS que refuercen exactamente esos conceptos.
+- No copies ni parafrasees las preguntas originales: evalúa el mismo concepto desde otros ángulos (definición, ejemplo, aplicación, comparación, causa-efecto).
+- Usa las respuestas incorrectas del estudiante para detectar la confusión y crea distractores que la pongan a prueba.
+- Reparte las preguntas entre todos los conceptos fallados.
+- La explicación debe aclarar la confusión típica, no solo repetir la respuesta.`;
+
+export async function generateReinforcement(opts: {
+  title: string;
+  topic: string;
+  noteContent: string | null;
+  missed: { question: string; correct: string; given: string | null }[];
+  count: number;
+  difficulty: string;
+}): Promise<Question[]> {
+  const missedText = opts.missed
+    .map(
+      (m, i) =>
+        `${i + 1}. ${m.question}\n   Respuesta correcta: ${m.correct}\n   Respondió: ${m.given ?? "(sin responder)"}`,
+    )
+    .join("\n");
+
+  let output: z.infer<typeof QuizSchema>;
+  try {
+    const result = await generateText({
+      model: MODEL,
+      system: REINFORCE_SYSTEM,
+      prompt: `Tema: ${opts.topic}
+Título: ${opts.title}
+Dificultad: ${DIFFICULTY_PROMPT[opts.difficulty] ?? opts.difficulty}
+Número de preguntas: ${opts.count}
+
+<preguntas_falladas>
+${missedText}
+</preguntas_falladas>
+
+${
+  opts.noteContent
+    ? `<apunte>\n${opts.noteContent}\n</apunte>`
+    : "No hay apunte disponible: usa solo la información que se deduce de las preguntas falladas y sus respuestas correctas."
+}`,
+      output: Output.object({ schema: QuizSchema }),
+      maxOutputTokens: 8000,
+      providerOptions: { gateway: { models: FALLBACK_MODELS } },
+    });
+    output = result.output;
+  } catch (err) {
+    throw toUserError(err);
+  }
+
+  const originals = new Set(opts.missed.map((m) => m.question.trim().toLowerCase()));
+  const valid = output.questions
+    .filter(
+      (q) =>
+        q.question.trim() &&
+        !originals.has(q.question.trim().toLowerCase()) &&
+        q.options.length === 4 &&
+        q.options.every((o) => o.trim()) &&
+        q.correctIndex >= 0 &&
+        q.correctIndex <= 3,
+    )
+    .slice(0, opts.count);
+
+  if (valid.length === 0) {
+    throw new AIGenerationError("La IA no generó preguntas válidas. Intenta de nuevo.");
+  }
+  return valid;
+}
+
 // ---------- Note generation ----------
 
 const NoteSchema = z.object({

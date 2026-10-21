@@ -4,7 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Spinner } from "@/components/ui";
 
-export function ReviewButton({ quizId, mode = "errors" }: { quizId: string; mode?: "errors" | "all" }) {
+export function ReviewButton({
+  quizId,
+  mode = "errors",
+  label,
+}: {
+  quizId: string;
+  mode?: "errors" | "all";
+  label?: string;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,13 +36,13 @@ export function ReviewButton({ quizId, mode = "errors" }: { quizId: string; mode
   return (
     <>
       <Button
-        variant={mode === "errors" ? "ai" : "primary"}
+        variant={mode === "errors" ? "ghost" : "primary"}
         onClick={review}
         disabled={loading}
         className="w-full"
       >
         {loading ? <Spinner /> : <span aria-hidden>{mode === "errors" ? "⚡" : "↻"}</span>}
-        {mode === "errors" ? "Repasar errores" : "Repetir quiz"}
+        {label ?? (mode === "errors" ? "Repasar errores" : "Repetir quiz")}
       </Button>
       {error && <p role="alert" className="text-sm font-bold text-red">{error}</p>}
     </>

@@ -6,6 +6,7 @@ import { scoreRun } from "@/lib/score";
 import { Card, LinkButton } from "@/components/ui";
 import { ReviewButton } from "./review-button";
 import { ScoreCard } from "./score-card";
+import { ReinforceCard } from "./reinforce-card";
 
 export const metadata: Metadata = { title: "Resultados" };
 
@@ -45,7 +46,8 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
             bestStreak={bestStreak}
             fresh={nuevo === "1"}
           />
-          {mistakes.length > 0 && <ReviewButton quizId={quiz.id} mode="errors" />}
+          {mistakes.length > 0 && <ReinforceCard quizId={quiz.id} mistakes={mistakes.length} />}
+          {mistakes.length > 0 && <ReviewButton quizId={quiz.id} mode="errors" label="Repetir solo las falladas" />}
           <ReviewButton quizId={quiz.id} mode="all" />
           <LinkButton href="/dashboard" variant="outline" className="w-full">
             Volver al inicio
