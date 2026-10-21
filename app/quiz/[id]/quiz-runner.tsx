@@ -195,13 +195,13 @@ export function QuizRunner({
   }, [answered, choose, current, dialog, goTo, isLast, q.options.length]);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <WorldBackdrop state={world} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
-      <header className="sticky top-0 z-20 bg-ink/80 text-white backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
-          <span className="hidden font-display text-2xl font-bold text-yellow sm:inline">Repasa</span>
+      <header className="z-20 shrink-0 bg-ink/80 text-white backdrop-blur-md">
+        <div className="flex items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6">
+          <span className="hidden font-display text-xl font-bold text-yellow lg:inline">Repasa</span>
           <div
-            className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/20"
+            className="h-2.5 min-w-16 flex-1 overflow-hidden rounded-full bg-white/20"
             role="progressbar"
             aria-label="Progreso del quiz"
             aria-valuenow={answeredCount}
@@ -215,7 +215,21 @@ export function QuizRunner({
               transition={{ type: "spring", stiffness: 120, damping: 20 }}
             />
           </div>
-          <span className="tabular-nums text-sm text-white/75" aria-label="Tiempo">
+          <Chip label="Puntos" bumpKey={feedback?.kind === "hit" ? feedback.key : 0}>
+            <AnimatedNumber value={points} />
+            {feedback?.kind === "hit" && (
+              <span key={feedback.key} className="anim-float-up absolute -top-2 right-0 text-xs font-bold text-green">
+                +{feedback.gained}
+              </span>
+            )}
+          </Chip>
+          <Chip label="Racha" bumpKey={feedback?.kind === "hit" ? feedback.key : 0} hot={streak >= 3}>
+            {streak > 0 ? `🔥${streak}` : "—"}
+          </Chip>
+          <Chip label="Aciertos">
+            {hits}/{questions.length}
+          </Chip>
+          <span className="hidden tabular-nums text-sm text-white/75 sm:inline" aria-label="Tiempo">
             ⏱ {formatTime(seconds)}
           </span>
           <Link href="/quizzes" className="whitespace-nowrap text-sm text-white/85 hover:text-white">
@@ -225,9 +239,9 @@ export function QuizRunner({
         <div className="h-1 bg-yellow" />
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-8 pt-[30vh] sm:px-6 md:pt-6">
-        {/* Mood badge for the mascot */}
-        <div className="pointer-events-none fixed bottom-5 right-5 z-10 hidden md:block" aria-live="polite">
+      {/* Portrait: the top band shows the scene. Landscape: the right side does. */}
+      <main className="flex min-h-0 flex-1 px-2 pb-2 pt-[34dvh] sm:px-6 sm:pb-4 landscape:pt-3 sm:landscape:pt-4">
+        <div className="pointer-events-none fixed bottom-4 right-4 z-10 hidden landscape:md:block" aria-live="polite">
           <motion.span
             key={mood}
             initial={reduce ? false : { opacity: 0, y: 8, scale: 0.9 }}
@@ -237,172 +251,157 @@ export function QuizRunner({
             Repi · {MOOD_LABEL[mood]}
           </motion.span>
         </div>
-        <div className="w-full max-w-[600px] rounded-3xl border border-white/50 bg-paper/75 p-4 shadow-2xl backdrop-blur-xl sm:p-6">
-        {/* Score bar */}
-        <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3">
-          <Stat label="Puntos" value={<AnimatedNumber value={points} />} bumpKey={feedback?.kind === "hit" ? feedback.key : 0}>
-            {feedback?.kind === "hit" && (
-              <span key={feedback.key} className="anim-float-up absolute -top-1 right-2 font-bold text-green">
-                +{feedback.gained}
-              </span>
-            )}
-          </Stat>
-          <Stat
-            label="Racha"
-            value={streak > 0 ? `🔥 ${streak}` : "—"}
-            bumpKey={feedback?.kind === "hit" ? feedback.key : 0}
-            highlight={streak >= 3}
-          />
-          <Stat label="Aciertos" value={`${hits}/${questions.length}`} />
-        </div>
 
-        {/* Question dots */}
-        <nav aria-label="Preguntas" className="mb-4 flex flex-wrap gap-1.5">
-          {questions.map((qq, i) => {
-            const a = answers[i];
-            const state = a === -1 ? "pending" : a === qq.correctIndex ? "hit" : "miss";
-            return (
-              <motion.button
-                key={i}
-                layout
-                whileHover={reduce ? undefined : { scale: 1.12 }}
-                whileTap={reduce ? undefined : { scale: 0.9 }}
-                onClick={() => goTo(i)}
-                aria-label={`Pregunta ${i + 1}${state === "hit" ? ", correcta" : state === "miss" ? ", incorrecta" : ""}`}
-                aria-current={i === current ? "step" : undefined}
-                className={`grid h-8 w-8 place-items-center rounded-full text-sm font-bold transition ${
-                  state === "hit"
-                    ? "bg-green text-white"
-                    : state === "miss"
-                      ? "bg-red text-white"
-                      : "border-2 border-line bg-card text-ink-soft hover:border-blue"
-                } ${i === current ? "ring-3 ring-blue ring-offset-2 ring-offset-paper" : ""}`}
-              >
-                {state === "hit" ? "✓" : state === "miss" ? "✗" : i + 1}
-              </motion.button>
-            );
-          })}
-        </nav>
-
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
-          <p className="text-muted">
-            {topic} · {title}
-          </p>
-          <p className="font-bold">
-            Pregunta {current + 1} de {questions.length}
-          </p>
-        </div>
-
-        <AnimatePresence mode="wait" initial={false} custom={direction}>
-        <motion.section
-          key={current}
-          custom={direction}
-          initial={reduce ? false : { opacity: 0, x: 60 * direction, rotate: 1.5 * direction }}
-          animate={{ opacity: 1, x: 0, rotate: 0 }}
-          exit={reduce ? undefined : { opacity: 0, x: -60 * direction, rotate: -1.5 * direction }}
-          transition={{ type: "spring", stiffness: 260, damping: 26 }}
-          className={`rounded-2xl border border-line bg-card p-5 sm:p-6 ${
-            feedback?.kind === "miss" ? "anim-shake" : ""
-          }`}
-        >
-          <h1 className="text-xl font-bold leading-snug sm:text-2xl">{q.question}</h1>
-          <ul className="mt-5 space-y-2.5">
-            {q.options.map((opt, i) => {
-              const isCorrect = i === q.correctIndex;
-              const isChosen = i === chosen;
-              let style = "border-line hover:-translate-y-0.5 hover:border-blue hover:bg-blue-soft hover:shadow-md";
-              let tag: React.ReactNode = null;
-              if (answered) {
-                if (isCorrect) {
-                  style = `border-green bg-green-soft ${isChosen ? "anim-pop" : ""}`;
-                  tag = <span className="font-bold text-green">✓ Correcta</span>;
-                } else if (isChosen) {
-                  style = "border-red bg-red-soft";
-                  tag = <span className="font-bold text-red">✗ Incorrecta</span>;
-                } else {
-                  style = "border-line opacity-60";
-                }
-              }
+        <div className="flex max-h-full min-h-0 w-full flex-col self-start landscape:max-w-[min(600px,56vw)] portrait:max-w-[600px] rounded-3xl border border-white/50 bg-paper/80 p-3 shadow-2xl backdrop-blur-xl sm:p-5">
+          {/* Question dots */}
+          <nav aria-label="Preguntas" className="flex shrink-0 flex-wrap gap-1">
+            {questions.map((qq, i) => {
+              const a = answers[i];
+              const state = a === -1 ? "pending" : a === qq.correctIndex ? "hit" : "miss";
               return (
-                <li key={i} className="anim-rise" style={{ animationDelay: `${i * 50}ms` }}>
-                  <motion.button
-                    whileTap={answered || reduce ? undefined : { scale: 0.97 }}
-                    ref={(el) => {
-                      optionRefs.current[i] = el;
-                    }}
-                    onClick={() => choose(i)}
-                    disabled={answered}
-                    className={`flex w-full items-center gap-4 rounded-xl border-2 px-4 py-3 text-left transition disabled:cursor-default ${style}`}
-                  >
-                    <span
-                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg font-display font-bold ${
-                        answered && isCorrect
-                          ? "bg-green text-white"
-                          : answered && isChosen
-                            ? "bg-red text-white"
-                            : "bg-paper-dark text-ink-soft"
-                      }`}
-                    >
-                      {LETTERS[i]}
-                    </span>
-                    <span className={`flex-1 ${answered && (isCorrect || isChosen) ? "font-bold" : ""}`}>{opt}</span>
-                    {tag}
-                  </motion.button>
-                </li>
+                <motion.button
+                  key={i}
+                  layout
+                  whileHover={reduce ? undefined : { scale: 1.12 }}
+                  whileTap={reduce ? undefined : { scale: 0.9 }}
+                  onClick={() => goTo(i)}
+                  aria-label={`Pregunta ${i + 1}${state === "hit" ? ", correcta" : state === "miss" ? ", incorrecta" : ""}`}
+                  aria-current={i === current ? "step" : undefined}
+                  className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold transition ${
+                    state === "hit"
+                      ? "bg-green text-white"
+                      : state === "miss"
+                        ? "bg-red text-white"
+                        : "border-2 border-line bg-card text-ink-soft hover:border-blue"
+                  } ${i === current ? "ring-2 ring-blue ring-offset-2 ring-offset-paper" : ""}`}
+                >
+                  {state === "hit" ? "✓" : state === "miss" ? "✗" : i + 1}
+                </motion.button>
               );
             })}
-          </ul>
+          </nav>
 
-          <div aria-live="polite">
-            {answered && (
-              <div className="anim-rise mt-5 space-y-3">
-                {feedback && (
-                  <p className={`font-display text-lg font-bold ${feedback.kind === "hit" ? "text-green" : "text-red"}`}>
-                    {feedback.message}
-                  </p>
-                )}
-                <div className="rounded-lg border-l-4 border-yellow bg-yellow-soft px-4 py-3">
-                  <span className="font-bold">Explicación de la IA:</span> {q.explanation}
+          <div className="mb-1.5 mt-2 flex shrink-0 items-center justify-between gap-2 text-xs sm:text-sm">
+            <p className="truncate text-muted">
+              {topic} · {title}
+            </p>
+            <p className="shrink-0 font-bold">
+              {current + 1} / {questions.length}
+            </p>
+          </div>
+
+          {/* Only this area scrolls, and only if a long question does not fit. */}
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-2xl">
+            <AnimatePresence mode="wait" initial={false} custom={direction}>
+              <motion.section
+                key={current}
+                custom={direction}
+                initial={reduce ? false : { opacity: 0, x: 60 * direction, rotate: 1.5 * direction }}
+                animate={{ opacity: 1, x: 0, rotate: 0 }}
+                exit={reduce ? undefined : { opacity: 0, x: -60 * direction, rotate: -1.5 * direction }}
+                transition={{ type: "spring", stiffness: 260, damping: 26 }}
+                className={`rounded-2xl border border-line bg-card p-3 sm:p-5 ${feedback?.kind === "miss" ? "anim-shake" : ""}`}
+              >
+                <h1 className="text-base font-bold leading-snug sm:text-xl">{q.question}</h1>
+                <ul className="mt-3 space-y-2">
+                  {q.options.map((opt, i) => {
+                    const isCorrect = i === q.correctIndex;
+                    const isChosen = i === chosen;
+                    let style = "border-line hover:-translate-y-0.5 hover:border-blue hover:bg-blue-soft hover:shadow-md";
+                    let tag: React.ReactNode = null;
+                    if (answered) {
+                      if (isCorrect) {
+                        style = `border-green bg-green-soft ${isChosen ? "anim-pop" : ""}`;
+                        tag = <span className="shrink-0 text-sm font-bold text-green">✓ Correcta</span>;
+                      } else if (isChosen) {
+                        style = "border-red bg-red-soft";
+                        tag = <span className="shrink-0 text-sm font-bold text-red">✗ Incorrecta</span>;
+                      } else {
+                        style = "border-line opacity-60";
+                      }
+                    }
+                    return (
+                      <li key={i} className="anim-rise" style={{ animationDelay: `${i * 50}ms` }}>
+                        <motion.button
+                          whileTap={answered || reduce ? undefined : { scale: 0.97 }}
+                          ref={(el) => {
+                            optionRefs.current[i] = el;
+                          }}
+                          onClick={() => choose(i)}
+                          disabled={answered}
+                          title={`Tecla ${i + 1} o ${LETTERS[i]}`}
+                          className={`flex w-full items-center gap-3 rounded-xl border-2 px-3 py-2 text-left text-sm transition disabled:cursor-default sm:py-2.5 sm:text-base ${style}`}
+                        >
+                          <span
+                            className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg font-display font-bold ${
+                              answered && isCorrect
+                                ? "bg-green text-white"
+                                : answered && isChosen
+                                  ? "bg-red text-white"
+                                  : "bg-paper-dark text-ink-soft"
+                            }`}
+                          >
+                            {LETTERS[i]}
+                          </span>
+                          <span className={`flex-1 ${answered && (isCorrect || isChosen) ? "font-bold" : ""}`}>{opt}</span>
+                          {tag}
+                        </motion.button>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <div aria-live="polite">
+                  {answered && (
+                    <div className="anim-rise mt-3 space-y-2">
+                      {feedback && (
+                        <p className={`font-display font-bold ${feedback.kind === "hit" ? "text-green" : "text-red"}`}>{feedback.message}</p>
+                      )}
+                      <div className="rounded-lg border-l-4 border-yellow bg-yellow-soft px-3 py-2 text-sm sm:text-base">
+                        <span className="font-bold">Explicación:</span> {q.explanation}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              </motion.section>
+            </AnimatePresence>
+          </div>
+
+          {error && (
+            <p role="alert" className="mt-2 shrink-0 rounded-lg bg-red-soft px-3 py-2 text-sm font-bold text-red">
+              {error}
+            </p>
+          )}
+
+          {/* Controls: always visible */}
+          <div className="mt-2 flex shrink-0 items-center gap-2">
+            <Button variant="outline" onClick={() => goTo(current - 1)} disabled={current === 0} className="px-3 py-2" aria-label="Anterior">
+              ←<span className="hidden sm:inline">Anterior</span>
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setDialog("restart")}
+              disabled={answeredCount === 0 || submitting}
+              className="px-2.5 py-2 text-sm"
+              title="Empezar de nuevo"
+            >
+              ↺<span className="hidden md:inline">Reiniciar</span>
+            </Button>
+            <Button variant="danger" onClick={() => setDialog("finish")} disabled={submitting} className="px-2.5 py-2 text-sm" title="Finalizar quiz">
+              ⏹<span className="hidden md:inline">Finalizar</span>
+            </Button>
+            <div className="flex-1" />
+            {isLast ? (
+              <Button onClick={() => (unanswered > 0 ? setDialog("finish") : finish())} disabled={submitting} className="px-4 py-2">
+                {submitting && <Spinner />}
+                Ver resultados
+              </Button>
+            ) : (
+              <Button onClick={() => goTo(current + 1)} className={`px-4 py-2 ${answered ? "anim-pop" : ""}`} key={String(answered)}>
+                Siguiente →
+              </Button>
             )}
           </div>
-        </motion.section>
-        </AnimatePresence>
-
-        {error && (
-          <p role="alert" className="mt-4 rounded-lg bg-red-soft px-3 py-2 font-bold text-red">
-            {error}
-          </p>
-        )}
-
-        <div className="mt-5 flex items-center justify-between gap-3">
-          <Button variant="outline" onClick={() => goTo(current - 1)} disabled={current === 0}>
-            ← Anterior
-          </Button>
-          {isLast ? (
-            <Button onClick={() => (unanswered > 0 ? setDialog("finish") : finish())} disabled={submitting}>
-              {submitting && <Spinner />}
-              Ver resultados
-            </Button>
-          ) : (
-            <Button onClick={() => goTo(current + 1)} className={answered ? "anim-pop" : ""} key={String(answered)}>
-              Siguiente →
-            </Button>
-          )}
-        </div>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 border-t border-line pt-5">
-          <Button variant="ghost" onClick={() => setDialog("restart")} disabled={answeredCount === 0 || submitting}>
-            ↺ Empezar de nuevo
-          </Button>
-          <Button variant="danger" onClick={() => setDialog("finish")} disabled={submitting}>
-            ⏹ Finalizar quiz
-          </Button>
-        </div>
-        <p className="mt-3 hidden text-center text-xs text-muted sm:block">
-          Atajos: teclas 1-4 o A-D para responder · ← → para moverte
-        </p>
         </div>
       </main>
 
@@ -426,30 +425,16 @@ export function QuizRunner({
   );
 }
 
-function Stat({
-  label,
-  value,
-  bumpKey = 0,
-  highlight = false,
-  children,
-}: {
-  label: string;
-  value: React.ReactNode;
-  bumpKey?: number;
-  highlight?: boolean;
-  children?: React.ReactNode;
-}) {
+function Chip({ label, children, bumpKey = 0, hot = false }: { label: string; children: React.ReactNode; bumpKey?: number; hot?: boolean }) {
   return (
     <div
-      className={`relative rounded-xl border px-3 py-2 text-center transition ${
-        highlight ? "border-yellow bg-yellow-soft" : "border-line bg-card"
-      }`}
+      className={`relative flex shrink-0 flex-col items-center rounded-lg px-2 py-0.5 leading-tight sm:px-3 ${hot ? "bg-yellow text-ink" : "bg-white/10"}`}
+      aria-label={label}
     >
-      <p className="text-xs font-bold uppercase tracking-wider text-muted">{label}</p>
-      <p key={bumpKey} className={`font-display text-xl font-bold tabular-nums ${bumpKey ? "anim-pop" : ""}`}>
-        {value}
-      </p>
-      {children}
+      <span className="hidden text-[10px] font-bold uppercase tracking-wider opacity-70 sm:block">{label}</span>
+      <span key={bumpKey} className={`font-display text-sm font-bold tabular-nums sm:text-base ${bumpKey ? "anim-pop" : ""}`}>
+        {children}
+      </span>
     </div>
   );
 }

@@ -34,7 +34,8 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
   return (
     <>
       <ResultsWorld score={quiz.score} total={quiz.total} bestStreak={bestStreak} />
-      <div className="mt-[26vh] max-w-[640px] rounded-3xl md:mt-0 border border-white/50 bg-paper/75 p-4 shadow-2xl backdrop-blur-xl sm:p-6">
+      {/* Landscape: pinned left with its own scroll, so the mascot and trophy stay visible on the right. */}
+      <div className="mt-[30dvh] max-w-[640px] rounded-3xl border border-white/50 bg-paper/80 p-4 shadow-2xl backdrop-blur-xl sm:p-6 landscape:fixed landscape:bottom-4 landscape:left-4 landscape:top-[4.75rem] landscape:z-10 landscape:mt-0 landscape:w-[min(600px,56vw)] landscape:overflow-y-auto landscape:overscroll-contain">
       <p className="text-muted">
         {quiz.topic} · {quiz.title}
       </p>

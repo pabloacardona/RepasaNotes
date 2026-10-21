@@ -10,7 +10,7 @@ import type { WorldState } from "@/lib/mood";
 import { Mascot } from "./mascot";
 import { Garden } from "./garden";
 import { SkyDome } from "./sky-dome";
-import { Fireflies, Lightning, Petals, Rain, Rainbow } from "./weather";
+import { Butterflies, Fireflies, Leaves, Lightning, Petals, Rain, Rainbow } from "./weather";
 import { Trophy, type TrophyTier } from "./trophy";
 
 export type WorldProps = {
@@ -25,24 +25,77 @@ const SUN_COLD = new Color("#9aa7c7");
 const FOG_SUNNY = new Color("#d9e6f2");
 const FOG_STORM = new Color("#3e4555");
 
-// Keeps the mascot on the right of the screen (on top for phones) with a gentle parallax.
-function CameraRig({ focusX, shift }: { focusX: number; shift: number }) {
-  const look = useRef(new Vector3(focusX, 0.75, 0));
+// Width the content panel takes on the left, in CSS pixels. Must match the page layout:
+// max-w-[min(600px,56vw)] plus its left padding.
+const panelPx = (width: number) => Math.min(600, width * 0.56) + 40;
+export const TOP_FRACTION = 0.34; // portrait: share of the screen above the panel
+const HEADER_PX = 52;
+
+const FOV = 38;
+const TAN = Math.tan(MathUtils.degToRad(FOV / 2));
+
+// Frames the subject (mascot, plus the trophy on results) in the free part of the screen.
+// The camera translates and dollies instead of using an off-axis projection, so nothing
+// stretches when the window or the browser zoom changes. It also drifts slowly so the
+// scene never stands still.
+function CameraRig({ center, size }: { center: [number, number, number]; size: [number, number] }) {
+  const pos = useRef(new Vector3(center[0], center[1] + 0.4, center[2] + 3.4));
+  const look = useRef(new Vector3(...center));
+  const placed = useRef(false);
   useFrame((state, dt) => {
     const cam = state.camera as PerspectiveCamera;
     const { width, height } = state.size;
-    const mobile = width < 768;
+    const aspect = width / height;
+    const [W, H] = size;
     const d = Math.min(dt, 0.05);
-    const px = state.pointer.x * 0.18;
-    const py = state.pointer.y * 0.08;
-    cam.position.x = MathUtils.damp(cam.position.x, focusX + px, 2, d);
-    cam.position.y = MathUtils.damp(cam.position.y, (mobile ? 1.5 : 1.15) + py, 2, d);
-    cam.position.z = MathUtils.damp(cam.position.z, mobile ? 5 : 3.1, 2, d);
-    look.current.x = MathUtils.damp(look.current.x, focusX, 2, d);
+    const t = state.clock.elapsedTime;
+
+    // Slow orbit and breathing, plus a little pointer parallax.
+    const orbit = Math.sin(t * 0.09) * 0.12 + state.pointer.x * 0.05;
+    const bob = Math.sin(t * 0.23) * 0.04 + state.pointer.y * 0.03;
+
+    if (aspect >= 1) {
+      // Landscape: slide sideways so the subject sits right of the panel.
+      const free = MathUtils.clamp(1 - panelPx(width) / width, 0.36, 0.62);
+      const dist = Math.max(W / (0.82 * free * 2 * TAN * aspect), H / (0.78 * 2 * TAN), 2.2);
+      const shiftX = (1 - free) * dist * TAN * aspect;
+      const tx = center[0] - shiftX;
+      pos.current.set(tx + Math.sin(orbit) * dist, center[1] + 0.35 + bob, center[2] + Math.cos(orbit) * dist);
+      look.current.set(tx, center[1], center[2]);
+    } else {
+      // Portrait: tilt down so the subject sits in the band above the panel.
+      // A rotation, not a translation, so the camera never dips under the ground.
+      const dist = Math.max(H / (0.85 * TOP_FRACTION * 2 * TAN), W / (0.8 * 2 * TAN * aspect), 2.2);
+      const bandCentre = (HEADER_PX / height + TOP_FRACTION / 2) * 2; // from the top, in NDC units
+      const beta = Math.atan((1 - bandCentre) * TAN); // subject angle above the view axis
+      const elev = 0.3 + bob;
+      pos.current.set(center[0] + Math.sin(orbit) * dist, center[1] + elev, center[2] + Math.cos(orbit) * dist);
+      const toSubject = Math.atan2(-elev, dist);
+      const pitch = toSubject - beta;
+      const hx = center[0] - pos.current.x;
+      const hz = center[2] - pos.current.z;
+      const hl = Math.hypot(hx, hz) || 1;
+      look.current.set(
+        pos.current.x + (hx / hl) * Math.cos(pitch),
+        pos.current.y + Math.sin(pitch),
+        pos.current.z + (hz / hl) * Math.cos(pitch),
+      );
+    }
+    // Jump into place on the first frame, then ease (window resizes, orbit).
+    if (!placed.current) {
+      cam.position.copy(pos.current);
+      placed.current = true;
+    } else {
+      cam.position.lerp(pos.current, 1 - Math.exp(-4 * d));
+    }
+    // Keep the view direction exact while the position eases in.
+    look.current.add(cam.position).sub(pos.current);
     cam.lookAt(look.current);
-    // Shift the whole render so the subject sits beside the quiz panel.
-    if (mobile) cam.setViewOffset(width, height, 0, height * 0.34, width, height);
-    else cam.setViewOffset(width, height, -width * shift, 0, width, height);
+    if (cam.view) cam.clearViewOffset();
+    if (cam.fov !== FOV) {
+      cam.fov = FOV;
+      cam.updateProjectionMatrix();
+    }
   });
   return null;
 }
@@ -108,12 +161,12 @@ function World({ state, lastHit, trophy, high }: WorldProps & { high: boolean })
     bloomRef.current = state.bloom;
   });
 
-  const focusX = trophy ? 0.42 : 0;
+  const center: [number, number, number] = trophy ? [0.45, 0.72, 0.15] : [0, 0.78, 0.05];
   const celebrating = state.mood === "celebrating" || state.mood === "proud";
 
   return (
     <>
-      <CameraRig focusX={focusX} shift={trophy ? 0.17 : 0.23} />
+      <CameraRig center={center} size={trophy ? [2.3, 1.6] : [1.3, 1.5]} />
       <Atmosphere weatherRef={weatherRef} flashRef={flashRef} />
       <Environment files="/3d/env.hdr" />
       <SkyDome weatherRef={weatherRef} flashRef={flashRef} />
@@ -121,7 +174,7 @@ function World({ state, lastHit, trophy, high }: WorldProps & { high: boolean })
 
       {/* Mascot standing on the stump */}
       <group position={[0, 0.29, 0.05]} scale={0.82}>
-        <Mascot mood={state.mood} pulse={state.pulse} lastHit={lastHit} />
+        <Mascot mood={state.mood} pulse={state.pulse} lastHit={lastHit} windRef={windRef} furShells={high ? 36 : 18} />
       </group>
       {trophy && <Trophy tier={trophy} position={[0.88, 0, 0.3]} scale={1.1} />}
 
@@ -130,10 +183,12 @@ function World({ state, lastHit, trophy, high }: WorldProps & { high: boolean })
       <Rainbow show={state.mood === "comeback" || (state.weather > 0.85 && state.streak >= 3) || celebrating} />
       <Fireflies streak={state.streak} sunny={state.weather} />
       <Petals active={celebrating} />
+      <Butterflies sunnyRef={weatherRef} />
+      <Leaves windRef={windRef} />
 
       {high ? (
         <EffectComposer multisampling={0}>
-          <DepthOfField target={[focusX, 0.75, 0.1]} focalLength={0.035} bokehScale={5} height={480} />
+          <DepthOfField target={center} worldFocusRange={trophy ? 2.4 : 1.6} bokehScale={5} height={480} />
           <Bloom intensity={0.55} luminanceThreshold={0.82} luminanceSmoothing={0.2} mipmapBlur />
           <Vignette offset={0.25} darkness={0.55} />
           <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
@@ -162,7 +217,7 @@ export default function WorldScene(props: WorldProps) {
     <Canvas
       shadows
       dpr={dpr}
-      camera={{ position: [0, 1.15, 3.1], fov: 38, near: 0.1, far: 150 }}
+      camera={{ position: [0, 1.2, 3.6], fov: FOV, near: 0.1, far: 150 }}
       gl={{ antialias: false, powerPreference: "high-performance" }}
       aria-hidden
     >

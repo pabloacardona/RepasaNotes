@@ -4,8 +4,10 @@ import { useFrame } from "@react-three/fiber";
 import { Sparkles, useTexture } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
 import {
+  CapsuleGeometry,
   DoubleSide,
   ExtrudeGeometry,
+  SphereGeometry,
   MathUtils,
   RepeatWrapping,
   Shape,
@@ -16,6 +18,7 @@ import {
 } from "three";
 import type { Mood } from "@/lib/mood";
 import { glyphTexture } from "./sprites";
+import { Fur } from "./fur";
 
 const YELLOW = "#ffc72c";
 const INK = "#1b2433";
@@ -108,7 +111,25 @@ function starShape(outer = 0.07, inner = 0.032) {
 
 // ---------- Component ----------
 
-export function Mascot({ mood, pulse, lastHit }: { mood: Mood; pulse: number; lastHit: boolean | null }) {
+export function Mascot({
+  mood,
+  pulse,
+  lastHit,
+  windRef,
+  furShells = 36,
+}: {
+  mood: Mood;
+  pulse: number;
+  lastHit: boolean | null;
+  windRef?: React.RefObject<number>;
+  furShells?: number;
+}) {
+  const bodyGeo = useMemo(() => new SphereGeometry(R, 72, 54), []);
+  const armGeo = useMemo(() => new CapsuleGeometry(0.055, 0.13, 8, 16), []);
+  useEffect(() => () => {
+    bodyGeo.dispose();
+    armGeo.dispose();
+  }, [bodyGeo, armGeo]);
   const face = useMemo<Face>(() => ({ ...BASE, ...FACES[mood] }), [mood]);
   const p = useRef<Record<Num, number>>(Object.fromEntries(NUM_KEYS.map((k) => [k, BASE[k]])) as Record<Num, number>);
   const eyeMix = useRef({ open: 1, happy: 0, closed: 0, star: 0 });
@@ -248,19 +269,29 @@ export function Mascot({ mood, pulse, lastHit }: { mood: Mood; pulse: number; la
     <group ref={root}>
       <group ref={body}>
         {/* Body */}
-        <mesh position={[0, BODY_Y, 0]} castShadow receiveShadow>
-          <sphereGeometry args={[R, 64, 48]} />
+        <mesh geometry={bodyGeo} position={[0, BODY_Y, 0]} castShadow receiveShadow>
           <meshPhysicalMaterial
-            color={YELLOW}
-            roughness={0.7}
+            color="#d99a12"
+            roughness={0.8}
             roughnessMap={fleeceRough}
             normalMap={fleeceNormal}
             normalScale={[0.5, 0.5]}
-            sheen={0.35}
-            sheenColor="#ffe08a"
-            sheenRoughness={0.6}
           />
         </mesh>
+        {/* Hair: short body fur, a fringe and a mane that swing with every move */}
+        <group position={[0, BODY_Y, 0]}>
+          <Fur
+            geometry={bodyGeo}
+            shells={furShells}
+            length={0.13}
+            density={68}
+            regions="head"
+            color={YELLOW}
+            rootColor="#9a6400"
+            tipColor="#fff1b8"
+            windRef={windRef}
+          />
+        </group>
 
         {/* Eyes */}
         {eyePos.map((x, i) => (
@@ -337,10 +368,12 @@ export function Mascot({ mood, pulse, lastHit }: { mood: Mood; pulse: number; la
         {/* Arms */}
         {[-1, 1].map((side, i) => (
           <group key={side} ref={(el) => { arms.current[i] = el; }} position={[side * 0.39, 0.44, 0.02]}>
-            <mesh position={[0, -0.12, 0]} castShadow>
-              <capsuleGeometry args={[0.055, 0.13, 6, 12]} />
-              <meshPhysicalMaterial color={YELLOW} roughness={0.8} normalMap={fleeceNormal} normalScale={[0.4, 0.4]} sheen={0.35} sheenColor="#ffe08a" />
-            </mesh>
+            <group position={[0, -0.12, 0]}>
+              <mesh geometry={armGeo} castShadow>
+                <meshPhysicalMaterial color="#d99a12" roughness={0.85} />
+              </mesh>
+              <Fur geometry={armGeo} shells={Math.round(furShells * 0.5)} length={0.03} density={90} color={YELLOW} rootColor="#9a6400" tipColor="#fff1b8" windRef={windRef} />
+            </group>
           </group>
         ))}
 

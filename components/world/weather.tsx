@@ -139,3 +139,85 @@ export function Petals({ active }: { active: boolean }) {
     </instancedMesh>
   );
 }
+
+// Butterflies wander around the garden while the weather is good.
+export function Butterflies({ sunnyRef }: { sunnyRef: RefObject<number> }) {
+  const refs = useRef<(Group | null)[]>([]);
+  const wings = useRef<(Group | null)[]>([]);
+  const colors = ["#ff9f1c", "#4cc9f0", "#ffffff", "#f6d44a", "#ff8fa3", "#9d4edd"];
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    const vis = MathUtils.smoothstep(sunnyRef.current ?? 0, 0.45, 0.7);
+    refs.current.forEach((g, i) => {
+      if (!g) return;
+      const a = t * (0.25 + rand(i, 20) * 0.2) + i * 1.7;
+      const r = 1.1 + rand(i, 21) * 1.6;
+      g.position.set(Math.cos(a) * r, 0.5 + Math.sin(t * 0.9 + i) * 0.35 + rand(i, 22) * 0.8, Math.sin(a) * r * 0.7 - 0.6);
+      g.rotation.y = -a + Math.PI / 2;
+      g.scale.setScalar(vis);
+      g.visible = vis > 0.02;
+    });
+    wings.current.forEach((w, i) => {
+      if (w) w.rotation.z = Math.sin(t * 18 + i) * 0.9 * (i % 2 ? 1 : -1);
+    });
+  });
+  return (
+    <>
+      {colors.map((c, i) => (
+        <group key={i} ref={(el) => { refs.current[i] = el; }}>
+          {[0, 1].map((side) => (
+            <group key={side} ref={(el) => { wings.current[i * 2 + side] = el; }}>
+              <mesh position={[side ? 0.045 : -0.045, 0, 0]}>
+                <circleGeometry args={[0.05, 12]} />
+                <meshStandardMaterial color={c} side={DoubleSide} emissive={c} emissiveIntensity={0.25} roughness={0.6} />
+              </mesh>
+            </group>
+          ))}
+        </group>
+      ))}
+    </>
+  );
+}
+
+// Leaves drifting down all the time; the wind blows them sideways.
+export function Leaves({ windRef }: { windRef: RefObject<number> }) {
+  const mesh = useRef<InstancedMesh>(null);
+  const dummy = useMemo(() => new Object3D(), []);
+  const leaves = useMemo(
+    () => Array.from({ length: 45 }, (_, i) => ({ x: (rand(i, 30) - 0.5) * 9, y: rand(i, 31) * 5, z: -5 + rand(i, 32) * 6.5, s: 0.6 + rand(i, 33) * 0.8, r: rand(i, 34) * 6 })),
+    [],
+  );
+  useEffect(() => {
+    const m = mesh.current;
+    if (!m) return;
+    const palette = ["#7fa34a", "#b8a03a", "#c7742d", "#5f8a3a"];
+    leaves.forEach((_, i) => m.setColorAt(i, new Color(palette[i % palette.length])));
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
+  }, [leaves]);
+  useFrame((state, dt) => {
+    const m = mesh.current;
+    if (!m) return;
+    const t = state.clock.elapsedTime;
+    const w = windRef.current ?? 0;
+    const d = Math.min(dt, 0.05);
+    leaves.forEach((p, i) => {
+      p.y -= (0.25 + w * 0.6) * p.s * d;
+      p.x += (0.15 + w * 1.6) * d;
+      if (p.y < 0 || p.x > 5) {
+        p.y = 4.5 + rand(i, t) * 1.5;
+        p.x = -5 + rand(i, t + 1) * 3;
+      }
+      dummy.position.set(p.x + Math.sin(t * 1.3 + p.r) * 0.3, p.y, p.z);
+      dummy.rotation.set(t * p.s + p.r, t * 0.8 + p.r, Math.sin(t * 2 + p.r));
+      dummy.updateMatrix();
+      m.setMatrixAt(i, dummy.matrix);
+    });
+    m.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <instancedMesh ref={mesh} args={[undefined, undefined, leaves.length]} frustumCulled={false}>
+      <planeGeometry args={[0.07, 0.045]} />
+      <meshStandardMaterial side={DoubleSide} roughness={0.7} />
+    </instancedMesh>
+  );
+}
