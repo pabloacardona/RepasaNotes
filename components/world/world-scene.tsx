@@ -7,9 +7,9 @@ import { ToneMappingMode } from "postprocessing";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Color, Fog, MathUtils, Vector3, type DirectionalLight, type HemisphereLight, type PerspectiveCamera } from "three";
 import type { WorldState } from "@/lib/mood";
-import { Mascot } from "./mascot";
+import { Repi } from "./repi";
 import { Garden } from "./garden";
-import { SkyDome } from "./sky-dome";
+import { SkyDome, skyColors } from "./sky-dome";
 import { Butterflies, Fireflies, Leaves, Lightning, Petals, Rain, Rainbow } from "./weather";
 import { Trophy, type TrophyTier } from "./trophy";
 
@@ -22,8 +22,7 @@ export type WorldProps = {
 
 const SUN_WARM = new Color("#fff1d6");
 const SUN_COLD = new Color("#9aa7c7");
-const FOG_SUNNY = new Color("#d9e6f2");
-const FOG_STORM = new Color("#3e4555");
+const TOP_TMP = new Color();
 
 // Width the content panel takes on the left, in CSS pixels. Must match the page layout:
 // max-w-[min(600px,56vw)] plus its left padding.
@@ -109,7 +108,7 @@ function Atmosphere({ weatherRef, flashRef }: { weatherRef: React.RefObject<numb
   }, [getState]);
   useFrame((state) => {
     const scene = state.scene;
-    if (!scene.fog) scene.fog = new Fog(FOG_SUNNY.clone(), 7, 22);
+    if (!scene.fog) scene.fog = new Fog(new Color("#cfeeff"), 7, 22);
     const w = weatherRef.current ?? 0.6;
     const f = flashRef.current ?? 0;
     if (sun.current) {
@@ -119,9 +118,10 @@ function Atmosphere({ weatherRef, flashRef }: { weatherRef: React.RefObject<numb
     if (hemi.current) hemi.current.intensity = MathUtils.lerp(0.12, 0.9, w) + f * 1.5;
     scene.environmentIntensity = MathUtils.lerp(0.12, 0.85, w * w) + f;
     if (scene.fog instanceof Fog) {
-      scene.fog.color.copy(FOG_STORM).lerp(FOG_SUNNY, w);
-      scene.fog.near = MathUtils.lerp(3, 8, w);
-      scene.fog.far = MathUtils.lerp(14, 26, w);
+      // Same colour as the sky's horizon, so the ground melts into it.
+      skyColors(w, TOP_TMP, scene.fog.color);
+      scene.fog.near = MathUtils.lerp(5, 10, w);
+      scene.fog.far = MathUtils.lerp(18, 32, w);
     }
   });
   return (
@@ -170,11 +170,11 @@ function World({ state, lastHit, trophy, high }: WorldProps & { high: boolean })
       <Atmosphere weatherRef={weatherRef} flashRef={flashRef} />
       <Environment files="/3d/env.hdr" />
       <SkyDome weatherRef={weatherRef} flashRef={flashRef} />
-      <Garden windRef={windRef} bloomRef={bloomRef} stormRef={stormRef} />
+      <Garden windRef={windRef} bloomRef={bloomRef} sunnyRef={weatherRef} />
 
-      {/* Mascot standing on the stump */}
-      <group position={[0, 0.29, 0.05]} scale={0.82}>
-        <Mascot mood={state.mood} pulse={state.pulse} lastHit={lastHit} windRef={windRef} furShells={high ? 36 : 18} />
+      {/* Repi standing on the books */}
+      <group position={[0, 0.36, 0.02]}>
+        <Repi mood={state.mood} pulse={state.pulse} lastHit={lastHit} streak={state.streak} windRef={windRef} />
       </group>
       {trophy && <Trophy tier={trophy} position={[0.88, 0, 0.3]} scale={1.1} />}
 

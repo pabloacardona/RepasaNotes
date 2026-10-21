@@ -144,3 +144,39 @@ h3,
 @media (prefers-reduced-motion: reduce) {
   .aurora, .marquee-track { animation: none; }
 }
+
+/* Repi's speech bubble: pops in, holds, fades out. */
+@keyframes repi-bubble {
+  0% { opacity: 0; transform: translateY(8px) scale(0.85); }
+  8% { opacity: 1; transform: translateY(0) scale(1.04); }
+  12% { transform: scale(1); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-6px) scale(0.96); }
+}
+.repi-bubble {
+  position: relative;
+  white-space: nowrap;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #1b2433;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 6px 18px rgb(27 36 51 / 0.25);
+  animation: repi-bubble 3.6s ease-out forwards;
+}
+.repi-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .repi-bubble { animation: none; }
+}
