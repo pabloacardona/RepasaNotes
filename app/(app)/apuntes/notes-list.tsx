@@ -5,7 +5,32 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Card, LinkButton, formatDate } from "@/components/ui";
 
-type NoteItem = { id: string; title: string; topic: string; updatedAt: string; preview: string };
+type NoteStats = { answered: number; correct: number; wrong: number; quizzes: number };
+type NoteItem = { id: string; title: string; topic: string; updatedAt: string; preview: string; stats: NoteStats | null };
+
+// Small per-note summary: answered, correct, wrong and accuracy.
+function NoteProgress({ stats }: { stats: NoteStats | null }) {
+  if (!stats || stats.answered === 0) {
+    return <p className="mt-1 text-xs text-muted">Sin preguntas respondidas todavía</p>;
+  }
+  const pct = Math.round((stats.correct / stats.answered) * 100);
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tabular-nums text-ink-soft">
+      <span>
+        <span className="font-bold text-ink">{stats.answered}</span> respondidas
+      </span>
+      <span>✓ {stats.correct}</span>
+      <span>✗ {stats.wrong}</span>
+      <span className="flex items-center gap-1.5" aria-label={`Precisión ${pct}%`}>
+        <span className="flex h-1.5 w-16 gap-[2px]" aria-hidden>
+          <span className="h-full rounded-l-full bg-green" style={{ flexGrow: stats.correct, flexBasis: 0 }} />
+          <span className="h-full rounded-r-full bg-red" style={{ flexGrow: stats.wrong, flexBasis: 0 }} />
+        </span>
+        <span className="font-bold text-ink">{pct}%</span>
+      </span>
+    </div>
+  );
+}
 
 export function NotesList({ notes }: { notes: NoteItem[] }) {
   const router = useRouter();
@@ -107,6 +132,7 @@ export function NotesList({ notes }: { notes: NoteItem[] }) {
                   <p className="text-ink-soft">
                     {n.topic} · {formatDate(n.updatedAt)}
                   </p>
+                  <NoteProgress stats={n.stats} />
                 </div>
                 {confirmId === n.id ? (
                   <div className="flex flex-wrap items-center gap-2">

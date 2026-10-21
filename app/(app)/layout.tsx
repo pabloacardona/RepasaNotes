@@ -6,7 +6,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <AppNav name={user.name} />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</main>
     </>
   );
 }

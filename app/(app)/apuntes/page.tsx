@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { listNotes } from "@/lib/data";
+import { getStudyStats } from "@/lib/stats";
+import { StudyStatsPanel } from "@/components/study-stats";
 import { LinkButton, PageHeader } from "@/components/ui";
 import { NotesList } from "./notes-list";
 
@@ -8,7 +10,7 @@ export const metadata: Metadata = { title: "Mis apuntes" };
 
 export default async function NotesPage() {
   const user = await requireUser();
-  const notes = await listNotes(user.sub);
+  const [notes, stats] = await Promise.all([listNotes(user.sub), getStudyStats(user.sub)]);
 
   return (
     <>
@@ -22,6 +24,8 @@ export default async function NotesPage() {
           </div>
         }
       />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="min-w-0">
       <NotesList
         notes={notes.map((n) => ({
           id: n.id,
@@ -29,8 +33,14 @@ export default async function NotesPage() {
           topic: n.topic,
           updatedAt: n.updatedAt.toISOString(),
           preview: n.content.slice(0, 160),
+          stats: stats.byNote[n.id] ?? null,
         }))}
       />
+      </div>
+      <div className="lg:sticky lg:top-20">
+        <StudyStatsPanel stats={stats} />
+      </div>
+      </div>
     </>
   );
 }
