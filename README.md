@@ -9,7 +9,7 @@ Final project for *Desarrollo de Software Web* (UPB 2026).
 - **Landing** with SEO metadata, `robots.txt`, and `sitemap.xml`.
 - **Login / Sign up** with field-level validation (Zod on client and server). Passwords are hashed with bcrypt, and sessions use a JWT in an `httpOnly` cookie.
 - **Dashboard** showing quizzes taken, overall average, saved notes, score per topic, and the weakest topic with a "Repasar ahora" button.
-- **Mis apuntes**: full CRUD with topic filter and search.
+- **Mis apuntes**: full CRUD with topic filter and search. Each note shows questions answered, correct, wrong and accuracy. A side panel tracks progress: answered questions, accuracy, day streak (current and best), this week compared with last week, a correct/wrong bar per topic, a 12-week consistency heatmap, questions per week, and a table view of the same numbers. Days are counted in Colombia time.
 - **Crear apunte con IA**: enter a topic, optional focus, and level (básico, intermedio, avanzado). The AI writes a specialized study note (introduction, key concepts, explanation, examples, common mistakes, summary) that the user reviews and edits before saving. Non-study topics are rejected.
 - **Generar quiz**: an open-weights model (`openai/gpt-oss-120b` via Vercel AI Gateway, falling back to `deepseek/deepseek-v4-flash`) writes 5/10/15 multiple-choice questions from a note, with three difficulty levels, structured JSON output, and note-length validation (200–8000 characters).
 - **Subir archivo**: drag and drop a .pdf, .docx, .txt, or .md (up to 4 MB). Short documents load as-is; long ones are condensed by AI into a note that fits the limit.
