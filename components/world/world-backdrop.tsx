@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type WorldState } from "@/lib/mood";
 import type { TrophyTier } from "./trophy";
+import { useMascot } from "@/lib/mascots";
 
 // three.js, models and textures only load in the browser, in their own chunk.
 const WorldScene = dynamic(() => import("./world-scene"), { ssr: false });
@@ -39,12 +40,13 @@ function skyGradient(w: number) {
 export function WorldBackdrop({ state, lastHit, trophy }: { state: WorldState; lastHit: boolean | null; trophy?: TrophyTier | null }) {
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
   const [ready, setReady] = useState(false);
+  const { id: mascot } = useMascot();
 
   return (
     <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden" style={{ background: skyGradient(state.weather), transition: "background 1.5s" }}>
       {enabled && (
         <div className="absolute inset-0 transition-opacity duration-1000" style={{ opacity: ready ? 1 : 0 }}>
-          <WorldScene state={state} lastHit={lastHit} trophy={trophy} onReady={() => setReady(true)} />
+          <WorldScene mascot={mascot} state={state} lastHit={lastHit} trophy={trophy} onReady={() => setReady(true)} />
         </div>
       )}
       {(!enabled || !ready) && (

@@ -8,6 +8,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { Color, Fog, MathUtils, Vector3, type DirectionalLight, type HemisphereLight, type PerspectiveCamera } from "three";
 import type { WorldState } from "@/lib/mood";
 import { Repi } from "./repi";
+import type { MascotId } from "@/lib/mascots";
 import { Garden } from "./garden";
 import { SkyDome, skyColors } from "./sky-dome";
 import { Butterflies, Fireflies, Leaves, Lightning, Petals, Rain, Rainbow } from "./weather";
@@ -17,6 +18,7 @@ export type WorldProps = {
   state: WorldState;
   lastHit: boolean | null;
   trophy?: TrophyTier | null;
+  mascot: MascotId;
   onReady?: () => void;
 };
 
@@ -143,7 +145,7 @@ function Atmosphere({ weatherRef, flashRef }: { weatherRef: React.RefObject<numb
   );
 }
 
-function World({ state, lastHit, trophy, high }: WorldProps & { high: boolean }) {
+function World({ state, lastHit, trophy, mascot, high }: WorldProps & { high: boolean }) {
   // Smoothed values shared with shaders and lights, updated every frame.
   const weatherRef = useRef(state.weather);
   const stormRef = useRef(1 - state.weather);
@@ -174,7 +176,9 @@ function World({ state, lastHit, trophy, high }: WorldProps & { high: boolean })
 
       {/* Repi standing on the books */}
       <group position={[0, 0.36, 0.02]}>
-        <Repi mood={state.mood} pulse={state.pulse} lastHit={lastHit} streak={state.streak} windRef={windRef} />
+        <Suspense fallback={null}>
+          <Repi key={mascot} mascot={mascot} mood={state.mood} pulse={state.pulse} lastHit={lastHit} streak={state.streak} windRef={windRef} />
+        </Suspense>
       </group>
       {trophy && <Trophy tier={trophy} position={[0.88, 0, 0.3]} scale={1.1} />}
 

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { WorldBackdrop } from "@/components/world/world-backdrop";
+import { MascotPicker } from "@/components/world/mascot-picker";
 import { moodFor, type WorldState } from "@/lib/mood";
 
 // Final scene: the mascot reacts to the score and the trophy sits next to it.
@@ -21,5 +22,10 @@ export function ResultsWorld({ score, total, bestStreak }: { score: number; tota
     [score, total, bestStreak, pct],
   );
   const trophy = pct >= 0.9 ? "gold" : pct >= 0.7 ? "silver" : pct >= 0.5 ? "bronze" : null;
-  return <WorldBackdrop state={state} lastHit={null} trophy={trophy} />;
+  return (
+    <>
+      <WorldBackdrop state={state} lastHit={null} trophy={trophy} />
+      <MascotPicker className="bottom-4 right-4" />
+    </>
+  );
 }

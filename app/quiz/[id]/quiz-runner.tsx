@@ -10,6 +10,7 @@ import { burstAt } from "@/components/confetti";
 import { pointsFor } from "@/lib/score";
 import { MOOD_LABEL, moodFor, weatherFor, type WorldState } from "@/lib/mood";
 import { WorldBackdrop } from "@/components/world/world-backdrop";
+import { MascotPicker } from "@/components/world/mascot-picker";
 import type { Question } from "@/lib/db/schema";
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -241,6 +242,7 @@ export function QuizRunner({
 
       {/* Portrait: the top band shows the scene. Landscape: the right side does. */}
       <main className="flex min-h-0 flex-1 px-2 pb-2 pt-[34dvh] sm:px-6 sm:pb-4 landscape:pt-3 sm:landscape:pt-4">
+        <MascotPicker className="right-3 top-16" />
         <div className="pointer-events-none fixed bottom-4 right-4 z-10 hidden landscape:md:block" aria-live="polite">
           <motion.span
             key={mood}

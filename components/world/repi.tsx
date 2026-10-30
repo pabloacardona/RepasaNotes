@@ -6,87 +6,77 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import {
   AnimationMixer,
   Box3,
-  DoubleSide,
-  ExtrudeGeometry,
   LoopOnce,
   LoopRepeat,
   MathUtils,
-  Matrix3,
-  Matrix4,
-  Shape,
   SkinnedMesh,
   Vector3,
   type AnimationAction,
-  type Bone,
   type Group,
-  type Mesh,
-  type MeshBasicMaterial,
-  type MeshStandardMaterial,
-  type WebGLProgramParametersWithUniforms,
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { Mood } from "@/lib/mood";
+import type { MascotId } from "@/lib/mascots";
 import { FadeIn, MoodFx, type Fx } from "./mood-fx";
 
-// Repi: Quaternius "Rabbit with pigtails" (CC0), rigged with 30 animations.
-// On top of the rig we add: mood-driven clips and one-shot reactions, an expressive face
-// (eye squash in the shader, overlay eyes, brows, mouth, blush, tears), spring physics on the
-// pigtails, head tracking towards the pointer, idle fidgets and a speech bubble.
+// Repi can be any of the 21 Quaternius monsters (CC0). They share one rig layout but not the
+// same clips: some have ten (Idle, Yes, No, Jump, Dance, HitRecieve...), others only an Idle or
+// a Flying loop. So every reaction is two layers: a clip when the monster has one, and a
+// procedural layer (hop, squash and stretch, lean, sway, shake) that works on all of them.
+// Everything is damped, so there are no cuts between moods.
 
-const MODEL = "/3d/models/repi.glb";
-const HEIGHT = 1.05;
-const INK = "#1b2433";
+const HEIGHT = 0.8;
+const MAX_WIDTH = 1.0;
 
-type EyeKind = "open" | "happy" | "closed" | "star";
-type Face = {
-  eye: EyeKind;
-  lid: number; // eye height: 0.45 squint, 1 normal, 1.3 wide
-  size: number; // eye scale
-  brow: number; // + angry, - worried
-  browY: number;
-  curve: number; // mouth -1 frown .. 1 smile
-  open: number; // mouth open 0..1
-  width: number;
-  blush: number;
-  tears: 0 | 1 | 2;
-  sweat: boolean;
-  clip: string;
-  speed: number;
-  tilt: number; // head roll
-  nod: number; // head pitch (+ down)
+// What each role plays, in order of preference. A role with no available clip falls back to Idle.
+type Role = "idle" | "yes" | "jump" | "dance" | "no" | "hurt";
+const ROLE_CLIPS: Record<Role, string[]> = {
+  idle: ["Idle", "Flying"],
+  yes: ["Yes", "Dance", "Jump"],
+  jump: ["Jump", "Dance", "Yes"],
+  dance: ["Dance", "Jump", "Yes"],
+  no: ["No", "HitRecieve"],
+  hurt: ["HitRecieve", "No"],
+};
+
+type Style = {
+  role: Role;
+  speed: number; // clip speed
+  bob: number; // vertical float amplitude
+  bobSpeed: number;
+  tilt: number; // roll
+  lean: number; // pitch, + forward
   tremble: number;
+  size: number;
   fx: Fx[];
 };
 
-const BASE: Face = {
-  eye: "open", lid: 1, size: 1, brow: 0, browY: 0, curve: 0.5, open: 0, width: 1, blush: 0.35, tears: 0, sweat: false,
-  clip: "Idle", speed: 1, tilt: 0, nod: 0, tremble: 0, fx: [],
-};
+const BASE: Style = { role: "idle", speed: 1, bob: 0.012, bobSpeed: 2, tilt: 0, lean: 0, tremble: 0, size: 1, fx: [] };
 
-const FACES: Record<Mood, Partial<Face>> = {
+const STYLES: Record<Mood, Partial<Style>> = {
   idle: {},
-  curious: { lid: 1.15, size: 1.08, brow: -0.15, browY: 0.01, curve: 0.25, open: 0.2, width: 0.6, tilt: 0.25 },
-  thinking: { lid: 0.8, brow: 0.15, curve: 0.05, width: 0.6, tilt: -0.18, nod: -0.15, clip: "Idle_Holding", fx: ["question"] },
-  sleepy: { eye: "closed", curve: 0.1, open: 0.15, width: 0.5, clip: "Sitting_Idle", speed: 0.7, nod: 0.25, fx: ["zzz"] },
-  happy: { eye: "happy", curve: 0.95, open: 0.4, blush: 0.75, clip: "Yes", fx: ["sparkles"] },
-  excited: { lid: 1.3, size: 1.15, brow: -0.1, browY: 0.015, curve: 1, open: 0.75, blush: 0.9, clip: "Jump", fx: ["sparkles"] },
-  onFire: { eye: "star", curve: 1, open: 0.85, blush: 1, clip: "Jump", speed: 1.15, fx: ["flame", "sparkles"] },
-  comeback: { eye: "happy", curve: 1, open: 0.65, blush: 0.9, clip: "Wave", fx: ["sparkles", "exclaim"] },
-  confident: { lid: 0.72, brow: 0.18, curve: 0.75, width: 1.1, tilt: 0.12, blush: 0.45, clip: "Idle" },
-  oops: { lid: 1.12, brow: -0.35, browY: 0.01, curve: -0.25, open: 0.15, width: 0.7, blush: 0.6, sweat: true, tremble: 0.004 },
-  sad: { lid: 0.8, size: 1.1, brow: -0.45, curve: -0.7, width: 0.8, nod: 0.3, speed: 0.6, tears: 1 },
-  shocked: { lid: 1.4, size: 0.8, brow: -0.25, browY: 0.02, curve: 0, open: 1, width: 0.55, clip: "Duck", tremble: 0.012, fx: ["exclaim"] },
-  crying: { eye: "closed", brow: -0.55, curve: -0.9, open: 0.6, width: 0.9, clip: "Sitting_Idle", tremble: 0.006, tears: 2 },
-  nervous: { lid: 1.05, size: 0.85, brow: -0.38, curve: -0.15, width: 0.75, blush: 0.5, speed: 1.6, tremble: 0.005, sweat: true },
-  determined: { lid: 0.68, brow: 0.42, curve: 0.05, width: 0.8, clip: "Punch", nod: -0.08 },
-  celebrating: { eye: "happy", curve: 1, open: 0.9, blush: 1, clip: "Wave", speed: 1.2, fx: ["confetti", "sparkles"] },
-  proud: { eye: "happy", curve: 0.8, blush: 0.65, clip: "Yes", nod: -0.1, fx: ["sparkles"] },
-  relieved: { eye: "happy", brow: -0.12, curve: 0.5, blush: 0.4, speed: 0.8, sweat: true },
-  heartbroken: { lid: 0.72, size: 1.1, brow: -0.55, curve: -0.9, width: 0.85, clip: "Sitting_Idle", nod: 0.3, tears: 1, fx: ["cloud"] },
+  curious: { tilt: 0.22, lean: -0.05, bob: 0.018 },
+  thinking: { tilt: -0.16, lean: 0.1, speed: 0.8, fx: ["question"] },
+  sleepy: { speed: 0.5, lean: 0.28, bob: 0.02, bobSpeed: 1, fx: ["zzz"] },
+  happy: { role: "yes", bob: 0.03, bobSpeed: 4, fx: ["sparkles"] },
+  excited: { role: "jump", bob: 0.04, bobSpeed: 6, fx: ["sparkles"] },
+  onFire: { role: "jump", speed: 1.15, bob: 0.05, bobSpeed: 7, size: 1.06, fx: ["flame", "sparkles"] },
+  comeback: { role: "dance", bob: 0.04, bobSpeed: 5, fx: ["sparkles", "exclaim"] },
+  confident: { lean: -0.08, tilt: 0.1, size: 1.05 },
+  oops: { tilt: 0.14, lean: 0.08, tremble: 0.003 },
+  sad: { speed: 0.6, lean: 0.3, size: 0.96, bob: 0.008, bobSpeed: 1.2 },
+  shocked: { role: "hurt", tremble: 0.012, size: 1.05, fx: ["exclaim"] },
+  crying: { speed: 0.55, lean: 0.34, tremble: 0.006, bobSpeed: 9, bob: 0.01 },
+  nervous: { speed: 1.5, tremble: 0.005, bobSpeed: 10, bob: 0.008 },
+  determined: { speed: 1.2, lean: -0.12, size: 1.04 },
+  celebrating: { role: "dance", speed: 1.2, bob: 0.05, bobSpeed: 6, fx: ["confetti", "sparkles"] },
+  proud: { role: "yes", lean: -0.1, size: 1.05, fx: ["sparkles"] },
+  relieved: { speed: 0.8, lean: 0.12, bobSpeed: 1.4 },
+  heartbroken: { speed: 0.6, lean: 0.32, tilt: -0.08, size: 0.96, fx: ["cloud"] },
 };
 
 const LINES: Record<Mood, string[]> = {
-  idle: ["¡Vamos a repasar!", "Estoy lista 📚"],
+  idle: ["¡Vamos a repasar!", "Estoy listo 📚"],
   curious: ["Mmm, ¿cuál será?", "¡Esta me gusta!"],
   thinking: ["Piénsalo con calma 🤔", "Lee otra vez la pregunta"],
   sleepy: ["Zzz… ¿sigues ahí?", "Me estoy durmiendo…"],
@@ -107,491 +97,212 @@ const LINES: Record<Mood, string[]> = {
   heartbroken: ["Mañana será mejor 💔", "Repasemos juntos"],
 };
 
-const HIT_CLIPS = ["Yes", "Jump"];
-const MISS_CLIPS = ["HitReact", "No"];
-const FIDGETS = ["Wave", "Yes", "Jump_Idle"];
 const FIDGET_MOODS = new Set<Mood>(["idle", "curious", "confident", "relieved"]);
 
-type NumKey = Exclude<keyof Face, "eye" | "clip" | "fx" | "sweat" | "tears">;
-const NUM: NumKey[] = ["lid", "size", "brow", "browY", "curve", "open", "width", "blush", "speed", "tilt", "nod", "tremble"];
+type NumKey = "speed" | "bob" | "bobSpeed" | "tilt" | "lean" | "tremble" | "size";
+const NUM: NumKey[] = ["speed", "bob", "bobSpeed", "tilt", "lean", "tremble", "size"];
 
-function starShape(outer: number, inner: number) {
-  const s = new Shape();
-  for (let i = 0; i < 10; i++) {
-    const r = i % 2 ? inner : outer;
-    const a = (i / 10) * Math.PI * 2 + Math.PI / 2;
-    if (i === 0) s.moveTo(Math.cos(a) * r, Math.sin(a) * r);
-    else s.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-  }
-  s.closePath();
-  return s;
-}
-
-type Spring = { p: Vector3; v: Vector3; tipLocal: Vector3; init: boolean };
 type Rig = {
   model: Group;
   mixer: AnimationMixer;
   actions: Record<string, AnimationAction>;
   loop: AnimationAction | null;
   oneShot: AnimationAction | null;
-  head: Bone;
-  headRest: { x: number; y: number; z: number };
-  faceLocal: Matrix4; // mid-eyes frame, in head-bone space
-  eyeHalf: number; // half distance between eyes (world units)
-  eyeSize: number;
-  eyeUniforms: { uSquash: { value: number }; uScale: { value: number } };
-  hair: SkinnedMesh;
-  hairBoneIndex: number;
-  hairUniforms: { uOffL: { value: Vector3 }; uOffR: { value: Vector3 } };
-  springs: [Spring, Spring];
-  materials: MeshStandardMaterial[];
+  top: number;
 };
 
-function playOnce(r: Rig | null, name: string) {
-  const a = r?.actions[name];
-  if (!r || !a) return;
-  r.oneShot?.fadeOut(0.15);
+const pick = (r: Rig, role: Role) => {
+  for (const name of ROLE_CLIPS[role]) if (r.actions[name]) return r.actions[name];
+  return r.actions.Idle ?? r.actions.Flying ?? Object.values(r.actions)[0] ?? null;
+};
+const hasRole = (r: Rig, role: Role) => ROLE_CLIPS[role].some((n) => r.actions[n]);
+
+function playOnce(r: Rig | null, role: Role) {
+  if (!r || !hasRole(r, role)) return;
+  const a = pick(r, role);
+  if (!a || a === r.loop) return;
+  r.oneShot?.fadeOut(0.2);
   a.reset().setLoop(LoopOnce, 1);
   a.clampWhenFinished = true;
-  a.fadeIn(0.15).play();
-  r.loop?.fadeOut(0.15);
+  a.fadeIn(0.2).play();
+  r.loop?.fadeOut(0.2);
   r.oneShot = a;
 }
 
-const tmp = { m: new Matrix4(), m2: new Matrix4(), m3: new Matrix3(), v: new Vector3(), target: new Vector3(), off: new Vector3() };
-
 export function Repi({
+  mascot,
   mood,
   pulse,
   lastHit,
   streak,
-  windRef,
 }: {
+  mascot: MascotId;
   mood: Mood;
   pulse: number;
   lastHit: boolean | null;
   streak: number;
   windRef?: React.RefObject<number>;
 }) {
-  const { scene, animations } = useGLTF(MODEL, false, true);
-  const holder = useRef<Group>(null);
-  const overlay = useRef<Group>(null);
+  const { scene, animations } = useGLTF(`/3d/mascots/${mascot}.glb`);
+  const holder = useRef<Group>(null); // hop and shake, in world
+  const body = useRef<Group>(null); // lean, tilt, squash, from the feet
+  const bubble = useRef<Group>(null);
   const rig = useRef<Rig | null>(null);
-  const face = useMemo<Face>(() => ({ ...BASE, ...FACES[mood] }), [mood]);
-  const p = useRef<Record<NumKey, number>>(Object.fromEntries(NUM.map((k) => [k, BASE[k]])) as Record<NumKey, number>);
-  const eyeMix = useRef({ open: 1, happy: 0, closed: 0, star: 0 });
-  const motion = useRef({ hopV: 0, hopY: 0, shake: 0, blinkAt: 2, blink: 0, fidgetAt: 8, yaw: 0, pitch: 0 });
-  const parts = useRef<{
-    eyes: (Group | null)[];
-    happy: (Mesh | null)[];
-    closed: (Mesh | null)[];
-    star: (Mesh | null)[];
-    brows: (Mesh | null)[];
-    mouthLine: Mesh | null;
-    mouthOpen: Group | null;
-    unit: Group | null;
-    sides: (Group | null)[];
-    cheeks: (Mesh | null)[];
-    tears: (Mesh | null)[];
-    sweat: Mesh | null;
-  }>({ eyes: [], happy: [], closed: [], star: [], brows: [], mouthLine: null, mouthOpen: null, unit: null, sides: [], cheeks: [], tears: [], sweat: null });
-
-  const starGeo = useMemo(() => new ExtrudeGeometry(starShape(0.05, 0.022), { depth: 0.012, bevelEnabled: true, bevelSize: 0.004, bevelThickness: 0.004, bevelSegments: 2 }), []);
-  useEffect(() => () => starGeo.dispose(), [starGeo]);
+  const style = useMemo<Style>(() => ({ ...BASE, ...STYLES[mood] }), [mood]);
+  const styleRef = useRef(style);
+  useEffect(() => {
+    styleRef.current = style;
+  }, [style]);
+  const v = useRef<Record<NumKey, number>>(Object.fromEntries(NUM.map((k) => [k, BASE[k]])) as Record<NumKey, number>);
+  const m = useRef({ hopV: 0, hopY: 0, shake: 0, squash: 0, nod: 0, yaw: 0, fidgetAt: 8 });
 
   // ---------- Build the rig once the model is loaded ----------
   useLayoutEffect(() => {
     const g = holder.current;
-    if (!g) return;
+    const b = body.current;
+    if (!g || !b) return;
     const model = cloneSkinned(scene) as Group;
 
-    // The file carries internal scales (x100 armature, x140 meshes), so measure the
-    // skinned result, not the raw geometry: update bones first, then a precise box.
+    // The file carries internal scales (cm to m), so measure the skinned result, not the raw geometry.
     const settle = () => {
       g.updateMatrixWorld(true);
       model.traverse((o) => {
         if (o instanceof SkinnedMesh) o.skeleton.update();
       });
     };
-    g.add(model);
+    b.add(model);
     settle();
     const box = new Box3().setFromObject(model, true);
+    const size = box.getSize(new Vector3());
     const gy = g.getWorldPosition(new Vector3()).y;
-    const s = HEIGHT / (box.max.y - box.min.y);
+    const s = Math.min(HEIGHT / size.y, MAX_WIDTH / Math.max(size.x, size.z));
     model.scale.multiplyScalar(s);
     model.position.y = -(box.min.y - gy) * s;
     settle();
-
-    const materials: MeshStandardMaterial[] = [];
-    let eyes: SkinnedMesh | undefined;
-    let hair: SkinnedMesh | undefined;
     model.traverse((o) => {
       if (o instanceof SkinnedMesh) {
         o.castShadow = true;
         o.receiveShadow = true;
         o.frustumCulled = false;
-        if (o.name === "Eyes") eyes = o;
-        if (o.name === "Hair") hair = o;
       }
     });
-    if (!eyes || !hair) return;
-    const head = hair.skeleton.bones.find((b) => b.name === "Head")!;
-    const hairBoneIndex = hair.skeleton.bones.indexOf(head);
 
-    // Rest transform from a head-weighted mesh's bind space to world (what skinning does).
-    const restMatrix = (mesh: SkinnedMesh) => {
-      const bi = mesh.skeleton.bones.findIndex((b) => b.name === "Head");
-      return new Matrix4()
-        .copy(mesh.matrixWorld)
-        .multiply(mesh.bindMatrixInverse)
-        .multiply(mesh.skeleton.bones[bi].matrixWorld)
-        .multiply(mesh.skeleton.boneInverses[bi])
-        .multiply(mesh.bindMatrix);
-    };
-    const eyesM = restMatrix(eyes);
-    const hairM = restMatrix(hair);
-    // World axes expressed in a mesh's bind space.
-    const toMesh = (M: Matrix4, dir: Vector3) => dir.clone().applyMatrix3(new Matrix3().setFromMatrix4(M.clone().invert())).normalize();
-
-    // ----- Eyes: centres per eye, squash/scale in the vertex shader -----
-    const ep = eyes.geometry.getAttribute("position");
-    const sideE = toMesh(eyesM, new Vector3(1, 0, 0));
-    const upE = toMesh(eyesM, new Vector3(0, 1, 0));
-    const all = new Vector3();
-    for (let i = 0; i < ep.count; i++) all.add(tmp.v.fromBufferAttribute(ep, i));
-    all.divideScalar(ep.count);
-    const sum = [new Vector3(), new Vector3()];
-    const cnt = [0, 0];
-    let ext = 0;
-    for (let i = 0; i < ep.count; i++) {
-      tmp.v.fromBufferAttribute(ep, i);
-      const k = tmp.v.clone().sub(all).dot(sideE) < 0 ? 0 : 1;
-      sum[k].add(tmp.v);
-      cnt[k] += 1;
-    }
-    const cL = sum[0].divideScalar(cnt[0]);
-    const cR = sum[1].divideScalar(cnt[1]);
-    for (let i = 0; i < ep.count; i++) {
-      tmp.v.fromBufferAttribute(ep, i);
-      const c = tmp.v.clone().sub(all).dot(sideE) < 0 ? cL : cR;
-      ext = Math.max(ext, Math.abs(tmp.v.clone().sub(c).dot(upE)));
-    }
-    const eyeUniforms = { uSquash: { value: 1 }, uScale: { value: 1 } };
-    const eyeMat = (eyes.material as MeshStandardMaterial).clone();
-    eyeMat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
-      Object.assign(shader.uniforms, eyeUniforms, { uEyeL: { value: cL }, uEyeR: { value: cR }, uUpE: { value: upE }, uSideE: { value: sideE }, uMid: { value: all } });
-      shader.vertexShader = shader.vertexShader
-        .replace("#include <common>", "#include <common>\nuniform vec3 uEyeL; uniform vec3 uEyeR; uniform vec3 uUpE; uniform vec3 uSideE; uniform vec3 uMid; uniform float uSquash; uniform float uScale;")
-        .replace(
-          "#include <begin_vertex>",
-          `#include <begin_vertex>
-          {
-            vec3 c = dot(transformed - uMid, uSideE) < 0.0 ? uEyeL : uEyeR;
-            vec3 d = transformed - c;
-            d -= uUpE * dot(d, uUpE) * (1.0 - uSquash);
-            transformed = c + d * uScale;
-          }`,
-        );
-    };
-    eyeMat.customProgramCacheKey = () => "repi-eyes";
-    eyes.material = eyeMat;
-    materials.push(eyeMat);
-
-    // Face frame: mid-eyes, world-aligned axes at rest, expressed in head-bone space.
-    const midWorld = all.clone().applyMatrix4(eyesM);
-    const lw = cL.clone().applyMatrix4(eyesM);
-    const rw = cR.clone().applyMatrix4(eyesM);
-    const eyeHalf = lw.distanceTo(rw) / 2;
-    const eyeSize = ext * 2 * new Vector3().setFromMatrixScale(eyesM).x;
-    const faceLocal = new Matrix4().copy(head.matrixWorld).invert().multiply(new Matrix4().makeTranslation(midWorld.x, midWorld.y, midWorld.z));
-
-    // ----- Hair: two pigtail springs, displacement in the vertex shader -----
-    const hp = hair.geometry.getAttribute("position");
-    const sideH = toMesh(hairM, new Vector3(1, 0, 0));
-    const hc = new Vector3();
-    for (let i = 0; i < hp.count; i++) hc.add(tmp.v.fromBufferAttribute(hp, i));
-    hc.divideScalar(hp.count);
-    let maxD = 0;
-    let tipL = new Vector3();
-    let tipR = new Vector3();
-    let minD = 0;
-    for (let i = 0; i < hp.count; i++) {
-      tmp.v.fromBufferAttribute(hp, i);
-      const d = tmp.v.clone().sub(hc).dot(sideH);
-      if (d > maxD) {
-        maxD = d;
-        tipR = tmp.v.clone();
-      }
-      if (d < minD) {
-        minD = d;
-        tipL = tmp.v.clone();
-      }
-    }
-    const reach = Math.max(maxD, -minD);
-    const hairUniforms = { uOffL: { value: new Vector3() }, uOffR: { value: new Vector3() } };
-    const hairMat = (hair.material as MeshStandardMaterial).clone();
-    hairMat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
-      Object.assign(shader.uniforms, hairUniforms, { uHC: { value: hc }, uSideH: { value: sideH }, uReach: { value: reach } });
-      shader.vertexShader = shader.vertexShader
-        .replace("#include <common>", "#include <common>\nuniform vec3 uOffL; uniform vec3 uOffR; uniform vec3 uHC; uniform vec3 uSideH; uniform float uReach;")
-        .replace(
-          "#include <begin_vertex>",
-          `#include <begin_vertex>
-          {
-            float d = dot(transformed - uHC, uSideH);
-            // Pigtails only: weight grows from their root to the tip.
-            float w = smoothstep(uReach * 0.35, uReach, abs(d));
-            transformed += (d < 0.0 ? uOffL : uOffR) * w * w;
-          }`,
-        );
-    };
-    hairMat.customProgramCacheKey = () => "repi-hair";
-    hair.material = hairMat;
-    materials.push(hairMat);
-    const inHead = (v: Vector3) => head.worldToLocal(v.clone().applyMatrix4(hairM));
-    const springs: [Spring, Spring] = [
-      { p: new Vector3(), v: new Vector3(), tipLocal: inHead(tipL), init: false },
-      { p: new Vector3(), v: new Vector3(), tipLocal: inHead(tipR), init: false },
-    ];
-
-    // ----- Animations -----
     const mixer = new AnimationMixer(model);
     const actions: Record<string, AnimationAction> = {};
     for (const clip of animations) actions[clip.name.split("|").pop()!] = mixer.clipAction(clip);
 
-    rig.current = {
-      model, mixer, actions, loop: null, oneShot: null, head,
-      headRest: { x: head.rotation.x, y: head.rotation.y, z: head.rotation.z },
-      faceLocal, eyeHalf, eyeSize, eyeUniforms, hair, hairBoneIndex, hairUniforms, springs, materials,
-    };
+    const r: Rig = { model, mixer, actions, loop: null, oneShot: null, top: size.y * s };
+    rig.current = r;
+    if (bubble.current) bubble.current.position.y = r.top + 0.32;
+
+    const first = pick(r, styleRef.current.role);
+    if (first) {
+      first.setLoop(LoopRepeat, Infinity).reset().fadeIn(0.4).play();
+      r.loop = first;
+    }
 
     const onFinished = (e: { action: AnimationAction }) => {
-      const r = rig.current;
-      if (!r || e.action !== r.oneShot) return;
-      r.oneShot.fadeOut(0.25);
+      if (e.action !== r.oneShot) return;
+      r.oneShot.fadeOut(0.3);
       r.oneShot = null;
-      r.loop?.reset().fadeIn(0.25).play();
+      r.loop?.reset().fadeIn(0.3).play();
     };
     mixer.addEventListener("finished", onFinished);
 
     return () => {
       mixer.removeEventListener("finished", onFinished);
       mixer.stopAllAction();
-      g.remove(model);
-      materials.forEach((m) => m.dispose());
+      b.remove(model);
       rig.current = null;
     };
   }, [scene, animations]);
 
-  // Mood → looping clip, cross-faded.
+  // Mood -> looping clip, cross-faded.
   useEffect(() => {
     const r = rig.current;
     if (!r) return;
-    const next = r.actions[face.clip] ?? r.actions.Idle;
-    if (next === r.loop) return;
+    const next = pick(r, style.role);
+    if (!next || next === r.loop) return;
     next.setLoop(LoopRepeat, Infinity);
-    if (!r.oneShot) next.reset().fadeIn(0.35).play();
-    r.loop?.fadeOut(0.35);
+    if (!r.oneShot) next.reset().fadeIn(0.4).play();
+    r.loop?.fadeOut(0.4);
     r.loop = next;
-  }, [face.clip]);
+  }, [style.role, scene]);
 
-  // One-shot reaction to every answer.
+  // One-shot reaction to every answer: a clip if there is one, always the procedural layer.
   useEffect(() => {
     if (!pulse) return;
+    const st = m.current;
     if (lastHit) {
-      motion.current.hopV = 2.4;
-      playOnce(rig.current, streak >= 3 ? "Jump" : HIT_CLIPS[pulse % HIT_CLIPS.length]);
+      st.hopV = streak >= 3 ? 3 : 2.4;
+      st.squash = -0.5; // crouch first, the landing then stretches back
+      playOnce(rig.current, streak >= 3 ? "jump" : pulse % 2 ? "yes" : "jump");
     } else {
-      motion.current.shake = 1;
-      playOnce(rig.current, MISS_CLIPS[pulse % MISS_CLIPS.length]);
+      st.shake = 1;
+      st.nod = 1;
+      playOnce(rig.current, pulse % 2 ? "hurt" : "no");
     }
   }, [pulse, lastHit, streak]);
 
   useFrame((state, dt) => {
     const r = rig.current;
-    if (!r) return;
+    const g = holder.current;
+    const b = body.current;
+    if (!r || !g || !b) return;
     const d = Math.min(dt, 0.05);
     const t = state.clock.elapsedTime;
-    const v = p.current;
-    for (const k of NUM) v[k] = MathUtils.damp(v[k], face[k], 6, d);
-    const em = eyeMix.current;
-    for (const k of ["open", "happy", "closed", "star"] as const) em[k] = MathUtils.damp(em[k], face.eye === k ? 1 : 0, 10, d);
-    const m = motion.current;
+    const cur = v.current;
+    const want = styleRef.current;
+    for (const k of NUM) cur[k] = MathUtils.damp(cur[k], want[k], 5, d);
+    const s = m.current;
 
-    // Animation
-    r.mixer.timeScale = v.speed;
+    r.mixer.timeScale = cur.speed;
     r.mixer.update(d);
 
     // Idle personality: an occasional gesture.
-    if (t > m.fidgetAt) {
-      if (FIDGET_MOODS.has(mood) && !r.oneShot) playOnce(r, FIDGETS[Math.floor(Math.random() * FIDGETS.length)]);
-      m.fidgetAt = t + 7 + Math.random() * 6;
+    if (t > s.fidgetAt) {
+      if (FIDGET_MOODS.has(mood) && !r.oneShot) playOnce(r, Math.random() < 0.5 ? "yes" : "jump");
+      s.fidgetAt = t + 7 + Math.random() * 6;
     }
 
-    // Head: track the pointer, plus mood tilt and nod (added on top of the clip).
-    m.yaw = MathUtils.damp(m.yaw, state.pointer.x * 0.5, 4, d);
-    m.pitch = MathUtils.damp(m.pitch, -state.pointer.y * 0.25, 4, d);
-    r.head.rotation.y += m.yaw;
-    r.head.rotation.x += m.pitch + v.nod;
-    r.head.rotation.z += v.tilt + Math.sin(t * 1.3) * 0.03;
-
-    // Hop impulse, shakes and nervous tremble on the whole body.
-    m.hopV -= 9.8 * d;
-    m.hopY = Math.max(0, m.hopY + m.hopV * d);
-    if (m.hopY === 0) m.hopV = 0;
-    m.shake = MathUtils.damp(m.shake, 0, 4, d);
-    const tremble = (Math.sin(t * 47) + Math.sin(t * 31)) * 0.5 * (v.tremble + m.shake * 0.02);
-    r.model.position.x = tremble;
-    holder.current!.position.y = m.hopY;
-    r.model.updateMatrixWorld(true);
-
-    // Blink every few seconds.
-    if (t > m.blinkAt) {
-      m.blink = 1;
-      m.blinkAt = t + 2.2 + Math.random() * 3;
+    // Hop with gravity; landing stretches the body, then it settles back.
+    const wasAir = s.hopY > 0;
+    s.hopV -= 9.8 * d;
+    s.hopY = Math.max(0, s.hopY + s.hopV * d);
+    if (s.hopY === 0) {
+      if (wasAir && s.hopV < -1) s.squash = 0.55;
+      s.hopV = 0;
     }
-    m.blink = MathUtils.damp(m.blink, 0, 18, d);
-    r.eyeUniforms.uSquash.value = Math.max(0.04, v.lid * (1 - m.blink * 0.95) * em.open + 0.001);
-    r.eyeUniforms.uScale.value = Math.max(0.001, v.size * em.open);
+    s.squash = MathUtils.damp(s.squash, 0, 9, d);
+    s.shake = MathUtils.damp(s.shake, 0, 3.5, d);
+    s.nod = MathUtils.damp(s.nod, 0, 4, d);
 
-    // Pigtail springs: the tip lags behind the head, overshoots and settles.
-    const wind = windRef?.current ?? 0;
-    tmp.m.copy(r.hair.matrixWorld).multiply(r.hair.bindMatrixInverse).multiply(r.head.matrixWorld).multiply(r.hair.skeleton.boneInverses[r.hairBoneIndex]).multiply(r.hair.bindMatrix);
-    tmp.m3.setFromMatrix4(tmp.m2.copy(tmp.m).invert());
-    r.springs.forEach((sp, i) => {
-      tmp.target.copy(sp.tipLocal);
-      r.head.localToWorld(tmp.target);
-      if (!sp.init) {
-        sp.p.copy(tmp.target);
-        sp.init = true;
-      }
-      // Soft, bouncy pigtails: low stiffness, light damping.
-      const k = 90;
-      const c = 5;
-      tmp.v.subVectors(tmp.target, sp.p).multiplyScalar(k).addScaledVector(sp.v, -c);
-      tmp.v.x += Math.sin(t * 2.1 + i) * wind * 6 + 1.2 * Math.sin(t * 0.9 + i * 2);
-      tmp.v.z += Math.cos(t * 1.7 + i) * wind * 4;
-      sp.v.addScaledVector(tmp.v, d);
-      sp.p.addScaledVector(sp.v, d);
-      tmp.off.subVectors(sp.p, tmp.target).clampLength(0, 0.22);
-      const out = i === 0 ? r.hairUniforms.uOffL.value : r.hairUniforms.uOffR.value;
-      out.copy(tmp.off).applyMatrix3(tmp.m3);
-    });
+    const bob = Math.sin(t * cur.bobSpeed) * cur.bob;
+    const tremble = (Math.sin(t * 47) + Math.sin(t * 31)) * 0.5 * (cur.tremble + s.shake * 0.015);
+    g.position.set(tremble, s.hopY + bob + cur.bob, 0);
 
-    // Face overlay follows the head bone.
-    const o = overlay.current;
-    if (o && holder.current) {
-      o.matrix.copy(holder.current.matrixWorld).invert().multiply(tmp.m.copy(r.head.matrixWorld).multiply(r.faceLocal));
-      o.matrixWorldNeedsUpdate = true;
-    }
+    // Head follows the pointer, plus mood tilt and a head shake after a miss.
+    s.yaw = MathUtils.damp(s.yaw, state.pointer.x * 0.45, 4, d);
+    b.rotation.y = s.yaw + Math.sin(t * 22) * s.shake * 0.28;
+    b.rotation.z = cur.tilt + Math.sin(t * 1.3) * 0.025;
+    b.rotation.x = cur.lean + s.nod * Math.sin(t * 9) * 0.12 - state.pointer.y * 0.06;
 
-    // Overlay parts
-    const pr = parts.current;
-    pr.happy.forEach((e) => e?.scale.setScalar(Math.max(em.happy, 0.001)));
-    pr.closed.forEach((e) => e?.scale.setScalar(Math.max(em.closed, 0.001)));
-    pr.star.forEach((e, i) => {
-      if (!e) return;
-      e.scale.setScalar(Math.max(em.star * (1 + Math.sin(t * 8) * 0.12), 0.001));
-      e.rotation.z = t * 2 * (i ? -1 : 1);
-    });
-    const half = r.eyeHalf / r.eyeSize;
-    pr.unit?.scale.setScalar(r.eyeSize);
-    pr.sides.forEach((g, i) => g?.position.setX((i === 0 ? -1 : 1) * half));
-    pr.cheeks.forEach((c, i) => c?.position.setX((i === 0 ? -1 : 1) * half * 1.3));
-    pr.sweat?.position.setX(half * 2.2);
-    pr.brows.forEach((b, i) => {
-      if (!b) return;
-      const side = i === 0 ? -1 : 1;
-      b.rotation.z = Math.PI / 2 + v.brow * side;
-      b.position.y = 0.95 + v.browY / r.eyeSize;
-    });
-    if (pr.mouthLine) {
-      const curve = v.curve * (1 - v.open);
-      pr.mouthLine.scale.set(v.width, curve >= 0 ? Math.max(curve, 0.08) : Math.min(curve, -0.08), 1);
-      pr.mouthLine.visible = v.open < 0.85;
-    }
-    if (pr.mouthOpen) pr.mouthOpen.scale.set(v.width * (0.7 + 0.3 * v.open), Math.max(v.open, 0.001), 1);
-    pr.cheeks.forEach((c) => {
-      if (c) (c.material as MeshBasicMaterial).opacity = v.blush * 0.7;
-    });
-    pr.tears.forEach((tr, i) => {
-      if (!tr) return;
-      const side = i % 2 ? 1 : -1;
-      const on = face.tears === 2 || (face.tears === 1 && side === 1);
-      const k = (t * (face.tears === 2 ? 1.4 : 0.7) + i * 0.37) % 1;
-      tr.visible = on;
-      tr.position.set(side * (half + 0.2 * k), -0.6 - (k * 0.14) / r.eyeSize, 0.4);
-      tr.scale.setScalar(0.6 + Math.sin(k * Math.PI) * 0.6);
-    });
-    if (pr.sweat) pr.sweat.visible = face.sweat;
+    // Breathing, plus squash and stretch (volume kept: more height = less width).
+    const breathe = 1 + Math.sin(t * 2.1) * 0.012;
+    const sy = (1 + s.squash * 0.2) * breathe * cur.size;
+    const sxz = (1 - s.squash * 0.12) * cur.size;
+    b.scale.set(sxz, sy, sxz);
   });
 
   const line = LINES[mood][(pulse + mood.length) % LINES[mood].length];
 
   return (
     <group>
-      <group ref={holder} />
-      {/* Face overlay: positioned every frame from the head bone. */}
-      <group ref={overlay} matrixAutoUpdate={false}>
-        {/* Drawn in eye units (eye height = 1); scaled to the real eye size every frame. */}
-        <group ref={(el) => { parts.current.unit = el; }}>
-          {[-1, 1].map((side, i) => (
-            <group key={side} ref={(el) => { parts.current.sides[i] = el; }} position={[0, 0, 0.55]}>
-              <mesh ref={(el) => { parts.current.happy[i] = el; }} position={[0, -0.15, 0]}>
-                <torusGeometry args={[0.55, 0.13, 8, 24, Math.PI]} />
-                <meshStandardMaterial color={INK} roughness={0.4} />
-              </mesh>
-              <mesh ref={(el) => { parts.current.closed[i] = el; }} position={[0, 0.15, 0]} rotation={[0, 0, Math.PI]}>
-                <torusGeometry args={[0.5, 0.12, 8, 24, Math.PI]} />
-                <meshStandardMaterial color={INK} roughness={0.4} />
-              </mesh>
-              <mesh ref={(el) => { parts.current.star[i] = el; }} geometry={starGeo} scale={20}>
-                <meshStandardMaterial color="#ffb703" emissive="#ff8a00" emissiveIntensity={1.4} />
-              </mesh>
-              <mesh ref={(el) => { parts.current.brows[i] = el; }} position={[0, 0.95, -0.15]}>
-                <capsuleGeometry args={[0.09, 0.75, 4, 8]} />
-                <meshStandardMaterial color={INK} roughness={0.5} />
-              </mesh>
-            </group>
-          ))}
-          {/* Cheeks */}
-          {[-1, 1].map((side, i) => (
-            <mesh key={side} ref={(el) => { parts.current.cheeks[i] = el; }} position={[0, -0.75, 0.35]}>
-              <circleGeometry args={[0.55, 24]} />
-              <meshBasicMaterial color="#ff6f91" transparent opacity={0.3} depthWrite={false} />
-            </mesh>
-          ))}
-          {/* Mouth: smile/frown line, open mouth */}
-          <group position={[0, -1.35, 1.05]}>
-            <mesh ref={(el) => { parts.current.mouthLine = el; }} rotation={[0, 0, Math.PI]}>
-              <torusGeometry args={[0.55, 0.1, 8, 28, Math.PI]} />
-              <meshStandardMaterial color={INK} roughness={0.4} />
-            </mesh>
-            <group ref={(el) => { parts.current.mouthOpen = el; }}>
-              <mesh scale={[0.6, 0.55, 1]}>
-                <circleGeometry args={[1, 28]} />
-                <meshStandardMaterial color="#5b1a1a" side={DoubleSide} />
-              </mesh>
-              <mesh position={[0, -0.25, 0.01]} scale={[0.35, 0.2, 1]}>
-                <circleGeometry args={[1, 20]} />
-                <meshStandardMaterial color="#ef7d8a" side={DoubleSide} />
-              </mesh>
-            </group>
-          </group>
-          {/* Tears and sweat */}
-          {Array.from({ length: 6 }, (_, i) => (
-            <mesh key={i} ref={(el) => { parts.current.tears[i] = el; }} visible={false}>
-              <sphereGeometry args={[0.22, 12, 10]} />
-              <meshPhysicalMaterial color="#8fd3ff" roughness={0} transmission={0.6} thickness={0.05} />
-            </mesh>
-          ))}
-          <mesh ref={(el) => { parts.current.sweat = el; }} position={[0, 1.6, -0.1]} scale={[1, 1.4, 1]} visible={false}>
-            <sphereGeometry args={[0.3, 14, 10]} />
-            <meshPhysicalMaterial color="#8fd3ff" roughness={0} transmission={0.5} thickness={0.05} />
-          </mesh>
-
-          {/* Speech bubble: re-keyed on every mood or answer so the CSS animation replays. */}
-          <Html position={[0, 3.4, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
+      <group ref={holder}>
+        <group ref={body} />
+        {/* Speech bubble: re-keyed on every mood or answer so the CSS animation replays. */}
+        <group ref={bubble} position={[0, 1.4, 0]}>
+          <Html center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
             <div key={`${mood}-${pulse}`} className="repi-bubble">
               {line}
             </div>
@@ -600,10 +311,8 @@ export function Repi({
       </group>
 
       <FadeIn on>
-        <MoodFx fx={face.fx} />
+        <MoodFx fx={style.fx} />
       </FadeIn>
     </group>
   );
 }
-
-useGLTF.preload(MODEL, false, true);
