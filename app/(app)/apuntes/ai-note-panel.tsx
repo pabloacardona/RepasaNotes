@@ -22,7 +22,6 @@ export function AiNotePanel({
   onDraft: (draft: NoteDraft) => void;
 }) {
   const [topic, setTopic] = useState(initialTopic);
-  const [focus, setFocus] = useState("");
   const [level, setLevel] = useState<string>("intermedio");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +30,7 @@ export function AiNotePanel({
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    const parsed = generateNoteSchema.safeParse({ topic, focus, level });
+    const parsed = generateNoteSchema.safeParse({ topic, level });
     if (!parsed.success) {
       setFieldError(parsed.error.issues[0]?.message);
       return;
@@ -74,7 +73,7 @@ export function AiNotePanel({
       </div>
 
       <form onSubmit={onSubmit} noValidate className="mt-5 grid gap-4 sm:grid-cols-2">
-        <div>
+        <div className="sm:col-span-2">
           <label htmlFor="ai-topic" className="mb-1.5 block font-bold">Tema</label>
           <input
             id="ai-topic"
@@ -85,19 +84,6 @@ export function AiNotePanel({
             maxLength={80}
           />
           <FieldMessage error={fieldError} />
-        </div>
-        <div>
-          <label htmlFor="ai-focus" className="mb-1.5 block font-bold">
-            Enfoque <span className="font-normal text-muted">(opcional)</span>
-          </label>
-          <input
-            id="ai-focus"
-            value={focus}
-            onChange={(e) => setFocus(e.target.value)}
-            className={inputClass()}
-            placeholder="Ej. 1FN, 2FN y 3FN con ejemplos"
-            maxLength={200}
-          />
         </div>
 
         <fieldset className="sm:col-span-2">
