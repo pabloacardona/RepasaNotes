@@ -11,11 +11,12 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.93",
     "@neondatabase/serverless": "^1.2.0",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@react-three/postprocessing": "^3.2.1",
-    "ai": "^7.0.147",
+    "ai": "^7.0.158",
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
     "drizzle-orm": "^0.45.4",

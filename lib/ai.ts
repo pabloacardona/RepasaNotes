@@ -1,30 +1,42 @@
 import "server-only";
+import { anthropic } from "@ai-sdk/anthropic";
 import { APICallError, generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
 import type { Question } from "./db/schema";
 import { NOTE_MAX, NOTE_MIN } from "./validators";
 
-// Open-weights models served through Vercel AI Gateway.
-// Auth: VERCEL_OIDC_TOKEN on Vercel / after `vercel env pull`, or AI_GATEWAY_API_KEY.
-const MODEL = process.env.AI_GATEWAY_MODEL ?? "openai/gpt-oss-120b";
+// AI_PROVIDER picks where the models run:
+//   "gateway" (default): open-weights models through Vercel AI Gateway.
+//     Auth: VERCEL_OIDC_TOKEN on Vercel / after `vercel env pull`, or AI_GATEWAY_API_KEY.
+//   "anthropic": Claude through the Anthropic API.
+//     Auth: ANTHROPIC_API_KEY. Model: ANTHROPIC_MODEL.
+const PROVIDER = process.env.AI_PROVIDER === "anthropic" ? "anthropic" : "gateway";
 const FALLBACK_MODELS = ["deepseek/deepseek-v4-flash"];
+
+const MODEL =
+  PROVIDER === "anthropic"
+    ? anthropic(process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5")
+    : (process.env.AI_GATEWAY_MODEL ?? "openai/gpt-oss-120b");
+
+const PROVIDER_OPTIONS = PROVIDER === "gateway" ? { gateway: { models: FALLBACK_MODELS } } : undefined;
 
 export class AIGenerationError extends Error {}
 
-// Maps SDK / gateway failures to user-facing messages.
+// Maps SDK / provider failures to user-facing messages.
 function toUserError(err: unknown): AIGenerationError {
-  console.error("ai gateway request failed", err);
+  console.error("ai request failed", err);
   if (NoObjectGeneratedError.isInstance(err)) {
     return new AIGenerationError("La IA devolvió un formato inválido. Intenta de nuevo.");
   }
-  // Gateway errors and APICallError both expose statusCode.
   const status = APICallError.isInstance(err)
     ? err.statusCode
     : (err as { statusCode?: number } | null)?.statusCode;
-  if (status === 402) {
+  const message = err instanceof Error ? err.message : "";
+  // Anthropic reports an empty balance as a 400 with this text.
+  if (status === 402 || /credit balance/i.test(message)) {
     return new AIGenerationError("La IA no tiene saldo disponible. Avisa al administrador.");
   }
-  if (status === 429) {
+  if (status === 429 || status === 529) {
     return new AIGenerationError("La IA está saturada. Intenta de nuevo en un minuto.");
   }
   if (status === 401 || status === 403) {
@@ -84,7 +96,7 @@ ${opts.content}
 </apunte>`,
       output: Output.object({ schema: QuizSchema }),
       maxOutputTokens: 8000,
-      providerOptions: { gateway: { models: FALLBACK_MODELS } },
+      providerOptions: PROVIDER_OPTIONS,
     });
     output = result.output;
   } catch (err) {
@@ -154,7 +166,7 @@ ${
 }`,
       output: Output.object({ schema: QuizSchema }),
       maxOutputTokens: 8000,
-      providerOptions: { gateway: { models: FALLBACK_MODELS } },
+      providerOptions: PROVIDER_OPTIONS,
     });
     output = result.output;
   } catch (err) {
@@ -202,7 +214,7 @@ const NOTE_SYSTEM = `Eres un profesor experto que escribe apuntes de estudio en 
 Objetivo: un apunte que sirva para repasar el tema y del que luego se puedan sacar preguntas de opción múltiple.
 
 Reglas de contenido:
-- Céntrate exclusivamente en el tema y enfoque pedidos. Nada de relleno, historia irrelevante ni temas vecinos.
+- Céntrate exclusivamente en el tema pedido. Nada de relleno, historia irrelevante ni temas vecinos.
 - Si el tema es muy amplio, acótalo a sus conceptos esenciales y dilo en la introducción.
 - Solo información correcta y verificable. Si algo depende de la versión o del contexto, indícalo.
 - Usa terminología técnica exacta y define cada concepto clave.
@@ -247,7 +259,7 @@ ${opts.text}
 </documento>`,
       output: Output.object({ schema: NoteSchema }),
       maxOutputTokens: 12000,
-      providerOptions: { gateway: { models: FALLBACK_MODELS } },
+      providerOptions: PROVIDER_OPTIONS,
     });
     output = result.output;
   } catch (err) {
@@ -285,7 +297,6 @@ function fitLength(text: string) {
 
 export async function generateNote(opts: {
   topic: string;
-  focus?: string;
   level: string;
 }): Promise<{ title: string; topic: string; content: string }> {
   let output: z.infer<typeof NoteSchema>;
@@ -294,11 +305,10 @@ export async function generateNote(opts: {
       model: MODEL,
       system: NOTE_SYSTEM,
       prompt: `Tema a estudiar: ${opts.topic}
-Enfoque específico: ${opts.focus?.trim() || "los conceptos esenciales del tema"}
 Nivel: ${LEVEL_PROMPT[opts.level] ?? opts.level}`,
       output: Output.object({ schema: NoteSchema }),
       maxOutputTokens: 12000,
-      providerOptions: { gateway: { models: FALLBACK_MODELS } },
+      providerOptions: PROVIDER_OPTIONS,
     });
     output = result.output;
   } catch (err) {
