@@ -1,22 +1,36 @@
 import "server-only";
 import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+import { groq } from "@ai-sdk/groq";
 import { APICallError, generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
 import type { Question } from "./db/schema";
 import { NOTE_MAX, NOTE_MIN } from "./validators";
 
-// AI_PROVIDER picks where the models run:
-//   "gateway" (default): open-weights models through Vercel AI Gateway.
-//     Auth: VERCEL_OIDC_TOKEN on Vercel / after `vercel env pull`, or AI_GATEWAY_API_KEY.
-//   "anthropic": Claude through the Anthropic API.
-//     Auth: ANTHROPIC_API_KEY. Model: ANTHROPIC_MODEL.
-const PROVIDER = process.env.AI_PROVIDER === "anthropic" ? "anthropic" : "gateway";
+// AI_PROVIDER picks where the models run. Without it, the first provider that has a key is used:
+//   "google": Gemini through Google AI Studio. Free tier, permanent key. Auth: GOOGLE_GENERATIVE_AI_API_KEY.
+//   "groq": open-weights models on Groq. Free tier, permanent key. Auth: GROQ_API_KEY.
+//   "anthropic": Claude through the Anthropic API (prepaid credits, not part of a Claude subscription).
+//   "gateway": Vercel AI Gateway. Auth: AI_GATEWAY_API_KEY (the OIDC token expires every 12 hours).
+type Provider = "google" | "groq" | "anthropic" | "gateway";
+function pickProvider(): Provider {
+  const set = process.env.AI_PROVIDER;
+  if (set === "google" || set === "groq" || set === "anthropic" || set === "gateway") return set;
+  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) return "google";
+  if (process.env.GROQ_API_KEY) return "groq";
+  return "gateway";
+}
+const PROVIDER = pickProvider();
 const FALLBACK_MODELS = ["deepseek/deepseek-v4-flash"];
 
 const MODEL =
-  PROVIDER === "anthropic"
-    ? anthropic(process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5")
-    : (process.env.AI_GATEWAY_MODEL ?? "openai/gpt-oss-120b");
+  PROVIDER === "google"
+    ? google(process.env.GOOGLE_MODEL ?? "gemini-2.5-flash")
+    : PROVIDER === "groq"
+      ? groq(process.env.GROQ_MODEL ?? "openai/gpt-oss-120b")
+      : PROVIDER === "anthropic"
+        ? anthropic(process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5")
+        : (process.env.AI_GATEWAY_MODEL ?? "openai/gpt-oss-120b");
 
 const PROVIDER_OPTIONS = PROVIDER === "gateway" ? { gateway: { models: FALLBACK_MODELS } } : undefined;
 
@@ -39,7 +53,7 @@ function toUserError(err: unknown): AIGenerationError {
   if (status === 429 || status === 529) {
     return new AIGenerationError("La IA está saturada. Intenta de nuevo en un minuto.");
   }
-  if (status === 401 || status === 403) {
+  if (status === 401 || status === 403 || /api key|unauthenticated/i.test(message)) {
     return new AIGenerationError("La app no está autorizada para usar la IA. Revisa la configuración.");
   }
   return new AIGenerationError("No se pudo contactar a la IA. Intenta de nuevo.");
