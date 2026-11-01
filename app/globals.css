@@ -368,3 +368,71 @@ h3,
 [class*="rounded"] { border-radius: 0 !important; }
 [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 [class*="blur-3xl"], [class*="blur-2xl"] { display: none; }
+
+/* ---------- Rank light effects ---------- */
+@keyframes rank-aura { from { transform: scale(0.9); opacity: 0.55; } to { transform: scale(1.12); opacity: 1; } }
+.rank-aura {
+  position: absolute;
+  inset: -28%;
+  pointer-events: none;
+  background: radial-gradient(circle, color-mix(in oklab, var(--c) 62%, transparent) 0%, color-mix(in oklab, var(--c) 22%, transparent) 38%, transparent 68%);
+  animation: rank-aura 1.8s steps(6) infinite alternate;
+}
+@keyframes rank-spin { to { transform: rotate(360deg); } }
+.rank-rays {
+  position: absolute;
+  inset: -45%;
+  pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--g) 38%, transparent) 0 5deg, transparent 5deg 20deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 0 22%, #000 30%, transparent 70%);
+  mask-image: radial-gradient(circle, transparent 0 22%, #000 30%, transparent 70%);
+  animation: rank-spin 28s steps(56) infinite;
+}
+@keyframes rank-twinkle { 0%, 100% { transform: scale(0); opacity: 0; } 40% { transform: scale(1); opacity: 1; } 70% { transform: scale(0.6); opacity: 0.8; } }
+.rank-spark {
+  position: absolute;
+  width: 7%;
+  aspect-ratio: 1;
+  background: #fff;
+  box-shadow: 0 0 6px 1px var(--g), 0 0 0 1px var(--c);
+  pointer-events: none;
+  animation: rank-twinkle 1.8s steps(5) infinite;
+}
+
+/* ---------- Pixel flame (streak) ---------- */
+@keyframes flame-a { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-2px) scaleY(1.08); } }
+@keyframes flame-b { 0%, 100% { transform: translateY(0) scaleY(0.96); } 50% { transform: translateY(-3px) scaleY(1.14); } }
+.flame { display: inline-block; position: relative; filter: drop-shadow(0 0 8px #ff7a00) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.5)); }
+.flame svg { display: block; }
+.flame .f1 { animation: flame-a 0.5s steps(2) infinite; transform-origin: 50% 100%; }
+.flame .f2 { animation: flame-b 0.4s steps(2) infinite; transform-origin: 50% 100%; }
+.flame-off { filter: grayscale(1) brightness(0.7) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.5)); }
+.flame-off .f1, .flame-off .f2 { animation: none; }
+
+/* ---------- Click burst and pop-ins ---------- */
+@keyframes px-burst { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; } }
+.px-burst { position: fixed; z-index: 300; width: 8px; height: 8px; pointer-events: none; animation: px-burst 0.55s steps(7) forwards; }
+@keyframes pop-in { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+.pop-in { animation: pop-in 0.45s steps(6) both; }
+@keyframes slide-down { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.slide-down { animation: slide-down 0.3s steps(5) both; }
+
+/* ---------- Rank panel glow and HUD ---------- */
+.hx-tier-panel { box-shadow: var(--shadow), 0 0 0 2px color-mix(in oklab, var(--tc) 55%, transparent), 0 0 38px color-mix(in oklab, var(--tc) 40%, transparent); border-color: var(--tc); }
+.hx-hud { background: color-mix(in oklab, var(--bg) 92%, #000); border-bottom: 4px solid var(--line-strong); }
+.hx-tick { position: absolute; top: -3px; bottom: -3px; width: 3px; background: var(--line-strong); opacity: 0.55; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rank-aura, .rank-rays, .rank-spark, .flame .f1, .flame .f2, .px-burst, .pop-in, .slide-down { animation: none; }
+  .rank-spark { transform: scale(1); opacity: 0.8; }
+}
+.px-burst { position: fixed; z-index: 300; width: 8px; height: 8px; pointer-events: none; animation: px-burst 0.55s steps(7) forwards; }
+
+/* Twinkling stars and a shooting star */
+@keyframes hx-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.hx-twinkle { animation: hx-twinkle 2.4s steps(3) infinite; }
+@keyframes hx-shoot { 0% { transform: translate(0, 0); opacity: 0; } 4% { opacity: 1; } 18% { transform: translate(-46vw, 30vh); opacity: 0; } 100% { transform: translate(-46vw, 30vh); opacity: 0; } }
+.hx-shooting { position: absolute; top: 8vh; right: 12vw; width: 36px; height: 3px; background: linear-gradient(90deg, transparent, var(--fg)); animation: hx-shoot 11s steps(14) infinite; transform: rotate(33deg); }
+@media (prefers-reduced-motion: reduce) { .hx-twinkle, .hx-shooting { animation: none; } .hx-shooting { display: none; } }
+.tier-text { color: color-mix(in oklab, var(--tc2) 52%, #000); }
+:root[data-theme="dark"] .tier-text { color: var(--tc2); }

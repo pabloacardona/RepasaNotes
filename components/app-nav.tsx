@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { XpChip, type ChipGame } from "@/components/game/xp-chip";
+import { PlayerHud, type HudData } from "@/components/game/player-hud";
 
 const LINKS = [
   { href: "/dashboard", label: "Inicio" },
@@ -13,7 +13,7 @@ const LINKS = [
   { href: "/logros", label: "Logros" },
 ];
 
-export function AppNav({ name, game }: { name: string; game?: ChipGame | null }) {
+export function AppNav({ name, game }: { name: string; game?: HudData | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -47,7 +47,6 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
             );
           })}
           <ThemeToggle />
-          {game && <XpChip {...game} />}
           <div className="relative ml-1">
             <button
               onClick={() => setOpen((o) => !o)}
@@ -71,6 +70,7 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
           </div>
         </div>
       </nav>
+      {game && <PlayerHud {...game} />}
     </header>
   );
 }

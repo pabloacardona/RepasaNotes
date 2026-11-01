@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
 import { celebrate } from "@/components/confetti";
 import { RankEmblem } from "./rank-emblem";
+import { TIERS } from "@/lib/ranks";
 
 export type RankLite = { tierIndex: number; division: number | null; label: string; pct: number; toNext: number };
 export type Reward = {
@@ -21,6 +22,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
   const reduce = useReducedMotion();
   const [shownXp, setShownXp] = useState(fresh ? 0 : reward.xpGain);
   const [reveal, setReveal] = useState(!fresh);
+  const [up, setUp] = useState(false);
 
   useEffect(() => {
     if (!fresh) return;
@@ -28,6 +30,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
     const t2 = setTimeout(
       () => {
         setReveal(true);
+        if (reward.promoted) setUp(true);
         if (reward.promoted || reward.unlocked.length > 0) celebrate();
       },
       reduce ? 0 : 1500,
@@ -40,8 +43,46 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
 
   const shown = reveal ? reward.to : reward.from;
 
+  const tier = TIERS[reward.to.tierIndex];
+
   return (
     <div className="hx-panel anim-rise p-5">
+      <AnimatePresence>
+        {up && (
+          <motion.div
+            key="rankup"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[250] grid place-items-center overflow-hidden bg-black/85 p-4"
+            onClick={() => setUp(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Subiste de rango"
+            style={{ ["--c" as string]: tier.color, ["--g" as string]: tier.glow }}
+          >
+            <span aria-hidden className="rank-rays !inset-[-60%]" style={{ opacity: 0.9 }} />
+            <motion.div
+              initial={{ scale: 0.2, rotate: -8 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 220, damping: 12 }}
+              className="relative text-center"
+            >
+              <p className="hx-blink font-[family-name:var(--font-press)] text-xs text-[var(--accent)]">¡SUBISTE DE RANGO!</p>
+              <div className="mt-4 flex justify-center">
+                <RankEmblem tierIndex={reward.to.tierIndex} division={reward.to.division} size={260} />
+              </div>
+              <p className="hx-title mt-4 text-6xl" style={{ color: tier.glow }}>
+                {reward.to.label}
+              </p>
+              <p className="mt-2 text-xl text-white/80">Venías de {reward.from.label}. ¡Sigue así!</p>
+              <button type="button" className="hx-btn hx-btn-gold mt-6" onClick={() => setUp(false)}>
+                Continuar
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="flex items-center gap-4">
         <RankEmblem tierIndex={shown.tierIndex} division={shown.division} size={92} />
         <div className="min-w-0 flex-1">

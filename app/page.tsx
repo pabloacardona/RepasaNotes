@@ -2,6 +2,7 @@ import Link from "next/link";
 import { RetroBackdrop } from "@/components/world/retro-backdrop";
 import { HeroMascot } from "@/components/landing/hero-mascot";
 import { RankEmblem } from "@/components/game/rank-emblem";
+import { RankLadder } from "@/components/game/rank-ladder";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const STEPS = [
@@ -59,6 +60,14 @@ export default function Landing() {
               <p className="hx-mute mt-1">{s.text}</p>
             </div>
           ))}
+        </section>
+        <section className="mt-16" aria-label="Rangos">
+          <p className="hx-kicker">¿Hasta dónde llegarás?</p>
+          <h2 className="hx-title mt-2 text-4xl sm:text-5xl">Sube de Hierro a Retador</h2>
+          <p className="hx-mute mt-2 max-w-xl text-lg">Cada quiz te da XP. Toca un rango para ver cómo luce.</p>
+          <div className="mt-6">
+            <RankLadder preview tierIndex={0} xp={0} />
+          </div>
         </section>
       </main>
 

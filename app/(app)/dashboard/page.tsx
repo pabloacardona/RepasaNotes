@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { getStats } from "@/lib/data";
 import { getGameProfile } from "@/lib/game";
-import { RankHub } from "@/components/game/rank-hub";
+import { getStudyStats } from "@/lib/stats";
+import { DAILY_GOAL } from "@/lib/gamification";
+import { DashboardHero } from "@/components/game/dashboard-hero";
+import { RankLadder } from "@/components/game/rank-ladder";
 import { Card, LinkButton } from "@/components/ui";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { AnimatedBar } from "@/components/motion/animated-bar";
@@ -12,7 +15,14 @@ export const metadata: Metadata = { title: "Inicio" };
 
 export default async function Dashboard() {
   const user = await requireUser();
-  const [stats, game] = await Promise.all([getStats(user.sub), getGameProfile(user.sub)]);
+  const [stats, game, study] = await Promise.all([getStats(user.sub), getGameProfile(user.sub), getStudyStats(user.sub)]);
+  const hud = {
+    rank: { tierIndex: game.rank.tierIndex, division: game.rank.division, label: game.rank.label, pct: game.rank.pct, toNext: game.rank.toNext, nextLabel: game.rank.nextLabel, xp: game.rank.xp, color: game.rank.tier.glow },
+    streak: game.streak,
+    today: { answered: game.today.answered, goal: DAILY_GOAL },
+    week: game.week,
+    stats: { accuracy: study.accuracy, answered: study.total.answered, quizzes: study.total.quizzes },
+  };
   const today = new Date().toLocaleDateString("es-CO", {
     weekday: "long",
     day: "numeric",
@@ -32,7 +42,10 @@ export default async function Dashboard() {
         <LinkButton href="/quizzes/nuevo">+ Nuevo quiz</LinkButton>
       </div>
 
-      <RankHub profile={game} />
+      <DashboardHero hud={hud} quests={game.quests} />
+      <div className="mb-6">
+        <RankLadder tierIndex={game.rank.tierIndex} xp={game.rank.xp} />
+      </div>
 
       <Stagger className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <StaggerItem>

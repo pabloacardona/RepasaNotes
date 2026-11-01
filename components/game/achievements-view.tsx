@@ -4,6 +4,7 @@ import { TIER_POINTS, type AchievementState } from "@/lib/gamification";
 import { CONQUER_TIER, TIERS } from "@/lib/ranks";
 import { GameShell } from "./game-shell";
 import { RankEmblem } from "./rank-emblem";
+import { RankLadder } from "./rank-ladder";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 
 const CATEGORIES = ["Estudio", "Combate", "Constancia", "Conquista"] as const;
@@ -51,26 +52,9 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
 
       {/* Ladder */}
       <Reveal>
-        <section className="mt-8" aria-label="Escalera de rangos">
-          <h2 className="hx-kicker mb-3">La escalera</h2>
-          <div className="hx-panel hx-panel-soft overflow-x-auto p-4">
-            <ol className="flex min-w-[720px] items-end justify-between gap-2">
-              {TIERS.map((t, i) => {
-                const reached = i <= rank.tierIndex;
-                const current = i === rank.tierIndex;
-                return (
-                  <li key={t.id} className={`flex flex-1 flex-col items-center gap-1 text-center ${reached ? "" : "opacity-40"}`}>
-                    <div className={current ? "-translate-y-2 scale-125 transition" : ""}>
-                      <RankEmblem tierIndex={i} division={current ? rank.division : null} size={current ? 72 : 56} locked={!reached} />
-                    </div>
-                    <span className={`font-display text-[0.65rem] font-bold uppercase tracking-wider ${current ? "text-[var(--hi)]" : ""}`}>{t.name}</span>
-                    <span className="hx-mute text-[0.6rem]">{t.min.toLocaleString("es-CO")} XP</span>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        </section>
+        <div className="mt-8">
+          <RankLadder tierIndex={rank.tierIndex} xp={rank.xp} />
+        </div>
       </Reveal>
 
       {/* Conquest map */}

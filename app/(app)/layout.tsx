@@ -1,15 +1,36 @@
 import { AppNav } from "@/components/app-nav";
 import { requireUser } from "@/lib/auth";
 import { getGameProfile } from "@/lib/game";
+import { getStudyStats } from "@/lib/stats";
+import { DAILY_GOAL } from "@/lib/gamification";
+import { ClickBurst } from "@/components/click-burst";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
-  const game = await getGameProfile(user.sub).catch(() => null);
+  const [game, stats] = await Promise.all([getGameProfile(user.sub).catch(() => null), getStudyStats(user.sub).catch(() => null)]);
   return (
     <>
+      <ClickBurst />
       <AppNav
         name={user.name}
-        game={game && { tierIndex: game.rank.tierIndex, division: game.rank.division, label: game.rank.label, pct: game.rank.pct, streak: game.streak.current, activeToday: game.streak.activeToday }}
+        game={
+          game && {
+            rank: {
+              tierIndex: game.rank.tierIndex,
+              division: game.rank.division,
+              label: game.rank.label,
+              pct: game.rank.pct,
+              toNext: game.rank.toNext,
+              nextLabel: game.rank.nextLabel,
+              xp: game.rank.xp,
+              color: game.rank.tier.glow,
+            },
+            streak: game.streak,
+            today: { answered: game.today.answered, goal: DAILY_GOAL },
+            week: game.week,
+            stats: { accuracy: stats?.accuracy ?? null, answered: stats?.total.answered ?? 0, quizzes: stats?.total.quizzes ?? 0 },
+          }
+        }
       />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6">{children}</main>
     </>
