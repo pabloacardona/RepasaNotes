@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button, Card, FieldMessage, LinkButton, Spinner, inputClass } from "@/components/ui";
+import { Button, FieldMessage, LinkButton, Spinner, inputClass } from "@/components/ui";
 import { NOTE_MAX, NOTE_MIN, noteSchema } from "@/lib/validators";
 import { NoteSources } from "./note-sources";
 
@@ -74,7 +74,7 @@ export function NoteForm({
       />
     )}
     <form onSubmit={onSubmit} noValidate className="grid gap-5">
-      <Card className="grid gap-5 p-5 sm:p-6">
+      <div className="hx-panel grid gap-5 p-5 sm:p-6">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="title" className="mb-1.5 block font-bold">Título</label>
@@ -127,7 +127,7 @@ export function NoteForm({
             </span>
           </div>
         </div>
-      </Card>
+      </div>
 
       {serverErrors.form && (
         <p role="alert" className="rounded-lg bg-red-soft px-3 py-2 font-bold text-red">
@@ -135,7 +135,7 @@ export function NoteForm({
         </p>
       )}
 
-      <div className="flex flex-wrap justify-end gap-3">
+      <div className="flex flex-wrap justify-center gap-3">
         <LinkButton href="/apuntes" variant="outline">Cancelar</LinkButton>
         <Button type="submit" disabled={saving}>
           {saving && <Spinner />}

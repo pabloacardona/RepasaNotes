@@ -52,9 +52,13 @@ export function AppNav({ name, game }: { name: string; game?: HudData | null }) 
               onClick={() => setOpen((o) => !o)}
               aria-label="Menú de usuario"
               aria-expanded={open}
-              className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] font-bold text-white"
+              className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-2)] py-0.5 pl-0.5 pr-3 transition hover:border-[var(--neon)]"
             >
-              {name.charAt(0).toUpperCase()}
+              <span className="relative grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] font-bold text-white">
+                {name.charAt(0).toUpperCase()}
+                <span aria-hidden className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--bg)] bg-[var(--ok)]" />
+              </span>
+              <span className="max-w-[6.5rem] truncate text-sm font-bold">{name.split(" ")[0]}</span>
             </button>
             {open && (
               <div className="absolute right-0 mt-2 w-48 rounded-xl border border-line bg-card p-2 text-ink shadow-lg">

@@ -20,6 +20,7 @@ export default async function SolveQuizPage({ params }: PageProps<"/quiz/[id]">)
       title={quiz.title}
       topic={quiz.topic}
       questions={quiz.questions}
+      playerName={user.name}
     />
   );
 }

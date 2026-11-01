@@ -231,7 +231,21 @@ export function Repi({
 
     const mixer = new AnimationMixer(model);
     const actions: Record<string, AnimationAction> = {};
-    for (const clip of animations) actions[clip.name.split("|").pop()!] = mixer.clipAction(clip);
+    for (const clip of animations) {
+      // The Body bone also slides sideways in some clips (jump, dance, hit). Pin its X and Z so the mascot
+      // never drifts out of the centre of the frame; its height still moves.
+      const c = clip.clone();
+      for (const tr of c.tracks) {
+        if (tr.name === "Body.position") {
+          const vals = tr.values;
+          for (let i = 0; i < vals.length; i += 3) {
+            vals[i] = vals[0];
+            vals[i + 2] = vals[2];
+          }
+        }
+      }
+      actions[clip.name.split("|").pop()!] = mixer.clipAction(c);
+    }
 
     const r: Rig = { model, mixer, actions, loop: null, oneShot: null, top: size.y * s };
     rig.current = r;

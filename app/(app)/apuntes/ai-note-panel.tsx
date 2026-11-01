@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Button, Card, FieldMessage, Spinner, inputClass } from "@/components/ui";
+import { Button, FieldMessage, Spinner, inputClass } from "@/components/ui";
 import { generateNoteSchema } from "@/lib/validators";
 
 export type NoteDraft = { title: string; topic: string; content: string };
@@ -59,13 +59,13 @@ export function AiNotePanel({
   }
 
   return (
-    <Card className="border-yellow bg-yellow-soft p-5 sm:p-6">
+    <div className="hx-panel hx-tier-panel p-5 sm:p-6" style={{ ["--tc" as string]: "#ffd23f" }}>
       <div className="flex items-start gap-3">
-        <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-yellow text-lg">
+        <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#ffd23f] to-[#ff8a3d] text-xl shadow-[0_0_20px_rgba(255,180,60,0.5)]">
           💡
         </span>
         <div>
-          <h2 className="text-lg font-bold">Crear apunte con IA</h2>
+          <h2 className="font-display text-xl font-bold">Crear apunte con IA</h2>
           <p className="text-ink-soft">
             Escribe el tema que quieres repasar y la IA redacta un apunte especializado. Luego lo revisas y lo guardas.
           </p>
@@ -132,6 +132,6 @@ export function AiNotePanel({
           )}
         </div>
       </form>
-    </Card>
+    </div>
   );
 }

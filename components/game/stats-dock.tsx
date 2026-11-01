@@ -58,7 +58,7 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
   const spring = { type: "spring" as const, stiffness: 320, damping: 30 };
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-2 pb-2 sm:pb-3">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center">
       <AnimatePresence mode="wait" initial={false}>
         {folded ? (
           <motion.button
@@ -69,7 +69,7 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduce ? undefined : { opacity: 0, y: 14, scale: 0.9 }}
             transition={spring}
-            className="hx-dock pointer-events-auto flex items-center gap-2 rounded-full px-3 py-1.5"
+            className="hx-dock pointer-events-auto mb-3 flex items-center gap-2 rounded-full px-3 py-1.5"
             aria-label="Mostrar la barra de racha y estadísticas"
           >
             <StreakFlame size={24} active={streak.activeToday || atRisk} days={streak.current} />
@@ -83,7 +83,7 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
             animate={{ opacity: 1, y: 0 }}
             exit={reduce ? undefined : { opacity: 0, y: 24 }}
             transition={spring}
-            className="relative w-full max-w-4xl"
+            className="relative w-full"
           >
             {/* Detail card */}
             <AnimatePresence>
@@ -94,7 +94,7 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={reduce ? undefined : { opacity: 0, y: 8, scale: 0.98 }}
                   transition={spring}
-                  className="hx-dock pointer-events-auto absolute inset-x-0 bottom-full mb-2 rounded-2xl p-4"
+                  className="hx-dock pointer-events-auto absolute inset-x-0 bottom-full mx-auto mb-3 w-[calc(100%-1rem)] max-w-4xl rounded-2xl p-4"
                   role="region"
                   aria-live="polite"
                 >
@@ -164,7 +164,8 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
               )}
             </AnimatePresence>
 
-            <div className="hx-dock pointer-events-auto flex items-stretch gap-1 rounded-2xl p-1.5">
+            <div className="hx-dock-bar pointer-events-auto">
+              <div className="mx-auto flex max-w-4xl items-stretch gap-1 px-2 py-1.5">
               <Block active={open === "streak"} onClick={() => toggle("streak")} label="Racha" tone={atRisk ? "bad" : streak.activeToday ? "hot" : undefined}>
                 <span onClick={(e) => { e.stopPropagation(); if (streak.activeToday) celebrate(); }} className="shrink-0">
                   <StreakFlame size={26} active={streak.activeToday || atRisk} days={streak.current} />
@@ -233,6 +234,7 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
               >
                 ▼
               </button>
+            </div>
             </div>
           </motion.div>
         )}

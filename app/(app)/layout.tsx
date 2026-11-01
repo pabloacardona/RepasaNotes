@@ -30,7 +30,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <>
       <ClickBurst />
       <AppNav name={user.name} game={hud} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-28 sm:px-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-24 sm:px-6">{children}</main>
       {hud && <StatsDock {...hud} />}
     </>
   );

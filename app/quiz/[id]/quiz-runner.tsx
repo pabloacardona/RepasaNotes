@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
 import { StreakFlame } from "@/components/game/streak-flame";
+import { FireBorder } from "@/components/game/fire-border";
 import type { ComponentProps } from "react";
 import { Spinner } from "@/components/ui";
 import { burstAt } from "@/components/confetti";
@@ -51,11 +52,13 @@ export function QuizRunner({
   title,
   topic,
   questions,
+  playerName,
 }: {
   id: string;
   title: string;
   topic: string;
   questions: Question[];
+  playerName?: string;
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState(0);
@@ -238,6 +241,12 @@ export function QuizRunner({
           </nav>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            {playerName && (
+              <span className="hidden items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] py-1 pl-1 pr-3 sm:flex" title={playerName}>
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] text-sm font-bold text-white">{playerName.charAt(0).toUpperCase()}</span>
+                <span className="max-w-[7rem] truncate text-sm font-bold">{playerName.split(" ")[0]}</span>
+              </span>
+            )}
             <Stat label="XP" bump={feedback?.kind === "hit" ? feedback.key : 0}>
               <AnimatedNumber value={xp} />
               {feedback?.kind === "hit" && (
@@ -250,7 +259,7 @@ export function QuizRunner({
               className={`flex items-center gap-1.5 rounded-xl border px-2 py-1 transition ${comboHot ? "border-[var(--hot)] bg-[var(--hot)]/15 shadow-[0_0_22px_color-mix(in_oklab,var(--hot)_45%,transparent)]" : "border-[var(--line)] bg-[var(--surface-2)]"}`}
               aria-label={`Combo ${streak}`}
             >
-              <StreakFlame size={26} active={streak > 0} days={1} />
+              <StreakFlame size={streak >= 5 ? 34 : 26} active={streak > 0} days={streak >= 8 ? 30 : 1} />
               <span key={streak} className={`font-display text-lg font-bold tabular-nums ${streak ? "pop-in" : "hx-mute"}`}>
                 x{streak}
               </span>
@@ -266,7 +275,8 @@ export function QuizRunner({
       <main className="relative flex min-h-0 flex-1 px-2 pb-2 pt-[24dvh] sm:px-6 sm:pb-4 landscape:pt-4">
         <MascotPicker className="right-3 top-16" />
 
-        <div className="hx-epic flex max-h-full min-h-0 w-full flex-col self-start landscape:max-w-[min(660px,56vw)] portrait:max-w-[640px] p-3 sm:p-6">
+        <div className={`hx-epic ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative flex max-h-full min-h-0 w-full flex-col self-start landscape:max-w-[min(660px,56vw)] portrait:max-w-[640px] p-3 sm:p-6`}>
+          <FireBorder streak={streak} />
           <div className="flex shrink-0 items-center justify-between gap-2">
             <p className="hx-kicker">
               Pregunta {current + 1} <span className="hx-mute">/ {questions.length}</span>

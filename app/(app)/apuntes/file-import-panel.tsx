@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type DragEvent } from "react";
-import { Card, Spinner } from "@/components/ui";
+import { Spinner } from "@/components/ui";
 import type { NoteDraft } from "./ai-note-panel";
 
 const ACCEPT = ".txt,.md,.pdf,.docx";
@@ -57,7 +57,7 @@ export function FileImportPanel({
   }
 
   return (
-    <Card className="p-5 sm:p-6">
+    <div className="hx-panel p-5 sm:p-6">
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -66,7 +66,7 @@ export function FileImportPanel({
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-4 py-10 text-center transition ${
-          dragging ? "scale-[1.01] border-blue bg-blue-soft" : "border-line bg-paper"
+          dragging ? "scale-[1.01] border-[var(--neon)] bg-[var(--neon)]/10 shadow-[0_0_30px_color-mix(in_oklab,var(--neon)_30%,transparent)]" : "border-[var(--line-strong)] bg-[var(--surface-2)]/60"
         }`}
       >
         {loading ? (
@@ -83,7 +83,7 @@ export function FileImportPanel({
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="rounded-lg bg-blue px-4 py-2.5 font-bold text-white transition hover:bg-blue-dark"
+              className="hx-btn hx-btn-gold"
             >
               Elegir archivo
             </button>
@@ -110,6 +110,6 @@ export function FileImportPanel({
           </p>
         )}
       </div>
-    </Card>
+    </div>
   );
 }

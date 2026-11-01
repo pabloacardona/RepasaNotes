@@ -31,7 +31,7 @@ export function NoteSources(props: {
 
   return (
     <section id="fuentes" className="mb-5 scroll-mt-24">
-      <div role="tablist" aria-label="Cómo crear el apunte" className="mb-3 flex flex-wrap gap-2">
+      <div role="tablist" aria-label="Cómo crear el apunte" className="mb-4 flex flex-wrap items-center justify-center gap-2">
         {TABS.map((t) => (
           <button
             key={t.id}

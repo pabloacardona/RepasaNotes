@@ -557,3 +557,32 @@ h3,
 :root:not([data-theme="dark"]) .hx-dock { box-shadow: 0 10px 34px rgba(60, 70, 160, 0.2); }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Fire along the top edge of the question card while the combo burns */
+@keyframes fire-dance { 0%, 100% { transform: scale(1, 1) skewX(0deg); opacity: 0.95; } 25% { transform: scale(0.92, 1.12) skewX(3deg); opacity: 1; } 50% { transform: scale(1.06, 0.9) skewX(-2deg); opacity: 0.85; } 75% { transform: scale(0.96, 1.08) skewX(-4deg); opacity: 1; } }
+.fire-tongue { position: absolute; bottom: 0; transform-origin: 50% 100%; animation: fire-dance var(--d, 0.8s) ease-in-out infinite; animation-delay: var(--delay, 0s); mix-blend-mode: screen; }
+@keyframes ember-rise { 0% { transform: translate(0, 0) scale(1); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(var(--ex, 10px), -90px) scale(0.2); opacity: 0; } }
+.ember { position: absolute; bottom: 8px; width: 5px; height: 5px; border-radius: 50%; background: #ffd27a; box-shadow: 0 0 8px 2px #ff7a00; animation: ember-rise var(--d, 2s) ease-out infinite; animation-delay: var(--delay, 0s); }
+.hx-epic-hot { --b1: #ff3d00; --neon: #ffb300; --b2: #ffd400; box-shadow: 0 0 70px color-mix(in oklab, #ff6a00 55%, transparent), 0 18px 60px color-mix(in oklab, #ff3d00 30%, transparent); }
+.hx-epic-blaze { box-shadow: 0 0 110px color-mix(in oklab, #ff6a00 70%, transparent), 0 0 40px color-mix(in oklab, #ffd400 50%, transparent); }
+@media (prefers-reduced-motion: reduce) { .fire-tongue, .ember { animation: none; } .ember { display: none; } }
+
+/* Solid bottom bar: its own colour so it never blends with the page. It carries its own dark palette in both themes. */
+.hx-dock-bar {
+  --fg: #eef1ff;
+  --fg2: #c7ceef;
+  --mute: rgba(238, 241, 255, 0.62);
+  --track: rgba(255, 255, 255, 0.16);
+  --line: rgba(255, 255, 255, 0.16);
+  --line-strong: rgba(255, 255, 255, 0.45);
+  --surface-2: rgba(255, 255, 255, 0.08);
+  position: relative;
+  background: linear-gradient(180deg, #232a6b 0%, #141946 100%);
+  border-top: 1px solid color-mix(in oklab, var(--b1) 55%, #fff 10%);
+  box-shadow: 0 -14px 36px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
+  color: var(--fg);
+}
+.hx-dock-bar::before { content: ""; position: absolute; inset: -1px 0 auto 0; height: 2px; background: linear-gradient(90deg, transparent, var(--b1), var(--neon), #ff5fd0, transparent); }
+.hx-dock { background: color-mix(in oklab, var(--surface) 97%, transparent); }
+
+:root:not([data-theme="dark"]) .fire-tongue { mix-blend-mode: normal; }

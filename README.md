@@ -69,3 +69,11 @@ npm run dev
 ## Deploy
 
 Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environment variables, then run `npm run db:push` once against the production database.
+
+## Latest polish
+
+- The stats dock is now a solid indigo bar with its own colours in both themes, so it never blends with the page.
+- "Mis apuntes" is one centred column: header, search and topic chips, a two-column grid of note cards with topic colours and accuracy bars, restyled AI and file panels, and the study stats folded into a details block.
+- The player name and avatar with an online dot are always visible in the nav and in the quiz header.
+- While a quiz combo burns (3+ in a row) the question card catches fire: flames and embers along its top edge that grow at 5 and turn blue-white at 8, with a hot glowing border. They ignite and go out smoothly.
+- Mascot clips no longer slide the character sideways: the Body bone's X and Z are pinned so the model stays centred while it jumps, dances or reacts.
