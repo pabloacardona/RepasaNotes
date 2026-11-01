@@ -85,3 +85,6 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 
 - The rank-up scene is a body-level overlay (nothing can clip it) with three beats: the old crest charges up, a flash and shockwaves swap it for the new one, and the rank name rises in letter by letter. It scales to any screen.
 - During a quiz the interface is a single centred card (max 560 px) with smaller type and a compact header, so the eyes stay on the question; the mascot sits small in the lower-right corner.
+
+- The orange-to-yellow gradients are gone: buttons and bars are solid ember red, titles are fire-lit (a flickering glow), and the landing has animated flames along the bottom of the hero and above the "Gana. Sube." title (`components/game/flame-row.tsx`).
+- The landing mascot is framed with wider margins, its speech bubble now sits above the canvas instead of over the model, and winged characters are no longer shrunk to fit their wings.

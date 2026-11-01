@@ -16,9 +16,9 @@ function CameraFit({ w, h, extra, cx }: { w: number; h: number; extra: number; c
     const cam = camera as PerspectiveCamera;
     const tan = Math.tan(MathUtils.degToRad(cam.fov / 2));
     const aspect = size.width / Math.max(1, size.height);
-    const dist = Math.max((h * 1.75) / (2 * tan), ((w + extra) * 1.4) / (2 * tan * aspect));
-    cam.position.set(cx, h * 0.62, dist);
-    cam.lookAt(cx, h * 0.76, 0);
+    const dist = Math.max((h * 1.85) / (2 * tan), ((w + extra) * 1.4) / (2 * tan * aspect));
+    cam.position.set(cx, h * 0.56, dist);
+    cam.lookAt(cx, h * 0.6, 0);
     cam.updateProjectionMatrix();
   }, [camera, size, w, h, extra, cx]);
   return null;

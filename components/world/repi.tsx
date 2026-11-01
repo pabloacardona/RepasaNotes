@@ -30,7 +30,7 @@ import { FadeIn, MoodFx, type Fx } from "./mood-fx";
 // Everything is damped, so there are no cuts between moods.
 
 const HEIGHT = 1.0;
-const MAX_WIDTH = 1.15;
+const MAX_WIDTH = 1.55;
 
 // What each role plays, in order of preference. A role with no available clip falls back to Idle.
 type Role = "idle" | "yes" | "jump" | "dance" | "no" | "hurt";

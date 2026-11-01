@@ -4,6 +4,7 @@ import { HeroMascot } from "@/components/landing/hero-mascot";
 import { RankEmblem } from "@/components/game/rank-emblem";
 import { RankLadder } from "@/components/game/rank-ladder";
 import { StreakFlame } from "@/components/game/streak-flame";
+import { FlameRow } from "@/components/game/flame-row";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { SpotlightCard } from "@/components/motion/spotlight-card";
@@ -47,8 +48,9 @@ export default function Landing() {
 
       <main>
         {/* Hero */}
-        <section className="relative">
-          <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:pb-24 lg:pt-20">
+        <section className="relative overflow-hidden">
+          <FlameRow className="absolute inset-x-0 bottom-0 z-0 opacity-50 [mask-image:linear-gradient(to_top,#000_30%,transparent)]" count={46} height={150} seed={4} />
+          <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-6 px-4 pb-24 pt-12 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:pb-24 lg:pt-20">
             <div>
               <Reveal>
                 <p className="hx-kicker flex items-center gap-2">
@@ -61,7 +63,10 @@ export default function Landing() {
                 <h1 className="mt-4 font-display text-6xl font-bold leading-[0.98] tracking-tight sm:text-8xl">
                   Repasa.
                   <br />
-                  <span className="hx-gold-text">Gana. Sube.</span>
+                  <span className="relative inline-block">
+                    <FlameRow className="absolute inset-x-2 -top-7" count={14} height={34} seed={9} />
+                    <span className="hx-gold-text relative">Gana. Sube.</span>
+                  </span>
                 </h1>
                 <p className="hx-mute mt-6 max-w-lg text-lg leading-snug sm:text-xl">
                   Tus apuntes se convierten en un juego: la IA crea el quiz, tú haces combos, conquistas temas y escalas de rango hasta ser <b className="text-[var(--fg)]">Retador</b>.

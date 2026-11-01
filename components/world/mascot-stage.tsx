@@ -37,6 +37,7 @@ export function MascotStage({
   lastHit,
   streak,
   trophy,
+  bubble = "inside",
   className = "",
 }: {
   mood: Mood;
@@ -44,6 +45,8 @@ export function MascotStage({
   lastHit: boolean | null;
   streak: number;
   trophy?: TrophyTier | null;
+  /** "above" puts the speech bubble outside the canvas so it never covers the model. */
+  bubble?: "inside" | "above";
   className?: string;
 }) {
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
@@ -52,7 +55,7 @@ export function MascotStage({
 
   return (
     <div className={`pointer-events-none ${className}`} aria-hidden>
-      <div className="absolute inset-x-0 top-0 z-10 flex justify-center">
+      <div className={`absolute inset-x-0 z-10 flex justify-center ${bubble === "above" ? "-top-11" : "top-0"}`}>
         <div key={`${mood}-${pulse}`} className="repi-bubble">
           {mascotLine(mood, pulse)}
         </div>
