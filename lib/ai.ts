@@ -2,37 +2,60 @@ import "server-only";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
-import { APICallError, generateText, NoObjectGeneratedError, Output } from "ai";
+import type { SharedV4ProviderOptions as ProviderOptions } from "@ai-sdk/provider";
+import { APICallError, generateText, NoObjectGeneratedError, Output, type LanguageModel } from "ai";
 import { z } from "zod";
 import type { Question } from "./db/schema";
 import { NOTE_MAX, NOTE_MIN } from "./validators";
 
-// AI_PROVIDER picks where the models run. Without it, the first provider that has a key is used:
+// Providers, tried in order: if one fails (rate limit, outage, bad key, invalid output) the next one answers.
 //   "google": Gemini through Google AI Studio. Free tier, permanent key. Auth: GOOGLE_GENERATIVE_AI_API_KEY.
 //   "groq": open-weights models on Groq. Free tier, permanent key. Auth: GROQ_API_KEY.
-//   "anthropic": Claude through the Anthropic API (prepaid credits, not part of a Claude subscription).
-//   "gateway": Vercel AI Gateway. Auth: AI_GATEWAY_API_KEY (the OIDC token expires every 12 hours).
-type Provider = "google" | "groq" | "anthropic" | "gateway";
-function pickProvider(): Provider {
-  const set = process.env.AI_PROVIDER;
-  if (set === "google" || set === "groq" || set === "anthropic" || set === "gateway") return set;
-  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) return "google";
-  if (process.env.GROQ_API_KEY) return "groq";
-  return "gateway";
+//   "anthropic": Claude through the Anthropic API (prepaid credits). Only used when AI_PROVIDER=anthropic.
+//   "gateway": Vercel AI Gateway. Auth: AI_GATEWAY_API_KEY. Used when no other key exists, or when AI_PROVIDER=gateway.
+// AI_PROVIDER, when set, goes first; the rest that have a key follow as backups.
+type ProviderName = "google" | "groq" | "anthropic" | "gateway";
+type Candidate = { name: ProviderName; model: LanguageModel; options?: ProviderOptions };
+
+function buildCandidates(): Candidate[] {
+  const env = process.env;
+  const all: Record<ProviderName, () => Candidate | null> = {
+    google: () => (env.GOOGLE_GENERATIVE_AI_API_KEY ? { name: "google", model: google(env.GOOGLE_MODEL ?? "gemini-3.1-flash-lite") } : null),
+    groq: () => (env.GROQ_API_KEY ? { name: "groq", model: groq(env.GROQ_MODEL ?? "openai/gpt-oss-120b") } : null),
+    anthropic: () => (env.AI_PROVIDER === "anthropic" && env.ANTHROPIC_API_KEY ? { name: "anthropic", model: anthropic(env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5") } : null),
+    gateway: () => ({
+      name: "gateway",
+      model: (env.AI_GATEWAY_MODEL ?? "openai/gpt-oss-120b") as unknown as LanguageModel,
+      options: { gateway: { models: ["deepseek/deepseek-v4-flash"] } },
+    }),
+  };
+  const preferred = env.AI_PROVIDER as ProviderName | undefined;
+  const order: ProviderName[] = ["google", "groq", "anthropic", "gateway"];
+  if (preferred && order.includes(preferred)) {
+    order.splice(order.indexOf(preferred), 1);
+    order.unshift(preferred);
+  }
+  const list = order.map((n) => all[n]()).filter((c): c is Candidate => c !== null);
+  // The gateway is a last resort: only keep it when nothing else is configured or it was asked for.
+  const real = list.filter((c) => c.name !== "gateway");
+  return real.length > 0 && preferred !== "gateway" ? real : list;
 }
-const PROVIDER = pickProvider();
-const FALLBACK_MODELS = ["deepseek/deepseek-v4-flash"];
+const CANDIDATES = buildCandidates();
 
-const MODEL =
-  PROVIDER === "google"
-    ? google(process.env.GOOGLE_MODEL ?? "gemini-2.5-flash")
-    : PROVIDER === "groq"
-      ? groq(process.env.GROQ_MODEL ?? "openai/gpt-oss-120b")
-      : PROVIDER === "anthropic"
-        ? anthropic(process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5")
-        : (process.env.AI_GATEWAY_MODEL ?? "openai/gpt-oss-120b");
-
-const PROVIDER_OPTIONS = PROVIDER === "gateway" ? { gateway: { models: FALLBACK_MODELS } } : undefined;
+// Runs one request against each provider in turn and returns the first success.
+async function withFallback<T>(run: (c: Candidate) => Promise<T>): Promise<T> {
+  let last: unknown;
+  for (const c of CANDIDATES) {
+    try {
+      return await run(c);
+    } catch (err) {
+      last = err;
+      const why = err instanceof Error ? err.message.slice(0, 160).replace(/\s+/g, " ") : "unknown error";
+      console.warn(`ai provider "${c.name}" failed: ${why}${c === CANDIDATES[CANDIDATES.length - 1] ? "" : " (trying the next one)"}`);
+    }
+  }
+  throw last;
+}
 
 export class AIGenerationError extends Error {}
 
@@ -97,8 +120,8 @@ export async function generateQuestions(opts: {
 }): Promise<Question[]> {
   let output: z.infer<typeof QuizSchema>;
   try {
-    const result = await generateText({
-      model: MODEL,
+    const result = await withFallback((c) => generateText({
+      model: c.model,
       system: QUIZ_SYSTEM,
       prompt: `Tema: ${opts.topic}
 Título del apunte: ${opts.title}
@@ -110,8 +133,8 @@ ${opts.content}
 </apunte>`,
       output: Output.object({ schema: QuizSchema }),
       maxOutputTokens: 8000,
-      providerOptions: PROVIDER_OPTIONS,
-    });
+      providerOptions: c.options,
+    }));
     output = result.output;
   } catch (err) {
     throw toUserError(err);
@@ -161,8 +184,8 @@ export async function generateReinforcement(opts: {
 
   let output: z.infer<typeof QuizSchema>;
   try {
-    const result = await generateText({
-      model: MODEL,
+    const result = await withFallback((c) => generateText({
+      model: c.model,
       system: REINFORCE_SYSTEM,
       prompt: `Tema: ${opts.topic}
 Título: ${opts.title}
@@ -180,8 +203,8 @@ ${
 }`,
       output: Output.object({ schema: QuizSchema }),
       maxOutputTokens: 8000,
-      providerOptions: PROVIDER_OPTIONS,
-    });
+      providerOptions: c.options,
+    }));
     output = result.output;
   } catch (err) {
     throw toUserError(err);
@@ -263,8 +286,8 @@ export async function condenseDocument(opts: {
 }): Promise<{ title: string; topic: string; content: string }> {
   let output: z.infer<typeof NoteSchema>;
   try {
-    const result = await generateText({
-      model: MODEL,
+    const result = await withFallback((c) => generateText({
+      model: c.model,
       system: CONDENSE_SYSTEM,
       prompt: `Nombre del archivo: ${opts.titleHint}
 
@@ -273,8 +296,8 @@ ${opts.text}
 </documento>`,
       output: Output.object({ schema: NoteSchema }),
       maxOutputTokens: 12000,
-      providerOptions: PROVIDER_OPTIONS,
-    });
+      providerOptions: c.options,
+    }));
     output = result.output;
   } catch (err) {
     throw toUserError(err);
@@ -315,15 +338,15 @@ export async function generateNote(opts: {
 }): Promise<{ title: string; topic: string; content: string }> {
   let output: z.infer<typeof NoteSchema>;
   try {
-    const result = await generateText({
-      model: MODEL,
+    const result = await withFallback((c) => generateText({
+      model: c.model,
       system: NOTE_SYSTEM,
       prompt: `Tema a estudiar: ${opts.topic}
 Nivel: ${LEVEL_PROMPT[opts.level] ?? opts.level}`,
       output: Output.object({ schema: NoteSchema }),
       maxOutputTokens: 12000,
-      providerOptions: PROVIDER_OPTIONS,
-    });
+      providerOptions: c.options,
+    }));
     output = result.output;
   } catch (err) {
     throw toUserError(err);
