@@ -6,9 +6,8 @@ import { MascotStage } from "@/components/world/mascot-stage";
 import { MascotPicker } from "@/components/world/mascot-picker";
 import { moodFor } from "@/lib/mood";
 
-// Final scene: the interactive backdrop, with the mascot reacting to the score and the trophy beside it.
+// Quiet scene behind the results: the soft backdrop and a small mascot in a corner. No trophy, no pile of effects.
 export function ResultsWorld({ score, total, bestStreak }: { score: number; total: number; bestStreak: number }) {
-  const pct = total ? score / total : 0;
   const mood = useMemo(
     () =>
       moodFor({
@@ -17,7 +16,6 @@ export function ResultsWorld({ score, total, bestStreak }: { score: number; tota
       }),
     [score, total],
   );
-  const trophy = pct >= 0.9 ? "gold" : pct >= 0.7 ? "silver" : pct >= 0.5 ? "bronze" : null;
   return (
     <>
       <InteractiveBackdrop streak={bestStreak} calm />
@@ -26,10 +24,9 @@ export function ResultsWorld({ score, total, bestStreak }: { score: number; tota
         pulse={0}
         lastHit={null}
         streak={bestStreak}
-        trophy={trophy}
-        className="fixed left-1/2 top-[4.4rem] z-0 h-[25dvh] w-[min(86vw,360px)] -translate-x-1/2 landscape:bottom-6 landscape:left-auto landscape:right-4 landscape:top-24 landscape:h-auto landscape:w-[min(40vw,520px)] landscape:translate-x-0 sm:landscape:right-8"
+        className="fixed bottom-16 right-4 z-0 hidden h-[min(30dvh,230px)] w-[min(18vw,210px)] lg:block"
       />
-      <MascotPicker className="bottom-4 right-4" />
+      <MascotPicker className="right-4 top-20" />
     </>
   );
 }

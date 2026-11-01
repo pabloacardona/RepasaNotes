@@ -3,8 +3,7 @@ import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
 import { HeroMascot } from "@/components/landing/hero-mascot";
 import { RankEmblem } from "@/components/game/rank-emblem";
 import { RankLadder } from "@/components/game/rank-ladder";
-import { StreakFlame } from "@/components/game/streak-flame";
-import { FlameRow } from "@/components/game/flame-row";
+import { Waves, Ripples } from "@/components/landing/waves";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { SpotlightCard } from "@/components/motion/spotlight-card";
@@ -49,7 +48,7 @@ export default function Landing() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden">
-          <FlameRow className="absolute inset-x-0 bottom-0 z-0 opacity-50 [mask-image:linear-gradient(to_top,#000_30%,transparent)]" count={46} height={150} seed={4} />
+          <Waves className="absolute inset-x-0 bottom-0 z-0 h-56" />
           <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-6 px-4 pb-24 pt-12 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:pb-24 lg:pt-20">
             <div>
               <Reveal>
@@ -63,13 +62,10 @@ export default function Landing() {
                 <h1 className="mt-4 font-display text-6xl font-bold leading-[0.98] tracking-tight sm:text-8xl">
                   Repasa.
                   <br />
-                  <span className="relative inline-block">
-                    <FlameRow className="absolute inset-x-2 -top-7" count={14} height={34} seed={9} />
-                    <span className="hx-gold-text relative">Gana. Sube.</span>
-                  </span>
+                  <span className="hx-gold-text">A tu ritmo.</span>
                 </h1>
                 <p className="hx-mute mt-6 max-w-lg text-lg leading-snug sm:text-xl">
-                  Tus apuntes se convierten en un juego: la IA crea el quiz, tú haces combos, conquistas temas y escalas de rango hasta ser <b className="text-[var(--fg)]">Retador</b>.
+                  Convierte tus apuntes en quizzes, practica con calma y mira cómo avanzas. Sin prisa, sin ruido: solo tú y lo que quieres aprender.
                 </p>
               </Reveal>
               <Reveal delay={0.2}>
@@ -97,10 +93,7 @@ export default function Landing() {
             </div>
 
             <div className="relative mx-auto w-full max-w-md">
-              <div aria-hidden className="hx-float absolute -right-2 top-2 z-10 flex items-center gap-2 rounded-2xl border border-[var(--hot)]/60 bg-[var(--bg)]/70 px-3 py-2 backdrop-blur">
-                <StreakFlame size={34} days={7} />
-                <span className="font-display text-xl font-bold">7 días</span>
-              </div>
+              <Ripples className="absolute inset-0" />
               <HeroMascot className="relative h-[400px] w-full sm:h-[470px]" />
               <div className="hx-panel hx-epic-soft absolute -bottom-4 left-0 right-0 mx-auto w-[92%] p-3">
                 <div className="flex items-center gap-3">

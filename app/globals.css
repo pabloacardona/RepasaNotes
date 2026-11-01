@@ -332,7 +332,6 @@ h3,
   background: #f0364c;
   color: #fff;
   box-shadow: 0 6px 24px rgba(240, 54, 76, 0.5);
-  animation: btn-flicker 2.2s ease-in-out infinite;
 }
 @keyframes btn-flicker {
   0%, 100% { box-shadow: 0 6px 22px rgba(240, 54, 76, 0.45), 0 0 0 0 rgba(255, 106, 26, 0); }
@@ -356,17 +355,8 @@ h3,
   color: var(--fg);
 }
 @keyframes hx-flow { to { background-position: 200% center; } }
-.hx-gold-text {
-  color: #fff4e6;
-  text-shadow: 0 0 6px #ffb347, 0 -2px 14px #ff6a1a, 0 -8px 28px #e11d2e;
-  animation: hx-text-fire 1.6s ease-in-out infinite alternate;
-}
-@keyframes hx-text-fire {
-  0% { text-shadow: 0 0 6px #ffb347, 0 -2px 12px #ff6a1a, 0 -6px 24px #e11d2e; }
-  50% { text-shadow: 0 0 9px #ffc36b, 0 -3px 18px #ff7a2a, 0 -10px 32px #ff2a1f; }
-  100% { text-shadow: 0 0 5px #ffb347, 0 -2px 15px #ff5a1a, 0 -7px 26px #d11a2a; }
-}
-:root:not([data-theme="dark"]) .hx-gold-text { color: #c2181f; text-shadow: 0 0 14px rgba(255, 90, 30, 0.35); animation: none; }
+.hx-gold-text { color: color-mix(in oklab, var(--accent) 72%, #ffffff); }
+:root:not([data-theme="dark"]) .hx-gold-text { color: var(--accent); }
 .hx-kicker {
   font-family: var(--font-display);
   font-size: 0.68rem;
@@ -597,3 +587,10 @@ html { scroll-behavior: smooth; }
 
 /* The wordmark: always warm yellow with a soft glow */
 .hx-yellow { color: #ffd84a; background: linear-gradient(180deg, #fff3a8 0%, #ffd84a 45%, #ffb020 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 12px rgba(255, 190, 40, 0.45)); }
+
+/* Calm landing: drifting waves and ripples */
+@keyframes wave-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.wave-layer { animation: wave-drift 40s linear infinite; }
+@keyframes ripple-out { 0% { transform: scale(0.35); opacity: 0.55; } 100% { transform: scale(1.5); opacity: 0; } }
+.ripple-ring { grid-area: 1 / 1; width: min(88%, 380px); aspect-ratio: 1; border-radius: 50%; border: 1.5px solid color-mix(in oklab, var(--b1) 55%, transparent); animation: ripple-out 8.8s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .wave-layer, .ripple-ring { animation: none; } }

@@ -88,3 +88,6 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 
 - The orange-to-yellow gradients are gone: buttons and bars are solid ember red, titles are fire-lit (a flickering glow), and the landing has animated flames along the bottom of the hero and above the "Gana. Sube." title (`components/game/flame-row.tsx`).
 - The landing mascot is framed with wider margins, its speech bubble now sits above the canvas instead of over the model, and winged characters are no longer shrunk to fit their wings.
+
+- The results screen is one calm column: a score ring with the grade and the verdict, one row with the XP and the rank bar (achievements as small chips), a one-line "reforzar" row, two buttons and the mistakes folded in a details block. A promotion still gets its own full-screen scene.
+- The landing is calm and study-focused: drifting layered waves along the bottom of the hero and slow ripples around the mascot (`components/landing/waves.tsx`). The fire effects stay only inside a quiz, as feedback for a burning combo.

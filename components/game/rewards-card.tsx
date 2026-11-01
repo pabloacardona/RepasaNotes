@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
 import { celebrate } from "@/components/confetti";
 import { RankEmblem } from "./rank-emblem";
-import { RankUpOverlay } from "./rank-up-overlay";
 import { AchievementIcon } from "./achievement-icon";
+import { RankUpOverlay } from "./rank-up-overlay";
 
 export type RankLite = { tierIndex: number; division: number | null; label: string; pct: number; toNext: number };
 export type Reward = {
@@ -18,7 +18,8 @@ export type Reward = {
   dailyDone: boolean;
 };
 
-// What this quiz earned: XP, LP, a promotion banner and the achievement tiers it unlocked.
+// What the quiz earned, in one row: XP, the rank bar and small chips for anything unlocked.
+// A promotion gets its own full-screen scene (RankUpOverlay); everything else stays quiet.
 export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean }) {
   const reduce = useReducedMotion();
   const [shownXp, setShownXp] = useState(fresh ? 0 : reward.xpGain);
@@ -27,14 +28,14 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
 
   useEffect(() => {
     if (!fresh) return;
-    const t1 = setTimeout(() => setShownXp(reward.xpGain), reduce ? 0 : 500);
+    const t1 = setTimeout(() => setShownXp(reward.xpGain), reduce ? 0 : 400);
     const t2 = setTimeout(
       () => {
         setReveal(true);
         if (reward.promoted) setUp(true);
-        if (reward.promoted || reward.unlocked.length > 0) celebrate();
+        else if (reward.unlocked.length > 0) celebrate();
       },
-      reduce ? 0 : 1500,
+      reduce ? 0 : 1300,
     );
     return () => {
       clearTimeout(t1);
@@ -45,67 +46,48 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
   const shown = reveal ? reward.to : reward.from;
 
   return (
-    <div className="hx-panel anim-rise p-5">
+    <div className="hx-panel p-4">
       <AnimatePresence>{up && <RankUpOverlay from={reward.from} to={reward.to} onClose={() => setUp(false)} />}</AnimatePresence>
-      <div className="flex items-center gap-4">
-        <RankEmblem tierIndex={shown.tierIndex} division={shown.division} size={92} />
+
+      <div className="flex items-center gap-3">
+        <RankEmblem tierIndex={shown.tierIndex} division={shown.division} size={52} effects={false} />
         <div className="min-w-0 flex-1">
-          <p className="hx-kicker">Recompensa</p>
-          <p className="hx-title hx-gold-text text-4xl tabular-nums">
-            +<AnimatedNumber from={fresh ? 0 : reward.xpGain} value={shownXp} /> <span className="text-xl">XP</span>
-          </p>
-          <p className="hx-mute text-sm">
-            {shown.label} · {reward.to.toNext} XP para {reward.to.tierIndex >= 9 ? "seguir subiendo" : "el siguiente rango"}
-          </p>
-          <div className="hx-bar mt-1.5">
-            <span style={{ width: `${Math.max(shown.pct, 3)}%`, transition: "width 1.4s cubic-bezier(.16,1,.3,1)" }} />
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="font-display text-lg font-bold">
+              {shown.label}
+              {reveal && reward.promoted && <span className="ml-2 text-xs font-bold text-[var(--ok)]">▲ ascendiste</span>}
+            </p>
+            <p className="font-display text-lg font-bold tabular-nums text-[var(--hi)]">
+              +<AnimatedNumber from={fresh ? 0 : reward.xpGain} value={shownXp} /> XP
+            </p>
           </div>
+          <div className="hx-bar mt-1.5">
+            <span style={{ width: `${Math.max(shown.pct, 3)}%`, transition: "width 1.2s cubic-bezier(.16,1,.3,1)" }} />
+          </div>
+          <p className="hx-mute mt-1 text-xs">{reward.to.tierIndex >= 9 ? "En la cima de la escalera" : `${reward.to.toNext} XP para el siguiente rango`}</p>
         </div>
       </div>
 
-      {reward.dailyDone && (
-        <p className="mt-3 border-l-2 border-[var(--neon)] bg-[var(--neon)]/10 px-3 py-1.5 text-sm font-bold">☀️ ¡Meta diaria cumplida! Ya cuenta tu bonus de XP.</p>
-      )}
-
-      <AnimatePresence>
-        {reveal && reward.promoted && (
-          <motion.div
-            key="promo"
-            initial={reduce ? false : { opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 14 }}
-            className="hx-shine mt-4 border border-[var(--accent)] bg-[var(--accent)] !text-[var(--on-accent)] p-3 text-center"
-          >
-            <p className="hx-kicker !text-[var(--on-accent)]">¡Ascenso!</p>
-            <p className="hx-title hx-gold-text text-2xl">{reward.to.label}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {reveal && reward.unlocked.length > 0 && (
-        <div className="mt-4">
-          <p className="hx-kicker mb-2">{reward.unlocked.length === 1 ? "Logro desbloqueado" : "Logros desbloqueados"}</p>
-          <ul className="space-y-2">
-            {reward.unlocked.map((a, i) => (
-              <motion.li
-                key={a.id}
-                initial={reduce ? false : { opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", stiffness: 240, damping: 18, delay: i * 0.15 }}
-                className="flex items-center gap-3 bg-[var(--fg)]/5 p-3"
-                style={{ borderLeft: `3px solid ${a.rarity.color}` }}
-              >
-                <AchievementIcon id={a.id} color={a.rarity.color} tier={a.tier} size={46} />
-                <span className="min-w-0">
-                  <span className="block font-bold">
-                    {a.name} <span style={{ color: a.rarity.color }}>· {a.rarity.name}</span>
-                  </span>
-                  <span className="hx-mute block text-sm">{a.text}</span>
-                </span>
-              </motion.li>
-            ))}
-          </ul>
-        </div>
+      {reveal && (reward.unlocked.length > 0 || reward.dailyDone) && (
+        <ul className="mt-3 flex flex-wrap gap-2 border-t border-[var(--line)] pt-3">
+          {reward.dailyDone && <li className="rounded-full border border-[var(--line)] px-3 py-1 text-xs font-semibold">☀️ Meta diaria cumplida</li>}
+          {reward.unlocked.map((a, i) => (
+            <motion.li
+              key={a.id}
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.4 }}
+              className="flex items-center gap-2 rounded-full border py-0.5 pl-1 pr-3 text-xs font-semibold"
+              style={{ borderColor: a.rarity.color }}
+              title={a.text}
+            >
+              <AchievementIcon id={a.id} color={a.rarity.color} tier={a.tier} size={26} />
+              <span>
+                {a.name} <span style={{ color: a.rarity.color }}>· {a.rarity.name}</span>
+              </span>
+            </motion.li>
+          ))}
+        </ul>
       )}
     </div>
   );

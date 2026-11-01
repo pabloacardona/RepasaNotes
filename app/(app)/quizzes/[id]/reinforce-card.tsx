@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
 import { useState } from "react";
 import { Spinner } from "@/components/ui";
 
+// One quiet row: train what you missed with a fresh AI quiz.
 export function ReinforceCard({ quizId, mistakes }: { quizId: string; mistakes: number }) {
   const router = useRouter();
   const [count, setCount] = useState(mistakes > 3 ? 10 : 5);
@@ -28,40 +28,36 @@ export function ReinforceCard({ quizId, mistakes }: { quizId: string; mistakes: 
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 22 }}
-      className="hx-panel p-5"
-    >
-      <p className="hx-kicker !text-[var(--hi)]">Recomendado</p>
-      <h3 className="hx-title mt-1 text-xl">🎯 Entrena tus puntos débiles</h3>
-      <p className="hx-mute mt-1 text-sm">
-        La IA crea preguntas nuevas sobre {mistakes === 1 ? "el concepto que fallaste" : `los ${mistakes} conceptos que fallaste`}, desde otros ángulos.
-      </p>
-      <div className="mt-4 flex items-center gap-2" role="group" aria-label="Número de preguntas">
-        {[5, 10].map((n) => (
-          <button
-            key={n}
-            onClick={() => setCount(n)}
-            aria-pressed={count === n}
-            className={`whitespace-nowrap border px-3 py-1 text-sm font-bold transition ${
-              count === n ? "border-[var(--hi)] bg-[var(--accent)]/25 text-[var(--hi)]" : "border-[var(--line-strong)] bg-[var(--fg)]/5 hover:bg-[var(--fg)]/10"
-            }`}
-          >
-            {n} preguntas
-          </button>
-        ))}
+    <div className="hx-panel p-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-base font-bold">🎯 Reforzar lo que fallaste</p>
+          <p className="hx-mute text-xs">
+            La IA crea preguntas nuevas sobre {mistakes === 1 ? "el concepto" : `los ${mistakes} conceptos`} que no dominaste.
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5" role="group" aria-label="Número de preguntas">
+          {[5, 10].map((n) => (
+            <button
+              key={n}
+              onClick={() => setCount(n)}
+              aria-pressed={count === n}
+              className={`rounded-full border px-2.5 py-1 text-xs font-bold transition ${count === n ? "border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+        <button onClick={generate} disabled={loading} className="hx-btn hx-btn-gold !px-4 !py-2 text-sm">
+          {loading && <Spinner />}
+          {loading ? "Creando…" : "Reforzar"}
+        </button>
       </div>
-      <button onClick={generate} disabled={loading} className="hx-btn hx-btn-gold mt-4 w-full">
-        {loading ? <Spinner /> : <span aria-hidden>✨</span>}
-        {loading ? "Creando preguntas…" : "Generar quiz de refuerzo"}
-      </button>
       {error && (
         <p role="alert" className="mt-2 text-sm font-bold text-[var(--bad-soft)]">
           {error}
         </p>
       )}
-    </motion.div>
+    </div>
   );
 }

@@ -7,7 +7,7 @@ import { StreakFlame } from "@/components/game/streak-flame";
 import { gradeFor } from "@/lib/ranks";
 
 // Smooth count-up from 0 (or straight to the value when it is not a fresh result).
-function useCount(to: number, fresh: boolean, delay = 0, duration = 1.5) {
+function useCount(to: number, fresh: boolean, delay = 0, duration = 1.1) {
   const [v, setV] = useState(fresh ? 0 : to);
   useEffect(() => {
     if (!fresh) return;
@@ -18,6 +18,7 @@ function useCount(to: number, fresh: boolean, delay = 0, duration = 1.5) {
   return v;
 }
 
+// One calm summary card: a score ring with the grade, the verdict and three small numbers.
 export function ScoreCard({
   score,
   total,
@@ -36,117 +37,76 @@ export function ScoreCard({
   // Passing starts at 50%: nobody "loses" a quiz. Below that the message is encouragement, not defeat.
   const win = pct >= 50;
   const grade = gradeFor(pct);
-  const tone = win ? "#ffd400" : "#ffa62b";
-  const shownScore = useCount(score, fresh, 0.35);
-  const shownPct = useCount(pct, fresh, 0.35);
-  const shownPoints = useCount(points, fresh, 0.6);
+  const tone = win ? "var(--ok)" : "var(--hi)";
+  const shownPct = useCount(pct, fresh, 0.2);
+  const shownPoints = useCount(points, fresh, 0.35);
   const done = useRef(false);
 
   useEffect(() => {
     if (!fresh || !win || done.current) return;
     done.current = true;
-    const t = setTimeout(celebrate, reduce ? 0 : 1500);
+    const t = setTimeout(celebrate, reduce ? 0 : 900);
     return () => clearTimeout(t);
   }, [fresh, win, reduce]);
 
-  const R = 70;
+  const R = 40;
   const C = 2 * Math.PI * R;
-  const verdict = pct === 100 ? "¡Perfecto!" : pct >= 90 ? "¡Excelente!" : pct >= 70 ? "¡Muy bien!" : pct >= 50 ? "¡Aprobaste! Sigue subiendo" : "Casi. Repasa y vuelve a intentarlo";
+  const title = pct === 100 ? "¡Perfecto!" : win ? "Victoria" : "Sigue adelante";
+  const verdict = pct === 100 ? "Sin un solo error" : pct >= 90 ? "Excelente trabajo" : pct >= 70 ? "Muy bien" : pct >= 50 ? "Aprobaste, sigue subiendo" : "Repasa lo fallado y vuelve a intentarlo";
 
   return (
-    <div className="relative mt-2 overflow-hidden rounded-2xl px-2 pb-1 pt-4" style={{ ["--c" as string]: tone, ["--g" as string]: tone }}>
-      <span aria-hidden className="rank-rays !inset-[-70%] opacity-60" />
-      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40" style={{ background: `radial-gradient(60% 100% at 50% 0%, ${tone}44, transparent)` }} />
-
-      <div className="relative text-center">
-        <motion.p
-          initial={reduce || !fresh ? false : { opacity: 0, y: 26, scale: 0.8, filter: "blur(10px)" }}
-          animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-          transition={{ type: "spring", stiffness: 140, damping: 16 }}
-          className="font-display text-6xl font-bold uppercase leading-none tracking-wider sm:text-7xl"
-          style={{ color: tone, textShadow: `0 0 34px ${tone}99, 0 4px 0 rgba(0,0,0,.25)` }}
-        >
-          {win ? "Victoria" : "¡Sigue!"}
-        </motion.p>
-        <motion.p initial={reduce || !fresh ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.8 }} className="hx-mute mt-1 text-lg">
-          {verdict}
-        </motion.p>
-      </div>
-
-      {/* Gauge */}
-      <div className="relative mx-auto mt-4 grid h-[200px] w-[200px] place-items-center">
-        <svg viewBox="0 0 180 180" className="absolute inset-0 -rotate-90" aria-hidden>
-          <defs>
-            <linearGradient id="gauge" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor={tone} />
-              <stop offset="1" stopColor={win ? "#ff8a3d" : "#ff5c8a"} />
-            </linearGradient>
-          </defs>
-          <circle cx="90" cy="90" r={R} fill="none" stroke="var(--track)" strokeWidth="12" />
+    <div className="hx-panel flex items-center gap-4 p-4 sm:gap-5 sm:p-5">
+      <div className="relative grid h-[104px] w-[104px] shrink-0 place-items-center">
+        <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90" aria-hidden>
+          <circle cx="50" cy="50" r={R} fill="none" stroke="var(--track)" strokeWidth="8" />
           <motion.circle
-            cx="90"
-            cy="90"
+            cx="50"
+            cy="50"
             r={R}
             fill="none"
-            stroke="url(#gauge)"
-            strokeWidth="12"
+            stroke={tone}
+            strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={C}
             initial={{ strokeDashoffset: reduce || !fresh ? C * (1 - pct / 100) : C }}
             animate={{ strokeDashoffset: C * (1 - pct / 100) }}
-            transition={{ duration: 1.6, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            style={{ filter: `drop-shadow(0 0 8px ${tone})` }}
+            transition={{ duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           />
         </svg>
-        <motion.div
-          initial={reduce || !fresh ? false : { scale: 0, rotate: -40 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: "spring", stiffness: 190, damping: 13, delay: 0.9 }}
-          className="relative grid h-[104px] w-[104px] place-items-center rounded-3xl font-display text-6xl font-bold"
-          style={{
-            background: `linear-gradient(150deg, ${grade.color}, color-mix(in oklab, ${grade.color} 35%, #0a1020))`,
-            color: "#0a1020",
-            boxShadow: `0 0 34px ${grade.color}aa, inset 0 2px 0 rgba(255,255,255,.5)`,
-          }}
-          aria-label={`Nota ${grade.letter}`}
-        >
-          {grade.letter}
-        </motion.div>
+        <div className="text-center leading-none" aria-label={`Nota ${grade.letter}, ${score} de ${total}`}>
+          <p className="font-display text-4xl font-bold" style={{ color: grade.color }}>
+            {grade.letter}
+          </p>
+          <p className="hx-mute mt-1 text-xs font-bold tabular-nums">
+            {score}/{total}
+          </p>
+        </div>
       </div>
-      <p className="relative mt-1 text-center font-display text-4xl font-bold tabular-nums" aria-label={`${score} de ${total}`}>
-        {Math.round(shownScore)}
-        <span className="hx-mute text-2xl">/{total}</span>
-      </p>
 
-      <div className="relative mt-4 grid grid-cols-3 gap-2 text-center">
-        <Tile label="Precisión" delay={0.5} fresh={fresh}>
-          {Math.round(shownPct)}%
-        </Tile>
-        <Tile label="Puntos" delay={0.6} fresh={fresh}>
-          {Math.round(shownPoints).toLocaleString("es-CO")}
-        </Tile>
-        <Tile label="Mejor combo" delay={0.7} fresh={fresh}>
-          <span className="inline-flex items-center justify-center gap-1">
-            <StreakFlame size={22} active={bestStreak > 0} days={1} />
-            {bestStreak || "—"}
-          </span>
-        </Tile>
+      <div className="min-w-0 flex-1">
+        <motion.p
+          initial={reduce || !fresh ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="font-display text-3xl font-bold leading-none sm:text-4xl"
+          style={{ color: tone }}
+        >
+          {title}
+        </motion.p>
+        <p className="hx-mute mt-1 text-sm">{verdict}</p>
+        <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+          <div>
+            <dd className="inline font-display text-lg font-bold tabular-nums">{Math.round(shownPct)}%</dd> <dt className="hx-mute inline">precisión</dt>
+          </div>
+          <div>
+            <dd className="inline font-display text-lg font-bold tabular-nums">{Math.round(shownPoints).toLocaleString("es-CO")}</dd> <dt className="hx-mute inline">puntos</dt>
+          </div>
+          <div className="inline-flex items-center gap-1">
+            <StreakFlame size={18} active={bestStreak > 0} days={1} />
+            <dd className="font-display text-lg font-bold tabular-nums">{bestStreak || "—"}</dd> <dt className="hx-mute">combo</dt>
+          </div>
+        </dl>
       </div>
     </div>
-  );
-}
-
-function Tile({ label, children, delay, fresh }: { label: string; children: React.ReactNode; delay: number; fresh: boolean }) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div
-      initial={reduce || !fresh ? false : { opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1 + delay, type: "spring", stiffness: 200, damping: 20 }}
-      className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)]/70 px-2 py-2.5 backdrop-blur"
-    >
-      <p className="font-display text-xl font-bold tabular-nums">{children}</p>
-      <p className="hx-mute text-[0.65rem] font-bold uppercase tracking-widest">{label}</p>
-    </motion.div>
   );
 }
