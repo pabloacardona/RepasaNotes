@@ -141,12 +141,15 @@ export function Repi({
   pulse,
   lastHit,
   streak,
+  onFit,
 }: {
   mascot: MascotId;
   mood: Mood;
   pulse: number;
   lastHit: boolean | null;
   streak: number;
+  /** Reports the real size of the model (world units) once it is centred, so the camera can frame it. */
+  onFit?: (d: { w: number; h: number }) => void;
 }) {
   const { scene, animations } = useGLTF(`/3d/mascots/${mascot}.glb`);
   const holder = useRef<Group>(null); // hop and shake, in world
@@ -168,7 +171,11 @@ export function Repi({
     window.addEventListener("pointermove", move, { passive: true });
     return () => window.removeEventListener("pointermove", move);
   }, []);
-  const m = useRef({ hopV: 0, hopY: 0, shake: 0, squash: 0, nod: 0, yaw: 0, fidgetAt: 8 });
+  const m = useRef({ hopV: 0, hopY: 0, shake: 0, squash: 0, nod: 0, yaw: 0, fidgetAt: 8, appear: 0 });
+  const onFitRef = useRef(onFit);
+  useEffect(() => {
+    onFitRef.current = onFit;
+  }, [onFit]);
 
   // ---------- Build the rig once the model is loaded ----------
   useLayoutEffect(() => {
@@ -231,7 +238,25 @@ export function Repi({
 
     const first = pick(r, styleRef.current.role);
     if (first) {
-      first.setLoop(LoopRepeat, Infinity).reset().fadeIn(0.4).play();
+      // Measure the model in its idle pose (not the bind pose) so it is truly centred and fully inside the frame.
+      first.setLoop(LoopRepeat, Infinity).reset().play();
+      mixer.update(0.2);
+      settle();
+      const pose = new Box3().setFromObject(model, true);
+      const ps = pose.getSize(new Vector3());
+      model.scale.multiplyScalar(Math.min(HEIGHT / ps.y, MAX_WIDTH / Math.max(ps.x, ps.z)));
+      settle();
+      const fit = new Box3().setFromObject(model, true);
+      const c = fit.getCenter(new Vector3());
+      const gw = g.getWorldPosition(new Vector3());
+      model.position.x -= c.x - gw.x;
+      model.position.z -= c.z - gw.z;
+      model.position.y -= fit.min.y - gw.y;
+      settle();
+      const dims = fit.getSize(new Vector3());
+      r.top = dims.y;
+      onFitRef.current?.({ w: dims.x, h: dims.y });
+      first.reset().fadeIn(0.4).play();
       r.loop = first;
     }
 
@@ -315,6 +340,9 @@ export function Repi({
     const bob = Math.sin(t * cur.bobSpeed) * cur.bob;
     const tremble = (Math.sin(t * 47) + Math.sin(t * 31)) * 0.5 * (cur.tremble + s.shake * 0.015);
     g.position.set(tremble, s.hopY + bob + cur.bob, 0);
+    // Soft entrance: grows in instead of popping.
+    s.appear = MathUtils.damp(s.appear, 1, 5, d);
+    g.scale.setScalar(0.55 + 0.45 * s.appear);
 
     // Head follows the pointer, plus mood tilt and a head shake after a miss.
     s.yaw = MathUtils.damp(s.yaw, mouse.current.x * 0.45, 4, d);

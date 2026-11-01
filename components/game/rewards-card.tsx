@@ -94,7 +94,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
             {shown.label} · {reward.to.toNext} XP para {reward.to.tierIndex >= 9 ? "seguir subiendo" : "el siguiente rango"}
           </p>
           <div className="hx-bar mt-1.5">
-            <span style={{ width: `${Math.max(shown.pct, 3)}%` }} />
+            <span style={{ width: `${Math.max(shown.pct, 3)}%`, transition: "width 1.4s cubic-bezier(.16,1,.3,1)" }} />
           </div>
         </div>
       </div>

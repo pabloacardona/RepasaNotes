@@ -8,7 +8,7 @@ import { celebrate } from "@/components/confetti";
 import { RankEmblem } from "./rank-emblem";
 import { StreakFlame } from "./streak-flame";
 import { TIERS } from "@/lib/ranks";
-import type { HudData } from "./player-hud";
+import type { HudData } from "./hud-utils";
 
 // Dashboard top: a big rank crest that tilts towards the pointer and celebrates on click, the XP road to the next rank,
 // the streak with its week, and animated stats.
