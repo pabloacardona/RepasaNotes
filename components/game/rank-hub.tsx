@@ -19,7 +19,7 @@ export function RankHub({ profile }: { profile: GameProfile }) {
           <RankEmblem tierIndex={rank.tierIndex} division={rank.division} size={132} />
           <div className="min-w-0 flex-1">
             <p className="hx-kicker">Tu rango</p>
-            <p className="hx-title hx-gold-text hx-rank text-3xl sm:text-4xl" style={{ ["--tg1" as string]: rank.tier.glow, ["--tg2" as string]: rank.tier.color, ["--tg3" as string]: rank.tier.glow }}>{rank.label}</p>
+            <p className="hx-title hx-gold-text text-3xl sm:text-4xl" style={{ ["--tg1" as string]: rank.tier.glow, ["--tg2" as string]: rank.tier.color, ["--tg3" as string]: rank.tier.glow }}>{rank.label}</p>
             <div className="mt-2 flex items-center gap-3">
               <div className="hx-bar flex-1" role="progressbar" aria-valuenow={rank.lp} aria-valuemin={0} aria-valuemax={100} aria-label="Puntos de liga">
                 <span style={{ width: `${Math.max(rank.pct, 3)}%` }} />

@@ -17,7 +17,7 @@ export function XpChip({ tierIndex, division, label, pct, streak, activeToday }:
         <RankEmblem tierIndex={tierIndex} division={division} size={34} />
       </span>
       <span className="hidden min-w-0 flex-col gap-0.5 sm:flex">
-        <span className="font-mono text-[0.68rem] font-bold uppercase leading-none tracking-wider text-[var(--fg)]">{label}</span>
+        <span className="font-display text-[0.68rem] font-bold uppercase leading-none tracking-wider text-[var(--fg)]">{label}</span>
         <span className="hx-bar hx-bar-gold !h-1.5 w-20">
           <span style={{ width: `${Math.max(pct, 4)}%` }} />
         </span>

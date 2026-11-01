@@ -39,7 +39,7 @@ export function NoteSources(props: {
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={`rounded-full border-2 px-4 py-2 font-bold transition ${
-              tab === t.id ? "border-[var(--line-strong)] bg-[var(--accent)] text-[var(--on-accent)] shadow-[2px_2px_0_var(--line-strong)]" : "border-line bg-card hover:border-ink-soft"
+              tab === t.id ? "border-transparent bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-white shadow-[0_0_14px_rgba(124,92,255,0.45)]" : "border-line bg-card hover:border-ink-soft"
             }`}
           >
             {t.label}

@@ -4,16 +4,16 @@ import type { ComponentProps, ReactNode } from "react";
 type Variant = "primary" | "ai" | "dark" | "outline" | "ghost" | "danger";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "border-[1.5px] border-[var(--line-strong)] bg-[var(--accent)] text-[var(--on-accent)] shadow-[3px_3px_0_var(--line-strong)] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_var(--line-strong)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
-  ai: "border-[1.5px] border-[var(--line-strong)] bg-[#ffd23f] text-[#1a1400] shadow-[3px_3px_0_var(--line-strong)] hover:-translate-x-px hover:-translate-y-px active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
-  dark: "border-[1.5px] border-[var(--line-strong)] bg-[var(--surface-2)] text-ink shadow-[3px_3px_0_var(--line-strong)] hover:-translate-x-px hover:-translate-y-px",
-  outline: "border-[1.5px] border-[var(--line-strong)] text-ink bg-transparent shadow-[3px_3px_0_var(--line-strong)] hover:-translate-x-px hover:-translate-y-px active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
+  primary: "bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-white shadow-[0_4px_18px_rgba(124,92,255,0.4)] hover:brightness-110",
+  ai: "bg-[#ffd23f] text-[#1a1400] shadow-[0_4px_18px_rgba(255,210,63,0.35)] hover:brightness-95",
+  dark: "border border-[var(--line-strong)] bg-[var(--surface-2)] text-[var(--hi)] hover:border-[var(--neon)]",
+  outline: "border-2 border-[var(--line-strong)] text-ink bg-transparent hover:border-[var(--neon)] hover:bg-ink/5",
   ghost: "text-blue hover:bg-blue-soft",
   danger: "text-red hover:bg-red-soft",
 };
 
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-bold transition disabled:opacity-60 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 font-bold transition disabled:opacity-60 disabled:cursor-not-allowed";
 
 export function Button({
   variant = "primary",
@@ -32,7 +32,7 @@ export function LinkButton({
 }
 
 export function Card({ className = "", ...props }: ComponentProps<"div">) {
-  return <div className={`rounded-[10px] border-[1.5px] border-[var(--line-strong)] bg-card shadow-[var(--shadow)] ${className}`} {...props} />;
+  return <div className={`rounded-2xl border border-line bg-card/90 shadow-[var(--shadow)] backdrop-blur ${className}`} {...props} />;
 }
 
 export function Spinner() {
@@ -64,7 +64,7 @@ export function FieldMessage({ error, ok }: { error?: string; ok?: string }) {
 export function inputClass(state?: "error" | "ok") {
   const border =
     state === "error" ? "border-red" : state === "ok" ? "border-green" : "border-line focus:border-blue";
-  return `w-full rounded-lg border-[1.5px] bg-card px-3.5 py-2 text-ink outline-none transition ${border}`;
+  return `w-full rounded-xl border-2 bg-card px-3.5 py-2 text-ink outline-none transition ${border}`;
 }
 
 export function PageHeader({ title, action, kicker }: { title: string; action?: ReactNode; kicker?: string }) {

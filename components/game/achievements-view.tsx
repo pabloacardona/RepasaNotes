@@ -23,7 +23,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
             <RankEmblem tierIndex={rank.tierIndex} division={rank.division} size={168} />
             <div className="min-w-0 flex-1">
               <p className="hx-kicker">Rango actual</p>
-              <h1 className="hx-title hx-gold-text hx-rank text-4xl sm:text-5xl" style={{ ["--tg1" as string]: rank.tier.glow, ["--tg2" as string]: rank.tier.color, ["--tg3" as string]: rank.tier.glow }}>{rank.label}</h1>
+              <h1 className="hx-title hx-gold-text text-4xl sm:text-5xl" style={{ ["--tg1" as string]: rank.tier.glow, ["--tg2" as string]: rank.tier.color, ["--tg3" as string]: rank.tier.glow }}>{rank.label}</h1>
               <div className="mt-3 flex items-center gap-3">
                 <div className="hx-bar flex-1">
                   <span style={{ width: `${Math.max(rank.pct, 3)}%` }} />
@@ -96,7 +96,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
                     <RankEmblem tierIndex={t.mastery.tierIndex} size={64} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{t.topic}</p>
-                      <p className="font-mono text-sm font-bold uppercase tracking-wider" style={{ color: t.mastery.tier.glow }}>
+                      <p className="font-display text-sm font-bold uppercase tracking-wider" style={{ color: t.mastery.tier.glow }}>
                         {t.mastery.tier.name}
                       </p>
                       <p className="hx-mute text-xs">
