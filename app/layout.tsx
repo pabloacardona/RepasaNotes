@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Rubik, Nunito_Sans } from "next/font/google";
+import { Rubik, Nunito_Sans, Cinzel } from "next/font/google";
 import "./globals.css";
 
 const rubik = Rubik({ variable: "--font-rubik", subsets: ["latin"], weight: ["500", "700", "800"] });
+const cinzel = Cinzel({ variable: "--font-cinzel", subsets: ["latin"], weight: ["600", "700", "800", "900"] });
 const nunito = Nunito_Sans({ variable: "--font-nunito", subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${rubik.variable} ${nunito.variable} h-full antialiased`}>
+    <html lang="es" className={`${rubik.variable} ${nunito.variable} ${cinzel.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

@@ -3,17 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { XpChip } from "@/components/game/xp-chip";
+import { XpChip, type ChipGame } from "@/components/game/xp-chip";
 
 const LINKS = [
   { href: "/dashboard", label: "Inicio" },
   { href: "/apuntes", label: "Apuntes" },
   { href: "/quizzes", label: "Quizzes" },
+  { href: "/logros", label: "Logros" },
 ];
 
-type Game = { level: number; title: string; pct: number; streak: number; activeToday: boolean };
-
-export function AppNav({ name, game }: { name: string; game?: Game | null }) {
+export function AppNav({ name, game }: { name: string; game?: ChipGame | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);

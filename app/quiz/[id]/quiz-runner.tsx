@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
-import { Button, Spinner } from "@/components/ui";
+import type { ComponentProps } from "react";
+import { Spinner } from "@/components/ui";
 import { burstAt } from "@/components/confetti";
 import { pointsFor } from "@/lib/score";
 import { moodFor } from "@/lib/mood";
@@ -186,7 +187,7 @@ export function QuizRunner({
   }, [answered, choose, current, dialog, goTo, isLast, q.options.length]);
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
+    <div className="hx flex h-dvh flex-col overflow-hidden">
       <InteractiveBackdrop streak={streak} pulse={track.pulse} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
       <MascotStage
         mood={mood}
@@ -195,11 +196,11 @@ export function QuizRunner({
         streak={streak}
         className="fixed left-1/2 top-[3.6rem] z-0 h-[25dvh] w-[min(70vw,280px)] -translate-x-1/2 landscape:left-auto landscape:right-4 landscape:top-20 landscape:h-[min(68dvh,540px)] landscape:w-[min(38vw,460px)] landscape:translate-x-0 sm:landscape:right-8"
       />
-      <header className="z-20 shrink-0 bg-ink/80 text-white backdrop-blur-md">
+      <header className="z-20 shrink-0 border-b border-[#785a28]/70 bg-[#010a13]/85 text-[#f0e6d2] backdrop-blur-md">
         <div className="flex items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6">
-          <span className="hidden font-display text-xl font-bold text-yellow lg:inline">Repasa</span>
+          <span className="hx-title hx-gold-text hidden text-xl lg:inline">Repasa</span>
           <div
-            className="h-2.5 min-w-16 flex-1 overflow-hidden rounded-full bg-white/20"
+            className="hx-bar min-w-16 flex-1"
             role="progressbar"
             aria-label="Progreso del quiz"
             aria-valuenow={answeredCount}
@@ -207,7 +208,7 @@ export function QuizRunner({
             aria-valuemax={questions.length}
           >
             <motion.div
-              className="h-full rounded-full bg-yellow"
+              className="h-full bg-gradient-to-r from-[#a07c36] to-[#f0d89a] shadow-[0_0_12px_rgba(200,170,110,0.7)]"
               initial={false}
               animate={{ width: `${(answeredCount / questions.length) * 100}%` }}
               transition={{ type: "spring", stiffness: 120, damping: 20 }}
@@ -216,7 +217,7 @@ export function QuizRunner({
           <Chip label="Puntos" bumpKey={feedback?.kind === "hit" ? feedback.key : 0}>
             <AnimatedNumber value={points} />
             {feedback?.kind === "hit" && (
-              <span key={feedback.key} className="anim-float-up absolute -top-2 right-0 text-xs font-bold text-green">
+              <span key={feedback.key} className="anim-float-up absolute -top-2 right-0 text-xs font-bold text-[#2fd68f]">
                 +{feedback.gained}
               </span>
             )}
@@ -233,17 +234,17 @@ export function QuizRunner({
           <span className="hidden tabular-nums text-sm text-white/75 sm:inline" aria-label="Tiempo">
             ⏱ {formatTime(seconds)}
           </span>
-          <Link href="/quizzes" className="whitespace-nowrap text-sm text-white/85 hover:text-white">
+          <Link href="/quizzes" className="whitespace-nowrap text-sm text-[#a09b8c] hover:text-[#f0d89a]">
             Salir
           </Link>
         </div>
-        <div className="h-1 bg-yellow" />
+        <div className="h-px bg-gradient-to-r from-transparent via-[#c8aa6e] to-transparent" />
       </header>
 
       {/* Portrait: the top band shows the scene. Landscape: the right side does. */}
       <main className="flex min-h-0 flex-1 px-2 pb-2 pt-[27dvh] sm:px-6 sm:pb-4 landscape:pt-3 sm:landscape:pt-4">
         <MascotPicker className="right-3 top-16" />
-        <div className="flex max-h-full min-h-0 w-full flex-col self-start landscape:max-w-[min(600px,56vw)] portrait:max-w-[600px] rounded-3xl border border-white/40 bg-paper/90 p-3 shadow-2xl backdrop-blur-xl sm:p-5">
+        <div className="flex max-h-full min-h-0 w-full flex-col self-start landscape:max-w-[min(600px,56vw)] portrait:max-w-[600px] hx-panel hx-panel-soft p-3 sm:p-5">
           <ComboMeter streak={streak} points={points} hit={feedback?.kind === "hit" ? feedback.key : 0} />
           {/* Question dots */}
           <nav aria-label="Preguntas" className="flex shrink-0 flex-wrap gap-1">
@@ -261,11 +262,11 @@ export function QuizRunner({
                   aria-current={i === current ? "step" : undefined}
                   className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold transition ${
                     state === "hit"
-                      ? "bg-green text-white"
+                      ? "bg-[#2fd68f] text-[#06150e]"
                       : state === "miss"
-                        ? "bg-red text-white"
-                        : "border-2 border-line bg-card text-ink-soft hover:border-blue"
-                  } ${i === current ? "ring-2 ring-blue ring-offset-2 ring-offset-paper" : ""}`}
+                        ? "bg-[#e8485f] text-white"
+                        : "border border-[#785a28] bg-[#07101e] text-[#a09b8c] hover:border-[#0ac8b9]"
+                  } ${i === current ? "ring-2 ring-[#0ac8b9] ring-offset-2 ring-offset-[#07101e]" : ""}`}
                 >
                   {state === "hit" ? "✓" : state === "miss" ? "✗" : i + 1}
                 </motion.button>
@@ -274,7 +275,7 @@ export function QuizRunner({
           </nav>
 
           <div className="mb-1.5 mt-2 flex shrink-0 items-center justify-between gap-2 text-xs sm:text-sm">
-            <p className="truncate text-muted">
+            <p className="hx-mute truncate">
               {topic} · {title}
             </p>
             <p className="shrink-0 font-bold">
@@ -292,24 +293,24 @@ export function QuizRunner({
                 animate={{ opacity: 1, x: 0, rotate: 0 }}
                 exit={reduce ? undefined : { opacity: 0, x: -60 * direction, rotate: -1.5 * direction }}
                 transition={{ type: "spring", stiffness: 260, damping: 26 }}
-                className={`rounded-2xl border border-line bg-card p-3 sm:p-5 ${feedback?.kind === "miss" ? "anim-shake" : ""}`}
+                className={`border border-[#785a28]/70 bg-[#07101e]/80 p-3 sm:p-5 ${feedback?.kind === "miss" ? "anim-shake" : ""}`}
               >
                 <h1 className="text-base font-bold leading-snug sm:text-xl">{q.question}</h1>
                 <ul className="mt-3 space-y-2">
                   {q.options.map((opt, i) => {
                     const isCorrect = i === q.correctIndex;
                     const isChosen = i === chosen;
-                    let style = "border-line hover:-translate-y-0.5 hover:border-blue hover:bg-blue-soft hover:shadow-md";
+                    let style = "border-[#785a28]/60 bg-white/[0.03] hover:-translate-y-0.5 hover:border-[#0ac8b9] hover:bg-[#0ac8b9]/10 hover:shadow-[0_0_18px_rgba(10,200,185,0.35)]";
                     let tag: React.ReactNode = null;
                     if (answered) {
                       if (isCorrect) {
-                        style = `border-green bg-green-soft ${isChosen ? "anim-pop" : ""}`;
-                        tag = <span className="shrink-0 text-sm font-bold text-green">✓ Correcta</span>;
+                        style = `border-[#2fd68f] bg-[#2fd68f]/15 shadow-[0_0_20px_rgba(47,214,143,0.35)] ${isChosen ? "anim-pop" : ""}`;
+                        tag = <span className="shrink-0 text-sm font-bold text-[#2fd68f]">✓ Correcta</span>;
                       } else if (isChosen) {
-                        style = "border-red bg-red-soft";
-                        tag = <span className="shrink-0 text-sm font-bold text-red">✗ Incorrecta</span>;
+                        style = "border-[#e8485f] bg-[#e8485f]/15";
+                        tag = <span className="shrink-0 text-sm font-bold text-[#ff9aa8]">✗ Incorrecta</span>;
                       } else {
-                        style = "border-line opacity-60";
+                        style = "border-white/10 opacity-50";
                       }
                     }
                     return (
@@ -322,15 +323,15 @@ export function QuizRunner({
                           onClick={() => choose(i)}
                           disabled={answered}
                           title={`Tecla ${i + 1} o ${LETTERS[i]}`}
-                          className={`flex w-full items-center gap-3 rounded-xl border-2 px-3 py-2 text-left text-sm transition disabled:cursor-default sm:py-2.5 sm:text-base ${style}`}
+                          className={`flex w-full items-center gap-3 rounded-md border-2 px-3 py-2 text-left text-sm transition disabled:cursor-default sm:py-2.5 sm:text-base ${style}`}
                         >
                           <span
-                            className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg font-display font-bold ${
+                            className={`grid h-7 w-7 shrink-0 place-items-center rounded-sm font-[family-name:var(--font-cinzel)] font-bold ${
                               answered && isCorrect
-                                ? "bg-green text-white"
+                                ? "bg-[#2fd68f] text-[#06150e]"
                                 : answered && isChosen
-                                  ? "bg-red text-white"
-                                  : "bg-paper-dark text-ink-soft"
+                                  ? "bg-[#e8485f] text-white"
+                                  : "border border-[#785a28] bg-[#0a1428] text-[#f0d89a]"
                             }`}
                           >
                             {LETTERS[i]}
@@ -347,9 +348,9 @@ export function QuizRunner({
                   {answered && (
                     <div className="anim-rise mt-3 space-y-2">
                       {feedback && (
-                        <p className={`font-display font-bold ${feedback.kind === "hit" ? "text-green" : "text-red"}`}>{feedback.message}</p>
+                        <p className={`font-display font-bold ${feedback.kind === "hit" ? "text-[#2fd68f]" : "text-[#ff9aa8]"}`}>{feedback.message}</p>
                       )}
-                      <div className="rounded-lg border-l-4 border-yellow bg-yellow-soft px-3 py-2 text-sm sm:text-base">
+                      <div className="border-l-2 border-[#c8aa6e] bg-[#c8aa6e]/10 px-3 py-2 text-sm sm:text-base">
                         <span className="font-bold">Explicación:</span> {q.explanation}
                       </div>
                     </div>
@@ -360,38 +361,37 @@ export function QuizRunner({
           </div>
 
           {error && (
-            <p role="alert" className="mt-2 shrink-0 rounded-lg bg-red-soft px-3 py-2 text-sm font-bold text-red">
+            <p role="alert" className="mt-2 shrink-0 border-l-2 border-[#e8485f] bg-[#e8485f]/10 px-3 py-2 text-sm font-bold text-[#ff9aa8]">
               {error}
             </p>
           )}
 
           {/* Controls: always visible */}
           <div className="mt-2 flex shrink-0 items-center gap-2">
-            <Button variant="outline" onClick={() => goTo(current - 1)} disabled={current === 0} className="px-3 py-2" aria-label="Anterior">
+            <Hx onClick={() => goTo(current - 1)} disabled={current === 0} className="px-3 py-2" aria-label="Anterior">
               ←<span className="hidden sm:inline">Anterior</span>
-            </Button>
-            <Button
-              variant="ghost"
+            </Hx>
+            <Hx
               onClick={() => setDialog("restart")}
               disabled={answeredCount === 0 || submitting}
               className="px-2.5 py-2 text-sm"
               title="Empezar de nuevo"
             >
               ↺<span className="hidden md:inline">Reiniciar</span>
-            </Button>
-            <Button variant="danger" onClick={() => setDialog("finish")} disabled={submitting} className="px-2.5 py-2 text-sm" title="Finalizar quiz">
+            </Hx>
+            <Hx variant="danger" onClick={() => setDialog("finish")} disabled={submitting} className="px-2.5 py-2 text-sm" title="Finalizar quiz">
               ⏹<span className="hidden md:inline">Finalizar</span>
-            </Button>
+            </Hx>
             <div className="flex-1" />
             {isLast ? (
-              <Button onClick={() => (unanswered > 0 ? setDialog("finish") : finish())} disabled={submitting} className="px-4 py-2">
+              <Hx variant="gold" onClick={() => (unanswered > 0 ? setDialog("finish") : finish())} disabled={submitting} className="px-4 py-2">
                 {submitting && <Spinner />}
                 Ver resultados
-              </Button>
+              </Hx>
             ) : (
-              <Button onClick={() => goTo(current + 1)} className={`px-4 py-2 ${answered ? "anim-pop" : ""}`} key={String(answered)}>
+              <Hx variant={answered ? "cyan" : undefined} onClick={() => goTo(current + 1)} className={`${answered ? "anim-pop" : ""}`} key={String(answered)}>
                 Siguiente →
-              </Button>
+              </Hx>
             )}
           </div>
         </div>
@@ -417,13 +417,18 @@ export function QuizRunner({
   );
 }
 
+function Hx({ variant, className = "", ...props }: ComponentProps<"button"> & { variant?: "gold" | "cyan" | "danger" }) {
+  const v = variant === "gold" ? "hx-btn-gold" : variant === "cyan" ? "hx-btn-cyan" : variant === "danger" ? "hx-btn-danger" : "";
+  return <button className={`hx-btn !px-3 !py-2 text-xs ${v} ${className}`} {...props} />;
+}
+
 // Combo bar: five segments fill with the streak; at five the bar burns.
 function ComboMeter({ streak, points, hit }: { streak: number; points: number; hit: number }) {
   const segs = Math.min(streak, 5);
   const hot = streak >= 5;
   return (
     <div className="mb-2 flex shrink-0 items-center gap-2" aria-label={`Combo ${streak}`}>
-      <span key={hit} className={`font-display text-sm font-extrabold ${hot ? "text-orange-500" : "text-ink-soft"} ${hit ? "anim-pop" : ""}`}>
+      <span key={hit} className={`font-display text-sm font-extrabold ${hot ? "text-[#ff9a2e]" : "text-[#a09b8c]"} ${hit ? "anim-pop" : ""}`}>
         {hot ? "🔥" : streak > 0 ? "⚡" : "·"} Combo x{Math.max(streak, 1)}
       </span>
       <div className="flex flex-1 gap-1" aria-hidden>
@@ -431,12 +436,12 @@ function ComboMeter({ streak, points, hit }: { streak: number; points: number; h
           <span
             key={i}
             className={`h-2 flex-1 rounded-full transition-all duration-300 ${
-              i < segs ? (hot ? "bg-gradient-to-r from-yellow to-orange-500" : "bg-yellow") : "bg-paper-dark"
+              i < segs ? (hot ? "bg-gradient-to-r from-[#f0d89a] to-[#ff7a1a] shadow-[0_0_10px_#ff7a1a]" : "bg-[#c8aa6e]") : "bg-white/10"
             } ${i < segs && hit ? "scale-y-150" : ""}`}
           />
         ))}
       </div>
-      <span className="text-xs font-bold tabular-nums text-ink-soft">+{Math.round(points / 10)} XP</span>
+      <span className="text-xs font-bold tabular-nums text-[#0ac8b9]">+{Math.round(points / 10)} XP</span>
     </div>
   );
 }
@@ -444,7 +449,7 @@ function ComboMeter({ streak, points, hit }: { streak: number; points: number; h
 function Chip({ label, children, bumpKey = 0, hot = false }: { label: string; children: React.ReactNode; bumpKey?: number; hot?: boolean }) {
   return (
     <div
-      className={`relative flex shrink-0 flex-col items-center rounded-lg px-2 py-0.5 leading-tight sm:px-3 ${hot ? "bg-yellow text-ink" : "bg-white/10"}`}
+      className={`relative flex shrink-0 flex-col items-center border px-2 py-0.5 leading-tight sm:px-3 ${hot ? "border-[#f0d89a] bg-[#c8aa6e] text-[#1a1206]" : "border-[#785a28]/60 bg-white/5"}`}
       aria-label={label}
     >
       <span className="hidden text-[10px] font-bold uppercase tracking-wider opacity-70 sm:block">{label}</span>
@@ -472,26 +477,26 @@ function ConfirmDialog({
 }) {
   return (
     <div
-      className="anim-fade-in fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+      className="hx anim-fade-in fixed inset-0 z-50 grid place-items-center bg-[#010a13]/75 p-4 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
-        className="anim-rise w-full max-w-sm rounded-2xl bg-card p-6 shadow-2xl"
+        className="hx-panel anim-rise w-full max-w-sm p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="dialog-title" className="text-xl font-bold">{title}</h2>
-        <p className="mt-2 text-ink-soft">{body}</p>
+        <h2 id="dialog-title" className="hx-title text-xl">{title}</h2>
+        <p className="hx-mute mt-2">{body}</p>
         <div className="mt-6 flex flex-wrap justify-end gap-2">
-          <Button variant="outline" onClick={onCancel} disabled={loading} autoFocus>
+          <Hx onClick={onCancel} disabled={loading} autoFocus>
             Cancelar
-          </Button>
-          <Button onClick={onConfirm} disabled={loading}>
+          </Hx>
+          <Hx variant="gold" onClick={onConfirm} disabled={loading}>
             {loading && <Spinner />}
             {confirmLabel}
-          </Button>
+          </Hx>
         </div>
       </div>
     </div>

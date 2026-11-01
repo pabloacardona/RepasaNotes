@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Spinner } from "@/components/ui";
+import { Spinner } from "@/components/ui";
 
 export function ReviewButton({
   quizId,
@@ -34,17 +34,16 @@ export function ReviewButton({
   }
 
   return (
-    <>
-      <Button
-        variant={mode === "errors" ? "ghost" : "primary"}
-        onClick={review}
-        disabled={loading}
-        className="w-full"
-      >
+    <div>
+      <button onClick={review} disabled={loading} className={`hx-btn w-full ${mode === "all" ? "hx-btn-cyan" : ""}`}>
         {loading ? <Spinner /> : <span aria-hidden>{mode === "errors" ? "⚡" : "↻"}</span>}
         {label ?? (mode === "errors" ? "Repasar errores" : "Repetir quiz")}
-      </Button>
-      {error && <p role="alert" className="text-sm font-bold text-red">{error}</p>}
-    </>
+      </button>
+      {error && (
+        <p role="alert" className="mt-1 text-sm font-bold text-[#ff9aa8]">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

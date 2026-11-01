@@ -1,29 +1,29 @@
 "use client";
 
 import Link from "next/link";
+import { RankEmblem } from "./rank-emblem";
 
-// Compact progress in the top bar: level, XP bar and the day streak. Visible on every page of the app.
-export function XpChip({ level, title, pct, streak, activeToday }: { level: number; title: string; pct: number; streak: number; activeToday: boolean }) {
+// Compact rank in the top bar: emblem, division, LP bar and the day streak. Visible on every page of the app.
+export type ChipGame = { tierIndex: number; division: number | null; label: string; pct: number; streak: number; activeToday: boolean };
+
+export function XpChip({ tierIndex, division, label, pct, streak, activeToday }: ChipGame) {
   return (
     <Link
-      href="/dashboard"
-      title={`${title} · ${pct}% hacia el nivel ${level + 1}`}
-      className="group flex items-center gap-2 rounded-full bg-white/10 py-1 pl-1 pr-3 transition hover:bg-white/20"
+      href="/logros"
+      title={`${label} · ${pct} LP`}
+      className="group flex items-center gap-2 rounded-full border border-[#785a28]/70 bg-[#07101e] py-0.5 pl-0.5 pr-3 transition hover:border-[#c8aa6e]"
     >
-      <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-yellow to-orange-400 font-display text-sm font-extrabold text-ink shadow-inner transition group-hover:scale-110">
-        {level}
+      <span className="transition group-hover:scale-110">
+        <RankEmblem tierIndex={tierIndex} division={division} size={34} />
       </span>
       <span className="hidden min-w-0 flex-col gap-0.5 sm:flex">
-        <span className="text-[0.65rem] font-bold uppercase leading-none tracking-wider text-white/80">{title}</span>
-        <span className="h-1.5 w-20 overflow-hidden rounded-full bg-white/20">
-          <span
-            className="block h-full rounded-full bg-gradient-to-r from-yellow to-orange-400 transition-all duration-700"
-            style={{ width: `${Math.max(pct, 4)}%` }}
-          />
+        <span className="font-[family-name:var(--font-cinzel)] text-[0.68rem] font-bold uppercase leading-none tracking-wider text-[#f0e6d2]">{label}</span>
+        <span className="hx-bar hx-bar-gold !h-1.5 w-20">
+          <span style={{ width: `${Math.max(pct, 4)}%` }} />
         </span>
       </span>
       <span
-        className={`flex items-center gap-0.5 text-sm font-bold tabular-nums ${activeToday ? "text-yellow" : "text-white/60"}`}
+        className={`flex items-center gap-0.5 text-sm font-bold tabular-nums ${activeToday ? "text-[#f0d89a]" : "text-white/50"}`}
         aria-label={`Racha de ${streak} días`}
       >
         <span className={activeToday && streak > 0 ? "inline-block animate-pulse" : ""}>🔥</span>

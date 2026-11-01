@@ -2,17 +2,22 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button, Card, FieldMessage, Spinner } from "@/components/ui";
+import { Spinner } from "@/components/ui";
+import { scoreRun } from "@/lib/score";
+import { xpForQuiz } from "@/lib/gamification";
 import { NOTE_MAX, NOTE_MIN } from "@/lib/validators";
 
 type NoteOpt = { id: string; title: string; topic: string; content: string };
 
 const COUNTS = [5, 10, 15] as const;
 const DIFFICULTIES = [
-  { value: "facil", label: "Fácil" },
-  { value: "media", label: "Media" },
-  { value: "dificil", label: "Difícil" },
+  { value: "facil", label: "Fácil", icon: "🌿", color: "#2fd68f", blurb: "Conceptos base y definiciones." },
+  { value: "media", label: "Media", icon: "⚔️", color: "#f0d89a", blurb: "Aplicar lo que sabes." },
+  { value: "dificil", label: "Difícil", icon: "🐉", color: "#e8485f", blurb: "Casos y detalles finos. Jefe final." },
 ] as const;
+
+// Most XP a quiz can give: every question right in a row.
+const maxXp = (n: number) => xpForQuiz(scoreRun(Array(n).fill(0), Array(n).fill(0)).points, n, n);
 
 export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initialNoteId?: string }) {
   const router = useRouter();
@@ -25,6 +30,7 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
   const note = notes.find((n) => n.id === noteId);
   const len = note?.content.trim().length ?? 0;
   const lengthOk = len >= NOTE_MIN && len <= NOTE_MAX;
+  const lengthPct = Math.min(100, Math.round((len / NOTE_MAX) * 100));
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -50,15 +56,17 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-6 md:grid-cols-2">
-      <div className="space-y-5">
-        <div>
-          <label htmlFor="note" className="mb-1.5 block font-bold">Apunte</label>
+    <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+      <div className="space-y-6">
+        {/* Step 1: note */}
+        <section className="hx-panel p-5">
+          <p className="hx-kicker">1 · Elige tu apunte</p>
           <select
             id="note"
             value={noteId}
             onChange={(e) => setNoteId(e.target.value)}
-            className="w-full rounded-lg border-2 border-blue bg-card px-3.5 py-2.5 outline-none"
+            aria-label="Apunte"
+            className="mt-3 w-full border border-[#785a28] bg-[#07101e] px-3.5 py-3 font-bold text-[#f0e6d2] outline-none focus:border-[#0ac8b9]"
           >
             {notes.map((n) => (
               <option key={n.id} value={n.id}>
@@ -66,93 +74,105 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
               </option>
             ))}
           </select>
+        </section>
+
+        {/* Step 2: difficulty */}
+        <section className="hx-panel p-5">
+          <p className="hx-kicker">2 · Elige la dificultad</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Dificultad">
+            {DIFFICULTIES.map((d) => {
+              const on = difficulty === d.value;
+              return (
+                <label
+                  key={d.value}
+                  className="relative cursor-pointer p-3 text-center transition has-focus-visible:outline-2 has-focus-visible:outline-[#0ac8b9]"
+                  style={{
+                    border: `1.5px solid ${on ? d.color : "rgba(200,170,110,0.25)"}`,
+                    background: on ? `${d.color}1f` : "rgba(255,255,255,0.03)",
+                    boxShadow: on ? `0 0 22px ${d.color}55, inset 0 0 18px ${d.color}22` : "none",
+                    transform: on ? "translateY(-3px)" : "none",
+                  }}
+                >
+                  <input type="radio" name="difficulty" value={d.value} checked={on} onChange={() => setDifficulty(d.value)} className="sr-only" />
+                  <span className="block text-3xl" aria-hidden>
+                    {d.icon}
+                  </span>
+                  <span className="mt-1 block font-[family-name:var(--font-cinzel)] font-bold uppercase tracking-wider" style={{ color: on ? d.color : "#f0e6d2" }}>
+                    {d.label}
+                  </span>
+                  <span className="hx-mute mt-0.5 block text-xs">{d.blurb}</span>
+                </label>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Step 3: length */}
+        <section className="hx-panel p-5">
+          <p className="hx-kicker">3 · Número de preguntas</p>
+          <div className="mt-3 grid grid-cols-3 gap-3" role="radiogroup" aria-label="Número de preguntas">
+            {COUNTS.map((c) => {
+              const on = count === c;
+              return (
+                <label
+                  key={c}
+                  className="cursor-pointer py-3 text-center transition has-focus-visible:outline-2 has-focus-visible:outline-[#0ac8b9]"
+                  style={{
+                    border: `1.5px solid ${on ? "#c8aa6e" : "rgba(200,170,110,0.25)"}`,
+                    background: on ? "rgba(200,170,110,0.18)" : "rgba(255,255,255,0.03)",
+                    boxShadow: on ? "0 0 18px rgba(200,170,110,0.35)" : "none",
+                  }}
+                >
+                  <input type="radio" name="count" value={c} checked={on} onChange={() => setCount(c)} className="sr-only" />
+                  <span className={`hx-title block text-2xl ${on ? "hx-gold-text" : ""}`}>{c}</span>
+                  <span className="hx-mute block text-[0.65rem] font-bold uppercase tracking-wider">hasta {maxXp(c)} XP</span>
+                </label>
+              );
+            })}
+          </div>
+        </section>
+
+        <div>
+          <button type="submit" disabled={loading || !lengthOk} className="hx-btn hx-btn-gold hx-shine w-full !py-4 text-lg">
+            {loading ? <Spinner /> : <span aria-hidden>⚔️</span>}
+            {loading ? "Forjando preguntas…" : "Comenzar misión"}
+          </button>
+          {loading && (
+            <p className="hx-mute mt-2 text-center text-sm" aria-live="polite">
+              La IA está preparando tu misión. Puede tardar unos segundos.
+            </p>
+          )}
+          {error && (
+            <p role="alert" className="mt-3 border-l-2 border-[#e8485f] bg-[#e8485f]/10 px-3 py-2 font-bold text-[#ff9aa8]">
+              {error}
+            </p>
+          )}
         </div>
-
-        <Segmented
-          label="Número de preguntas"
-          options={COUNTS.map((c) => ({ value: String(c), label: String(c) }))}
-          value={String(count)}
-          onChange={(v) => setCount(Number(v) as (typeof COUNTS)[number])}
-        />
-        <Segmented
-          label="Dificultad"
-          options={DIFFICULTIES.map((d) => ({ value: d.value, label: d.label }))}
-          value={difficulty}
-          onChange={setDifficulty}
-        />
-
-        <Button type="submit" variant="ai" disabled={loading || !lengthOk} className="w-full py-3.5 text-lg">
-          {loading ? <Spinner /> : <span aria-hidden>💡</span>}
-          {loading ? "Generando preguntas…" : "Generar con IA"}
-        </Button>
-        {loading && (
-          <p className="text-center text-sm text-ink-soft" aria-live="polite">
-            Esto puede tardar unos segundos.
-          </p>
-        )}
-        {error && (
-          <p role="alert" className="rounded-lg bg-red-soft px-3 py-2 font-bold text-red">
-            {error}
-          </p>
-        )}
       </div>
 
-      <Card className="self-start p-6">
-        <p className="text-sm font-bold uppercase tracking-widest text-muted">Vista previa</p>
-        <p className="mt-3 line-clamp-6 whitespace-pre-line leading-relaxed">{note?.content}</p>
-        <hr className="my-4 border-line" />
-        <p className="text-muted">
+      {/* Preview */}
+      <aside className="hx-panel hx-panel-soft self-start p-5">
+        <p className="hx-kicker">Pergamino</p>
+        <p className="hx-title mt-1 text-xl">{note?.title}</p>
+        <p className="hx-mute text-sm">{note?.topic}</p>
+        <p className="mt-3 line-clamp-8 whitespace-pre-line leading-relaxed text-[#d8d0bd]">{note?.content}</p>
+        <div className="hx-rule my-4">
+          <span />
+        </div>
+        <div className={`hx-bar ${lengthOk ? "" : "hx-bar-red"}`}>
+          <span style={{ width: `${Math.max(lengthPct, 2)}%` }} />
+        </div>
+        <p className="hx-mute mt-1.5 text-sm">
           {len.toLocaleString("es-CO")} / {NOTE_MAX.toLocaleString("es-CO")} caracteres
         </p>
-        <FieldMessage
-          ok={lengthOk ? "Longitud válida" : undefined}
-          error={
-            lengthOk
-              ? undefined
-              : len < NOTE_MIN
-                ? `El apunte necesita al menos ${NOTE_MIN} caracteres`
-                : `El apunte supera los ${NOTE_MAX} caracteres`
-          }
-        />
-      </Card>
+        <p className={`mt-1 text-sm font-bold ${lengthOk ? "text-[#2fd68f]" : "text-[#ff9aa8]"}`} role={lengthOk ? undefined : "alert"}>
+          {lengthOk
+            ? "✓ Longitud válida"
+            : len < NOTE_MIN
+              ? `⚠ El apunte necesita al menos ${NOTE_MIN} caracteres`
+              : `⚠ El apunte supera los ${NOTE_MAX} caracteres`}
+        </p>
+      </aside>
     </form>
-  );
-}
-
-function Segmented({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <fieldset>
-      <legend className="mb-1.5 font-bold">{label}</legend>
-      <div className="grid grid-cols-3 overflow-hidden rounded-lg border-2 border-line">
-        {options.map((o) => (
-          <label
-            key={o.value}
-            className={`cursor-pointer py-2.5 text-center font-semibold transition has-focus-visible:outline-3 has-focus-visible:outline-blue ${
-              value === o.value ? "bg-blue font-bold text-white" : "bg-card hover:bg-blue-soft"
-            }`}
-          >
-            <input
-              type="radio"
-              name={label}
-              value={o.value}
-              checked={value === o.value}
-              onChange={() => onChange(o.value)}
-              className="sr-only"
-            />
-            {o.label}
-          </label>
-        ))}
-      </div>
-    </fieldset>
   );
 }

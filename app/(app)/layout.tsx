@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <>
       <AppNav
         name={user.name}
-        game={game && { level: game.level.level, title: game.level.title, pct: game.level.pct, streak: game.streak.current, activeToday: game.streak.activeToday }}
+        game={game && { tierIndex: game.rank.tierIndex, division: game.rank.division, label: game.rank.label, pct: game.rank.pct, streak: game.streak.current, activeToday: game.streak.activeToday }}
       />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</main>
     </>

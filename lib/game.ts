@@ -3,12 +3,12 @@ import { and, eq, isNotNull } from "drizzle-orm";
 import { getDb, notes, quizzes } from "./db";
 import { addDays, dayKey } from "./stats";
 import { scoreRun } from "./score";
+import { rankFromXp, topicMastery } from "./ranks";
 import {
   DAILY_BONUS_XP,
   DAILY_GOAL,
   dailyQuests,
-  evaluateBadges,
-  levelFromXp,
+  evaluateAchievements,
   xpForQuiz,
   type Facts,
 } from "./gamification";
@@ -36,7 +36,7 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
 
   const today = dayKey(opts.now ?? new Date());
   const perDay = new Map<string, { answered: number; correct: number; quizzes: number }>();
-  const topics = new Set<string>();
+  const topicTally = new Map<string, { answered: number; correct: number }>();
   let xp = 0;
   let correct = 0;
   let perfect = 0;
@@ -58,7 +58,10 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
     bestCombo = Math.max(bestCombo, bestStreak);
     if (r.total > 0 && score === r.total) perfect += 1;
     if (r.difficulty === "dificil" && r.total > 0 && score / r.total >= 0.7) hardWins += 1;
-    topics.add(r.topic);
+    const tt = topicTally.get(r.topic) ?? { answered: 0, correct: 0 };
+    tt.answered += answers.filter((a) => a !== -1).length;
+    tt.correct += score;
+    topicTally.set(r.topic, tt);
 
     const key = dayKey(r.completedAt!);
     const d = perDay.get(key) ?? { answered: 0, correct: 0, quizzes: 0 };
@@ -84,7 +87,10 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
     prev = k;
   }
 
-  const level = levelFromXp(xp);
+  const rank = rankFromXp(xp);
+  const topics = [...topicTally.entries()]
+    .map(([topic, t]) => ({ topic, ...t, mastery: topicMastery(t.correct, t.answered) }))
+    .sort((a, b) => b.mastery.points - a.mastery.points);
   const facts: Facts = {
     quizzes: quizCount,
     notes: noteRows.length,
@@ -93,9 +99,11 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
     hardWins,
     bestCombo,
     bestStreakDays,
-    topics: topics.size,
-    level: level.level,
+    topics: topics.length,
+    conquered: topics.filter((t) => t.mastery.conquered).length,
+    rankTier: rank.tierIndex,
   };
+  const achievements = evaluateAchievements(facts);
   const todayStats = perDay.get(today) ?? { answered: 0, correct: 0, quizzes: 0 };
   const week = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(today, i - 6);
@@ -104,9 +112,11 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
 
   return {
     xp,
-    level,
+    rank,
+    topics,
     streak: { current: streak, best: bestStreakDays, activeToday: active(today) },
-    badges: evaluateBadges(facts),
+    achievements,
+    achievementPoints: achievements.reduce((n, a) => n + a.points, 0),
     quests: dailyQuests(todayStats),
     today: todayStats,
     week,

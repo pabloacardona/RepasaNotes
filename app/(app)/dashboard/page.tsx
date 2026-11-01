@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { getStats } from "@/lib/data";
 import { getGameProfile } from "@/lib/game";
-import { GameHub } from "@/components/game/game-hub";
+import { RankHub } from "@/components/game/rank-hub";
 import { Card, LinkButton } from "@/components/ui";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { AnimatedBar } from "@/components/motion/animated-bar";
@@ -32,7 +32,7 @@ export default async function Dashboard() {
         <LinkButton href="/quizzes/nuevo">+ Nuevo quiz</LinkButton>
       </div>
 
-      <GameHub profile={game} />
+      <RankHub profile={game} />
 
       <Stagger className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <StaggerItem>
