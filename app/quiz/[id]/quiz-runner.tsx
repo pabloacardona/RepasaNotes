@@ -203,12 +203,12 @@ export function QuizRunner({
         pulse={track.pulse}
         lastHit={lastHit}
         streak={streak}
-        className="fixed left-1/2 top-[5.2rem] z-0 h-[22dvh] w-[min(70vw,260px)] -translate-x-1/2 landscape:left-auto landscape:right-4 landscape:top-24 landscape:h-[min(66dvh,520px)] landscape:w-[min(38vw,460px)] landscape:translate-x-0 sm:landscape:right-8"
+        className="fixed left-1/2 top-[3.6rem] z-0 h-[15dvh] w-[150px] -translate-x-1/2 landscape:bottom-4 landscape:left-auto landscape:right-5 landscape:top-auto landscape:h-[min(32dvh,250px)] landscape:w-[min(20vw,230px)] landscape:translate-x-0"
       />
 
       {/* HUD */}
       <header className="hx-hud z-20 shrink-0">
-        <div className="flex items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6">
+        <div className="mx-auto flex max-w-3xl items-center gap-2 px-3 py-1.5 sm:gap-3 sm:px-6">
           <Link href="/quizzes" className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface-2)] font-bold transition hover:border-[var(--bad)] hover:text-[var(--bad)]" aria-label="Salir del quiz" title="Salir">
             ✕
           </Link>
@@ -272,10 +272,10 @@ export function QuizRunner({
         </div>
       </header>
 
-      <main className="relative flex min-h-0 flex-1 px-2 pb-2 pt-[24dvh] sm:px-6 sm:pb-4 landscape:pt-4">
+      <main className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-3 pt-[18dvh] sm:px-6 landscape:pt-3">
         <MascotPicker className="right-3 top-16" />
 
-        <div className={`hx-epic ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative flex max-h-full min-h-0 w-full flex-col self-start landscape:max-w-[min(660px,56vw)] portrait:max-w-[640px] p-3 sm:p-6`}>
+        <div className={`hx-epic ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative mx-auto flex max-h-full min-h-0 w-full max-w-[560px] flex-col p-3 sm:p-5`}>
           <FireBorder streak={streak} />
           <div className="flex shrink-0 items-center justify-between gap-2">
             <p className="hx-kicker">
@@ -298,9 +298,9 @@ export function QuizRunner({
                 transition={{ type: "spring", stiffness: 300, damping: 28 }}
                 className={feedback?.kind === "miss" ? "anim-shake" : ""}
               >
-                <h1 className="font-display text-xl font-bold leading-snug sm:text-[1.7rem]">{q.question}</h1>
+                <h1 className="font-display text-lg font-bold leading-snug sm:text-[1.35rem]">{q.question}</h1>
 
-                <ul className="mt-5 space-y-2.5">
+                <ul className="mt-4 space-y-2">
                   {q.options.map((opt, i) => {
                     const isCorrect = i === q.correctIndex;
                     const isChosen = i === chosen;
@@ -324,7 +324,7 @@ export function QuizRunner({
                           <span className={`q-key ${answered && isCorrect ? "!border-[var(--ok)] !bg-[var(--ok)] !text-[var(--on-accent)] !shadow-none" : answered && isChosen ? "!border-[var(--bad)] !bg-[var(--bad)] !text-white !shadow-none" : ""}`}>
                             {LETTERS[i]}
                           </span>
-                          <span className={`flex-1 text-[0.95rem] leading-snug sm:text-base ${answered && (isCorrect || isChosen) ? "font-bold" : ""}`}>{opt}</span>
+                          <span className={`flex-1 text-[0.9rem] leading-snug sm:text-[0.95rem] ${answered && (isCorrect || isChosen) ? "font-bold" : ""}`}>{opt}</span>
                           {answered && isCorrect && <span className="shrink-0 text-sm font-bold text-[var(--ok)]">✓</span>}
                           {answered && isChosen && !isCorrect && <span className="shrink-0 text-sm font-bold text-[var(--bad)]">✗</span>}
                         </button>

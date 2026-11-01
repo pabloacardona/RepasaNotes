@@ -20,7 +20,7 @@ export default async function QuizzesPage() {
   const quizzes = await listQuizzes(user.sub);
   const done = quizzes.filter((q) => q.completedAt !== null);
   const pending = quizzes.length - done.length;
-  const wins = done.filter((q) => q.total > 0 && (q.score ?? 0) / q.total >= 0.7).length;
+  const wins = done.filter((q) => q.total > 0 && (q.score ?? 0) / q.total >= 0.5).length;
 
   return (
     <>
@@ -31,7 +31,7 @@ export default async function QuizzesPage() {
             <h1 className="hx-title hx-gold-text text-3xl sm:text-4xl">Mis quizzes</h1>
             {quizzes.length > 0 && (
               <p className="hx-mute mt-1 text-sm">
-                {wins} {wins === 1 ? "victoria" : "victorias"} · {done.length - wins} {done.length - wins === 1 ? "derrota" : "derrotas"} · {pending} {pending === 1 ? "misión pendiente" : "misiones pendientes"}
+                {wins} {wins === 1 ? "victoria" : "victorias"} · {done.length - wins} por reforzar · {pending} {pending === 1 ? "misión pendiente" : "misiones pendientes"}
               </p>
             )}
           </div>
@@ -57,7 +57,7 @@ export default async function QuizzesPage() {
             const pct = isDone ? Math.round(((q.score ?? 0) / q.total) * 100) : 0;
             const grade = gradeFor(pct);
             const d = DIFF[q.difficulty] ?? DIFF.media;
-            const win = pct >= 70;
+            const win = pct >= 50;
             return (
               <StaggerItem key={q.id}>
                 <div className="hx-panel hx-panel-soft hx-lift">
@@ -85,8 +85,8 @@ export default async function QuizzesPage() {
                           {d.icon} {DIFFICULTY_LABEL[q.difficulty] ?? q.difficulty}
                         </span>
                         {isDone ? (
-                          <span className={win ? "text-[var(--ok)]" : "text-[var(--bad)]"}>
-                            {win ? "VICTORIA" : "DERROTA"} · {q.score}/{q.total} ({pct}%)
+                          <span className={win ? "text-[var(--ok)]" : "text-[var(--hi)]"}>
+                            {win ? "VICTORIA" : "A REFORZAR"} · {q.score}/{q.total} ({pct}%)
                           </span>
                         ) : (
                           <span className="text-[var(--neon)]">MISIÓN PENDIENTE</span>

@@ -33,9 +33,10 @@ export function ScoreCard({
 }) {
   const reduce = useReducedMotion();
   const pct = total ? Math.round((score / total) * 100) : 0;
-  const win = pct >= 70;
+  // Passing starts at 50%: nobody "loses" a quiz. Below that the message is encouragement, not defeat.
+  const win = pct >= 50;
   const grade = gradeFor(pct);
-  const tone = win ? "#ffd400" : "#ff4d79";
+  const tone = win ? "#ffd400" : "#ffa62b";
   const shownScore = useCount(score, fresh, 0.35);
   const shownPct = useCount(pct, fresh, 0.35);
   const shownPoints = useCount(points, fresh, 0.6);
@@ -50,7 +51,7 @@ export function ScoreCard({
 
   const R = 70;
   const C = 2 * Math.PI * R;
-  const verdict = pct === 100 ? "¡Perfecto!" : pct >= 90 ? "¡Excelente!" : pct >= 70 ? "¡Muy bien!" : pct >= 50 ? "Vas por buen camino" : "Toca repasar";
+  const verdict = pct === 100 ? "¡Perfecto!" : pct >= 90 ? "¡Excelente!" : pct >= 70 ? "¡Muy bien!" : pct >= 50 ? "¡Aprobaste! Sigue subiendo" : "Casi. Repasa y vuelve a intentarlo";
 
   return (
     <div className="relative mt-2 overflow-hidden rounded-2xl px-2 pb-1 pt-4" style={{ ["--c" as string]: tone, ["--g" as string]: tone }}>
@@ -65,7 +66,7 @@ export function ScoreCard({
           className="font-display text-6xl font-bold uppercase leading-none tracking-wider sm:text-7xl"
           style={{ color: tone, textShadow: `0 0 34px ${tone}99, 0 4px 0 rgba(0,0,0,.25)` }}
         >
-          {win ? "Victoria" : "Derrota"}
+          {win ? "Victoria" : "¡Sigue!"}
         </motion.p>
         <motion.p initial={reduce || !fresh ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.8 }} className="hx-mute mt-1 text-lg">
           {verdict}
@@ -78,7 +79,7 @@ export function ScoreCard({
           <defs>
             <linearGradient id="gauge" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stopColor={tone} />
-              <stop offset="1" stopColor={win ? "#ff8a3d" : "#a28bff"} />
+              <stop offset="1" stopColor={win ? "#ff8a3d" : "#ff5c8a"} />
             </linearGradient>
           </defs>
           <circle cx="90" cy="90" r={R} fill="none" stroke="var(--track)" strokeWidth="12" />
