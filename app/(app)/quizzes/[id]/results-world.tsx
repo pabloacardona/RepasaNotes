@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { RetroBackdrop } from "@/components/world/retro-backdrop";
+import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
 import { MascotStage } from "@/components/world/mascot-stage";
 import { MascotPicker } from "@/components/world/mascot-picker";
 import { moodFor } from "@/lib/mood";
@@ -20,7 +20,7 @@ export function ResultsWorld({ score, total, bestStreak }: { score: number; tota
   const trophy = pct >= 0.9 ? "gold" : pct >= 0.7 ? "silver" : pct >= 0.5 ? "bronze" : null;
   return (
     <>
-      <RetroBackdrop streak={bestStreak} calm />
+      <InteractiveBackdrop streak={bestStreak} calm />
       <MascotStage
         mood={mood}
         pulse={0}

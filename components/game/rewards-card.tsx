@@ -68,7 +68,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
               transition={{ type: "spring", stiffness: 220, damping: 12 }}
               className="relative text-center"
             >
-              <p className="hx-blink font-[family-name:var(--font-press)] text-xs text-[var(--accent)]">¡SUBISTE DE RANGO!</p>
+              <p className="hx-blink font-display font-bold text-xs text-[var(--accent)]">¡SUBISTE DE RANGO!</p>
               <div className="mt-4 flex justify-center">
                 <RankEmblem tierIndex={reward.to.tierIndex} division={reward.to.division} size={260} />
               </div>

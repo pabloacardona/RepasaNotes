@@ -16,19 +16,19 @@ export function MascotPicker({ className = "" }: { className?: string }) {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="true"
-        className="inline-flex items-center gap-2 rounded-full bg-ink/75 px-3.5 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:bg-ink/90 focus-visible:outline-3 focus-visible:outline-blue"
+        className="inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] bg-[var(--surface-2)]/90 px-3.5 py-2 text-sm font-bold text-[var(--fg)] shadow-lg backdrop-blur-md transition hover:border-[var(--neon)]"
       >
         <span aria-hidden>{current.emoji}</span>
         Cambiar mascota
       </button>
       {open && (
-        <div className="mt-2 max-h-[60dvh] w-[min(18rem,calc(100vw-2rem))] overflow-auto rounded-2xl border border-white/50 bg-paper/95 p-2 shadow-2xl backdrop-blur-xl">
+        <div className="mt-2 max-h-[60dvh] w-[min(18rem,calc(100vw-2rem))] overflow-auto rounded-2xl border border-[var(--line-strong)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl">
           <button
             type="button"
             onClick={() => setMascot("auto")}
             aria-pressed={choice === "auto"}
             className={`mb-1 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left font-bold transition ${
-              choice === "auto" ? "bg-yellow" : "hover:bg-blue-soft"
+              choice === "auto" ? "bg-[var(--accent)] text-[var(--on-accent)]" : "hover:bg-[var(--fg)]/10"
             }`}
           >
             <span aria-hidden>🎲</span> Sorpresa
@@ -41,7 +41,7 @@ export function MascotPicker({ className = "" }: { className?: string }) {
                 onClick={() => setMascot(m.id)}
                 aria-pressed={choice === m.id}
                 className={`flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition ${
-                  choice === m.id ? "bg-yellow font-bold" : "hover:bg-blue-soft"
+                  choice === m.id ? "bg-[var(--accent)] font-bold text-[var(--on-accent)]" : "hover:bg-[var(--fg)]/10"
                 }`}
               >
                 <span aria-hidden>{m.emoji}</span> {m.label}

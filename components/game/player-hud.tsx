@@ -58,7 +58,7 @@ export function PlayerHud({ rank, streak, today, week, stats }: HudData) {
           </span>
           <span className="min-w-0 flex-1">
             <span className="flex items-baseline justify-between gap-2">
-              <span className="tier-text truncate font-[family-name:var(--font-press)] text-[0.6rem]" style={{ ["--tc2" as string]: rank.color }}>
+              <span className="tier-text truncate font-display font-bold text-[0.6rem]" style={{ ["--tc2" as string]: rank.color }}>
                 {rank.label}
               </span>
               <span className={`shrink-0 text-sm ${almost ? "hx-blink font-bold text-[var(--hi)]" : "hx-mute"}`}>
@@ -77,13 +77,13 @@ export function PlayerHud({ rank, streak, today, week, stats }: HudData) {
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           aria-label="Ver racha y estadísticas"
-          className={`flex shrink-0 items-center gap-2 border-4 px-2.5 py-1 transition hover:brightness-125 ${
+          className={`flex shrink-0 items-center gap-2 rounded-xl border-2 px-2.5 py-1 transition hover:brightness-125 ${
             atRisk ? "border-[var(--bad)] bg-[var(--bad)]/15" : streak.activeToday ? "border-[var(--hot)] bg-[var(--hot)]/15" : "border-[var(--line)]"
           }`}
         >
           <StreakFlame size={30} active={streak.activeToday || atRisk} days={streak.current} />
           <span className="text-left leading-none">
-            <span className="block font-[family-name:var(--font-press)] text-sm">{streak.current}</span>
+            <span className="block font-display font-bold text-sm">{streak.current}</span>
             <span className={`block text-xs ${atRisk ? "hx-blink font-bold text-[var(--bad)]" : "hx-mute"}`}>
               {atRisk && left ? `${left.h}h ${left.m}m` : streak.activeToday ? "asegurada" : "días"}
             </span>
@@ -130,7 +130,7 @@ export function PlayerHud({ rank, streak, today, week, stats }: HudData) {
                           initial={reduce ? false : { height: 0 }}
                           animate={{ height: h }}
                           transition={{ type: "spring", stiffness: 200, damping: 18, delay: i * 0.05 }}
-                          className={`block w-full border-2 border-[var(--line-strong)] ${d.count > 0 ? "bg-[var(--hot)]" : "bg-[var(--track)]"} ${last ? "outline outline-2 outline-[var(--neon)]" : ""}`}
+                          className={`block w-full rounded-md border border-[var(--line-strong)] ${d.count > 0 ? "bg-[var(--hot)]" : "bg-[var(--track)]"} ${last ? "outline outline-2 outline-[var(--neon)]" : ""}`}
                         />
                         <span className="hx-mute text-xs">{DAY[(new Date(`${d.date}T12:00:00Z`).getUTCDay() + 6) % 7]}</span>
                       </div>
@@ -145,14 +145,14 @@ export function PlayerHud({ rank, streak, today, week, stats }: HudData) {
                 <p className="mt-2 flex items-center gap-2">
                   <StreakFlame size={34} active={streak.activeToday || atRisk} days={streak.current} />
                   <span>
-                    <b className="font-[family-name:var(--font-press)] text-sm">{streak.current}</b> {streak.current === 1 ? "día" : "días"} · mejor {streak.best}
+                    <b className="font-display font-bold text-sm">{streak.current}</b> {streak.current === 1 ? "día" : "días"} · mejor {streak.best}
                   </span>
                 </p>
                 <ol className="mt-3 flex items-center gap-1.5" aria-label="Hitos de racha">
                   {MILESTONES.map((m) => {
                     const done = streak.current >= m;
                     return (
-                      <li key={m} className={`grid h-9 flex-1 place-items-center border-2 text-sm font-bold ${done ? "border-[var(--hot)] bg-[var(--hot)] text-[#1a1c2c]" : "border-[var(--line)] hx-mute"}`}>
+                      <li key={m} className={`grid h-9 flex-1 place-items-center rounded-lg border-2 text-sm font-bold ${done ? "border-[var(--hot)] bg-[var(--hot)] text-[#1a1c2c]" : "border-[var(--line)] hx-mute"}`}>
                         {m}
                       </li>
                     );
@@ -174,7 +174,7 @@ export function PlayerHud({ rank, streak, today, week, stats }: HudData) {
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-baseline justify-between gap-2 border-b-2 border-dotted border-[var(--line)] pb-1">
                       <dt className="hx-mute">{k}</dt>
-                      <dd className="font-[family-name:var(--font-press)] text-xs">{v}</dd>
+                      <dd className="font-display font-bold text-xs">{v}</dd>
                     </div>
                   ))}
                 </dl>

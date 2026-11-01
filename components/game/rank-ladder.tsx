@@ -54,12 +54,12 @@ export function RankLadder({ tierIndex, xp, preview = false }: { tierIndex: numb
                 aria-label={`${tier.name}${isCur ? " (tu rango)" : isReached ? "" : " (bloqueado)"}`}
                 className={`relative z-10 flex w-[70px] shrink-0 flex-col items-center gap-1 pb-1 outline-offset-4 transition-transform duration-150 hover:-translate-y-1 ${isSel ? "-translate-y-2" : ""}`}
               >
-                {isCur && <span className="hx-blink absolute -top-5 font-[family-name:var(--font-press)] text-[0.5rem] text-[var(--accent)]">TÚ</span>}
+                {isCur && <span className="hx-blink absolute -top-5 font-display font-bold text-[0.5rem] text-[var(--accent)]">TÚ</span>}
                 <RankEmblem tierIndex={i} division={null} size={isCur ? 74 : 56} locked={!isReached} effects={isCur || isSel} />
-                <span className={`font-[family-name:var(--font-press)] text-[0.45rem] uppercase leading-tight ${isSel ? "tier-text" : "hx-mute"}`} style={isSel ? { ["--tc2" as string]: tier.glow } : undefined}>
+                <span className={`font-display font-bold text-[0.45rem] uppercase leading-tight ${isSel ? "tier-text" : "hx-mute"}`} style={isSel ? { ["--tc2" as string]: tier.glow } : undefined}>
                   {tier.name}
                 </span>
-                <span aria-hidden className={`mt-1 h-3 w-3 border-2 border-[var(--line-strong)] ${isReached ? "bg-[var(--accent)]" : "bg-[var(--track)]"} ${isSel ? "scale-150" : ""}`} />
+                <span aria-hidden className={`mt-1 h-3 w-3 rotate-45 border border-[var(--line-strong)] ${isReached ? "bg-[var(--accent)]" : "bg-[var(--track)]"} ${isSel ? "scale-150" : ""}`} />
               </button>
             );
           })}
@@ -73,11 +73,11 @@ export function RankLadder({ tierIndex, xp, preview = false }: { tierIndex: numb
           animate={{ opacity: 1, y: 0 }}
           exit={reduce ? undefined : { opacity: 0, y: -8 }}
           transition={{ type: "spring", stiffness: 420, damping: 30 }}
-          className="hx-tier-panel mt-3 flex flex-wrap items-center gap-5 border-4 bg-[var(--surface-2)] p-4"
+          className="hx-tier-panel mt-3 flex flex-wrap items-center gap-5 rounded-2xl border-2 bg-[var(--surface-2)] p-4"
         >
           <RankEmblem tierIndex={sel} division={null} size={118} effects />
           <div className="min-w-0 flex-1">
-            <p className="tier-text font-[family-name:var(--font-press)] text-xs" style={{ ["--tc2" as string]: t.glow }}>
+            <p className="tier-text font-display font-bold text-xs" style={{ ["--tc2" as string]: t.glow }}>
               {t.name.toUpperCase()}
             </p>
             <p className="mt-1 text-xl">{TAGLINE[sel]}</p>
@@ -85,7 +85,7 @@ export function RankLadder({ tierIndex, xp, preview = false }: { tierIndex: numb
               Se desbloquea con <b className="text-[var(--fg)]">{t.min.toLocaleString("es-CO")} XP</b>
             </p>
             {!preview && (
-              <p className={`mt-2 inline-block border-2 px-2 py-0.5 text-sm font-bold ${reached ? "border-[var(--ok)] text-[var(--ok)]" : "border-[var(--hot)] text-[var(--hot)]"}`}>
+              <p className={`mt-2 inline-block rounded-full border-2 px-3 py-0.5 text-sm font-bold ${reached ? "border-[var(--ok)] text-[var(--ok)]" : "border-[var(--hot)] text-[var(--hot)]"}`}>
                 {reached ? (sel === tierIndex ? "★ TU RANGO ACTUAL" : "✓ Conseguido") : `🔒 Faltan ${missing.toLocaleString("es-CO")} XP`}
               </p>
             )}

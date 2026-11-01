@@ -9,9 +9,6 @@ import type { MascotId } from "@/lib/mascots";
 import { Repi } from "./repi";
 import { Trophy, type TrophyTier } from "./trophy";
 
-// Render scale: 1 is full resolution; lower gives chunky retro pixels (scaled up without smoothing).
-const PIXEL = 0.4;
-
 // Small transparent canvas: just the mascot (and the trophy on results), well lit and antialiased.
 export default function MascotCanvas({
   mascot,
@@ -32,10 +29,9 @@ export default function MascotCanvas({
 }) {
   return (
     <Canvas
-      style={{ imageRendering: "pixelated" }}
-      dpr={PIXEL}
-      camera={{ position: [0, 0.62, 3.1], fov: 30, near: 0.1, far: 30 }}
-      gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
+      dpr={[1, 2]}
+      camera={{ position: [0, 0.62, 3.1], fov: 36, near: 0.1, far: 30 }}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       onCreated={({ gl, camera }) => {
         gl.outputColorSpace = SRGBColorSpace;
         gl.toneMapping = ACESFilmicToneMapping;

@@ -74,7 +74,7 @@ export function DashboardHero({ hud, quests }: { hud: HudData; quests: { done: b
                 )}
               </p>
               {rank.nextLabel && (
-                <span className="tier-text flex items-center gap-2 font-[family-name:var(--font-press)] text-[0.55rem]" style={{ ["--tc2" as string]: nextTier.glow }}>
+                <span className="tier-text flex items-center gap-2 font-display font-bold text-[0.55rem]" style={{ ["--tc2" as string]: nextTier.glow }}>
                   <RankEmblem tierIndex={Math.min(rank.tierIndex + 1, TIERS.length - 1)} size={34} effects={false} locked={rank.tierIndex + 1 > rank.tierIndex} />
                   {rank.nextLabel}
                 </span>
@@ -94,7 +94,7 @@ export function DashboardHero({ hud, quests }: { hud: HudData; quests: { done: b
             <StreakFlame size={74} active={streak.activeToday || atRisk} days={streak.current} />
             <div className="min-w-0 flex-1">
               <p className="hx-kicker">Racha</p>
-              <p className="font-[family-name:var(--font-press)] text-3xl leading-none">
+              <p className="font-display font-bold text-3xl leading-none">
                 <AnimatedNumber from={0} value={streak.current} />
               </p>
               <p className={`mt-1 ${atRisk ? "hx-blink font-bold text-[var(--bad)]" : "hx-mute"}`}>
@@ -109,7 +109,7 @@ export function DashboardHero({ hud, quests }: { hud: HudData; quests: { done: b
                 initial={reduce ? false : { scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: i * 0.06, type: "spring", stiffness: 400, damping: 16 }}
-                className={`grid h-9 place-items-center border-2 text-lg ${d.count > 0 ? "border-[var(--line-strong)] bg-[var(--hot)] text-[#1a1c2c]" : "border-[var(--line)] bg-[var(--track)]"} ${i === week.length - 1 ? "outline outline-2 outline-offset-2 outline-[var(--neon)]" : ""}`}
+                className={`grid h-9 place-items-center rounded-lg border text-lg ${d.count > 0 ? "border-[var(--line-strong)] bg-[var(--hot)] text-[#1a1c2c]" : "border-[var(--line)] bg-[var(--track)]"} ${i === week.length - 1 ? "outline outline-2 outline-offset-2 outline-[var(--neon)]" : ""}`}
                 title={`${d.date}: ${d.count} respuestas`}
               >
                 {d.count > 0 ? "🔥" : ""}
@@ -126,8 +126,8 @@ export function DashboardHero({ hud, quests }: { hud: HudData; quests: { done: b
               ["Respondidas", stats.answered, ""],
               ["Quizzes", stats.quizzes, ""],
             ].map(([k, v, suf]) => (
-              <div key={k as string} className="hx-lift border-2 border-[var(--line)] bg-[var(--track)] px-1 py-2">
-                <dd className="font-[family-name:var(--font-press)] text-sm">
+              <div key={k as string} className="hx-lift rounded-xl border border-[var(--line)] bg-[var(--track)] px-1 py-2">
+                <dd className="font-display font-bold text-sm">
                   <AnimatedNumber from={0} value={v as number} />
                   {suf}
                 </dd>

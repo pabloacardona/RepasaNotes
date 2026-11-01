@@ -90,7 +90,7 @@ export function NotesList({ notes }: { notes: NoteItem[] }) {
               onClick={() => setTopic(t)}
               aria-pressed={topic === t}
               className={`rounded-full border-2 px-4 py-1.5 font-semibold transition ${
-                topic === t ? "border-[var(--line-strong)] bg-[var(--accent)] text-[var(--on-accent)]" : "border-line bg-card hover:border-ink-soft"
+                topic === t ? "border-transparent bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-white shadow-[0_0_14px_rgba(124,92,255,0.45)]" : "border-line bg-card hover:border-ink-soft"
               }`}
             >
               {t}
