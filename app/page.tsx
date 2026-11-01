@@ -11,8 +11,8 @@ import { MASCOTS } from "@/lib/mascot-data";
 import { TIERS } from "@/lib/ranks";
 
 const STEPS = [
-  { n: "01", icon: "📜", title: "Pega tus apuntes", text: "Escríbelos, sube un PDF o pídele a la IA que los redacte.", glow: "#22e6ff" },
-  { n: "02", icon: "⚔️", title: "Juega el quiz", text: "Preguntas hechas por IA, combos, rachas y una mascota que reacciona.", glow: "#a28bff" },
+  { n: "01", icon: "📜", title: "Pega tus apuntes", text: "Escríbelos, sube un PDF o pídele a la IA que los redacte.", glow: "#ffb347" },
+  { n: "02", icon: "⚔️", title: "Juega el quiz", text: "Preguntas hechas por IA, combos, rachas y una mascota que reacciona.", glow: "#ff5c8a" },
   { n: "03", icon: "🏆", title: "Sube de rango", text: "Repasa lo que fallas, gana XP y escala de Hierro a Retador.", glow: "#ffd400" },
 ];
 
@@ -25,7 +25,7 @@ export default function Landing() {
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
             <RankEmblem tierIndex={3} size={36} effects={false} />
-            <span className="font-display text-2xl font-bold tracking-wide">Repasa</span>
+            <span className="hx-yellow font-display text-2xl font-bold tracking-wide">Repasa</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-5">
             <a href="#como-se-juega" className="hx-mute hidden text-sm font-semibold hover:text-[var(--fg)] sm:inline">

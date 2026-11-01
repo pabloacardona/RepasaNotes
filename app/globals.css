@@ -3,74 +3,74 @@
 /* ---------- Theme tokens: light by default, dark with [data-theme="dark"] (set before paint by a script in the layout) ---------- */
 :root {
   color-scheme: light;
-  --bg: #f2f4ff;
+  --bg: #fff4ee;
   --surface: #ffffff;
-  --surface-2: #f5f6ff;
-  --panel: rgba(255, 255, 255, 0.82);
-  --fg: #0e1230;
-  --fg2: #343b66;
-  --mute: #58628a;
-  --line: rgba(70, 80, 160, 0.16);
-  --line-strong: rgba(70, 80, 160, 0.34);
-  --track: rgba(70, 80, 160, 0.12);
-  --accent: #6a4bff;
+  --surface-2: #fff0e8;
+  --panel: rgba(255, 255, 255, 0.84);
+  --fg: #2a0f1a;
+  --fg2: #5a3040;
+  --mute: #86606e;
+  --line: rgba(160, 70, 90, 0.18);
+  --line-strong: rgba(160, 70, 90, 0.36);
+  --track: rgba(160, 70, 90, 0.12);
+  --accent: #e0245e;
   --hi: #b45309;
-  --neon: #0891b2;
+  --neon: #d9480f;
   --ok: #0b9a62;
   --bad: #e11d48;
   --bad-soft: #be123c;
   --hot: #ea580c;
   --on-accent: #ffffff;
-  --b1: #7c5cff;
-  --b2: #2d8bff;
-  --shadow: 0 10px 34px rgba(60, 70, 160, 0.13);
-  --blue: #5b3df5;
-  --blue-dark: #4a2fd6;
-  --blue-soft: #e9e5ff;
+  --b1: #ff3d6e;
+  --b2: #ffa62b;
+  --shadow: 0 10px 34px rgba(160, 60, 70, 0.16);
+  --blue: #d6245f;
+  --blue-dark: #b11a4c;
+  --blue-soft: #ffe0e8;
   --yel: #f5b800;
   --yel-soft: #fff5c9;
   --grn: #0b9a62;
   --grn-soft: #d9f6e8;
   --red: #e11d48;
   --red-soft: #ffe3ea;
-  --blob-a: rgba(124, 92, 255, 0.22);
-  --blob-b: rgba(34, 211, 238, 0.22);
-  --blob-c: rgba(255, 120, 200, 0.16);
+  --blob-a: rgba(255, 61, 110, 0.22);
+  --blob-b: rgba(255, 166, 43, 0.24);
+  --blob-c: rgba(168, 85, 247, 0.14);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #060913;
-  --surface: #0d1226;
-  --surface-2: #131a3a;
-  --panel: rgba(16, 22, 48, 0.72);
-  --fg: #eef1ff;
-  --fg2: #b4bde0;
-  --mute: #8f9ac0;
-  --line: rgba(130, 150, 255, 0.2);
-  --line-strong: rgba(130, 150, 255, 0.4);
-  --track: rgba(140, 160, 255, 0.14);
-  --accent: #a28bff;
-  --hi: #ffe14d;
-  --neon: #22e6ff;
+  --bg: #0e0710;
+  --surface: #1a0f1d;
+  --surface-2: #251528;
+  --panel: rgba(32, 17, 36, 0.74);
+  --fg: #fff3ec;
+  --fg2: #e3cbc8;
+  --mute: #b295a3;
+  --line: rgba(255, 150, 170, 0.2);
+  --line-strong: rgba(255, 150, 170, 0.4);
+  --track: rgba(255, 170, 190, 0.14);
+  --accent: #ff5c8a;
+  --hi: #ffd24d;
+  --neon: #ffb347;
   --ok: #2dffa8;
   --bad: #ff4d79;
   --bad-soft: #ff9db5;
   --hot: #ff8a2b;
-  --on-accent: #05101c;
-  --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
-  --blue: #6d5cff;
-  --blue-dark: #5b49f0;
-  --blue-soft: rgba(109, 92, 255, 0.18);
+  --on-accent: #1a0710;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  --blue: #ff6b97;
+  --blue-dark: #f0507f;
+  --blue-soft: rgba(255, 107, 151, 0.18);
   --yel: #ffe14d;
   --yel-soft: rgba(255, 225, 77, 0.1);
   --grn: #2dffa8;
   --grn-soft: rgba(45, 255, 168, 0.1);
   --red: #ff5c7f;
   --red-soft: rgba(255, 77, 121, 0.12);
-  --blob-a: rgba(124, 92, 255, 0.28);
-  --blob-b: rgba(34, 230, 255, 0.16);
-  --blob-c: rgba(255, 70, 190, 0.14);
+  --blob-a: rgba(255, 61, 110, 0.26);
+  --blob-b: rgba(255, 166, 43, 0.14);
+  --blob-c: rgba(168, 85, 247, 0.16);
 }
 
 @theme {
@@ -331,16 +331,16 @@ h3,
   border-color: transparent;
   background: linear-gradient(135deg, var(--b1, #7c5cff), var(--b2, #2d8bff));
   color: #fff;
-  box-shadow: 0 6px 24px rgba(124, 92, 255, 0.45);
+  box-shadow: 0 6px 24px rgba(255, 61, 110, 0.45);
 }
-.hx-btn-gold:hover:not(:disabled) { border-color: transparent; filter: brightness(1.12); box-shadow: 0 8px 30px rgba(124, 92, 255, 0.65); }
+.hx-btn-gold:hover:not(:disabled) { border-color: transparent; filter: brightness(1.1); box-shadow: 0 8px 30px rgba(255, 61, 110, 0.6); }
 .hx-btn-cyan {
   border-color: transparent;
-  background: linear-gradient(135deg, #22e6ff, #2dffa8);
-  color: #04141c;
-  box-shadow: 0 6px 24px rgba(34, 230, 255, 0.4);
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.4);
 }
-.hx-btn-cyan:hover:not(:disabled) { border-color: transparent; filter: brightness(1.08); box-shadow: 0 8px 30px rgba(34, 230, 255, 0.6); }
+.hx-btn-cyan:hover:not(:disabled) { border-color: transparent; filter: brightness(1.1); box-shadow: 0 8px 30px rgba(168, 85, 247, 0.6); }
 .hx-btn-danger { color: var(--bad); border-color: color-mix(in oklab, var(--bad) 45%, transparent); background: color-mix(in oklab, var(--bad) 10%, var(--surface-2)); }
 .hx-btn-danger:hover:not(:disabled) { border-color: var(--bad); box-shadow: 0 6px 22px color-mix(in oklab, var(--bad) 30%, transparent); }
 
@@ -352,7 +352,7 @@ h3,
 }
 @keyframes hx-flow { to { background-position: 200% center; } }
 .hx-gold-text {
-  background: linear-gradient(90deg, var(--tg1, var(--b1, #7c5cff)), var(--tg2, var(--neon)), var(--tg3, #ff5fd0), var(--tg1, var(--b1, #7c5cff)));
+  background: linear-gradient(90deg, var(--tg1, #ffe14d), var(--tg2, #ff9a3d), var(--tg3, #ff4d79), var(--tg1, #ffe14d));
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -432,8 +432,8 @@ h3,
 }
 
 /* Activity heatmap ramp, one hue, per theme */
-:root { --heat-0: #e1ddff; --heat-1: #b7aaff; --heat-2: #8a74ff; --heat-3: #5b3df5; --heat-4: #3a22b8; }
-:root[data-theme="dark"] { --heat-0: #1d2150; --heat-1: #3b3a9a; --heat-2: #6a55ff; --heat-3: #22e6ff; --heat-4: #2dffa8; }
+:root { --heat-0: #ffe6d9; --heat-1: #ffc2a0; --heat-2: #ff9166; --heat-3: #ff5a2e; --heat-4: #c2260e; }
+:root[data-theme="dark"] { --heat-0: #2a1420; --heat-1: #5a2036; --heat-2: #a8325a; --heat-3: #ff5a2e; --heat-4: #ffd24d; }
 
 
 /* ====================================================================================================
@@ -577,7 +577,7 @@ html { scroll-behavior: smooth; }
   --line-strong: rgba(255, 255, 255, 0.45);
   --surface-2: rgba(255, 255, 255, 0.08);
   position: relative;
-  background: linear-gradient(180deg, #232a6b 0%, #141946 100%);
+  background: linear-gradient(180deg, #4a1740 0%, #2a0c2a 100%);
   border-top: 1px solid color-mix(in oklab, var(--b1) 55%, #fff 10%);
   box-shadow: 0 -14px 36px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
   color: var(--fg);
@@ -586,3 +586,6 @@ html { scroll-behavior: smooth; }
 .hx-dock { background: color-mix(in oklab, var(--surface) 97%, transparent); }
 
 :root:not([data-theme="dark"]) .fire-tongue { mix-blend-mode: normal; }
+
+/* The wordmark: always warm yellow with a soft glow */
+.hx-yellow { color: #ffd84a; background: linear-gradient(180deg, #fff3a8 0%, #ffd84a 45%, #ffb020 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 12px rgba(255, 190, 40, 0.45)); }

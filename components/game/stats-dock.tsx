@@ -97,6 +97,7 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
                   className="hx-dock pointer-events-auto absolute inset-x-0 bottom-full mx-auto mb-3 w-[calc(100%-1rem)] max-w-4xl rounded-2xl p-4"
                   role="region"
                   aria-live="polite"
+                  onClick={() => setOpen(null)}
                 >
                   {open === "streak" && (
                     <div>
@@ -164,7 +165,7 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
               )}
             </AnimatePresence>
 
-            <div className="hx-dock-bar pointer-events-auto">
+            <div className="hx-dock-bar pointer-events-auto cursor-pointer" onClick={() => fold(true)} title="Clic en la barra para ocultarla">
               <div className="mx-auto flex max-w-4xl items-stretch gap-1 px-2 py-1.5">
               <Block active={open === "streak"} onClick={() => toggle("streak")} label="Racha" tone={atRisk ? "bad" : streak.activeToday ? "hot" : undefined}>
                 <span onClick={(e) => { e.stopPropagation(); if (streak.activeToday) celebrate(); }} className="shrink-0">
@@ -261,7 +262,10 @@ function Block({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
       aria-pressed={active}
       aria-label={label}
       className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition-all duration-200 hover:bg-[var(--fg)]/8 active:scale-[0.97] ${

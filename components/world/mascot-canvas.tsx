@@ -56,9 +56,9 @@ export default function MascotCanvas({
       }}
     >
       <Environment files="/3d/env.hdr" environmentIntensity={0.5} />
-      <hemisphereLight args={["#ffffff", "#8fa3d9", 1]} />
+      <hemisphereLight args={["#fff1e6", "#d9a38f", 1]} />
       <directionalLight position={[2.5, 4, 3.5]} intensity={2.2} color="#fff3e0" />
-      <directionalLight position={[-3, 2, -2.5]} intensity={1.4} color="#7fb2ff" />
+      <directionalLight position={[-3, 2, -2.5]} intensity={1.4} color="#ff9a6a" />
       <CameraFit w={fit.w} h={fit.h} extra={trophy ? 1.15 : 0} cx={trophy ? 0.08 : 0} />
       <Suspense fallback={null}>
         <group position={[trophy ? -0.45 : 0, 0, 0]}>

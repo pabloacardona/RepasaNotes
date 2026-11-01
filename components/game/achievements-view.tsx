@@ -4,6 +4,7 @@ import { TIER_POINTS, type AchievementState } from "@/lib/gamification";
 import { CONQUER_TIER, TIERS } from "@/lib/ranks";
 import { GameShell } from "./game-shell";
 import { RankEmblem } from "./rank-emblem";
+import { AchievementIcon } from "./achievement-icon";
 import { RankLadder } from "./rank-ladder";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 
@@ -137,19 +138,7 @@ function AchievementCard({ a }: { a: AchievementState }) {
   return (
     <div className={`hx-panel hx-lift h-full p-4 ${locked ? "opacity-80" : ""}`} style={{ ["--ac" as string]: a.rarity.color }}>
       <div className="flex gap-3">
-        <div
-          className={`grid h-16 w-16 shrink-0 place-items-center text-3xl ${locked ? "grayscale" : "hx-glow"}`}
-          style={{
-            background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(0,0,0,0.4))",
-            border: `2px solid ${locked ? "var(--line-strong)" : a.rarity.color}`,
-            clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)",
-            ["--glow" as string]: a.rarity.color,
-          }}
-        >
-          <span aria-hidden className={locked ? "opacity-40" : ""}>
-            {locked ? "🔒" : a.emoji}
-          </span>
-        </div>
+        <AchievementIcon id={a.id} color={a.rarity.color} tier={a.tier} size={68} locked={locked} className="shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <p className="font-bold">{a.name}</p>

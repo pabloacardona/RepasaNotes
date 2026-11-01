@@ -77,3 +77,8 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 - The player name and avatar with an online dot are always visible in the nav and in the quiz header.
 - While a quiz combo burns (3+ in a row) the question card catches fire: flames and embers along its top edge that grow at 5 and turn blue-white at 8, with a hot glowing border. They ignite and go out smoothly.
 - Mascot clips no longer slide the character sideways: the Body bone's X and Z are pinned so the model stays centred while it jumps, dances or reacts.
+
+- The palette moved from blue and green to a warm ember mood (rose, amber and plum), in both themes, including the particle backdrop, the buttons, the bars and the bottom bar. The "Repasa" wordmark is always yellow.
+- Achievements use vector medals (a faceted frame in the rarity colour and a hand-drawn glyph per achievement: swords, bulb, scroll, compass, flame, diamond, horned helm, candle, castle, wings), with a padlock silhouette when locked.
+- The notes page always shows a compact stats panel: five tiles, an eight-week sparkline and the main topics.
+- A click anywhere on the bottom bar hides it (a block opens its detail card instead); the pill brings it back.

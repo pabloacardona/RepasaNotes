@@ -55,7 +55,7 @@ export function InteractiveBackdrop({
       vx: burst ? Math.cos(rand(0, 6.28)) * burst.speed * rand(0.4, 1) : rand(-0.2, 0.2),
       vy: burst ? Math.sin(rand(0, 6.28)) * burst.speed * rand(0.4, 1) : rand(-0.2, 0.2),
       r: burst ? rand(1.5, 3.4) : rand(1.1, 2.8),
-      hue: burst ? burst.hue : [215, 262, 190, 330, 48][Math.floor(Math.random() * 5)] + rand(-10, 10),
+      hue: burst ? burst.hue : [345, 20, 38, 300, 52][Math.floor(Math.random() * 5)] + rand(-10, 10),
       life: burst ? 1 : -1,
       seed: rand(0, 1000),
     });
@@ -85,8 +85,8 @@ export function InteractiveBackdrop({
       mouse.active = true;
     };
     const onDown = (e: PointerEvent) => {
-      ring(e.clientX, e.clientY, 200, 220);
-      burst(e.clientX, e.clientY, 48 + rand(-10, 160), 12, 2.4);
+      ring(e.clientX, e.clientY, 25, 220);
+      burst(e.clientX, e.clientY, 20 + rand(-20, 50), 12, 2.4);
     };
     const onLeave = () => {
       mouse.active = false;
@@ -119,9 +119,9 @@ export function InteractiveBackdrop({
         if (wave.current.hit) {
           flashHue = 52 + heat * -8;
           flash = 0.5;
-          ring(ax, ay, 150, 420);
-          ring(ax, ay, 48, 300);
-          burst(ax, ay, 48, 26, 3.6);
+          ring(ax, ay, 45, 420);
+          ring(ax, ay, 18, 300);
+          burst(ax, ay, 40, 26, 3.6);
         } else if (wave.current.hit === false) {
           flashHue = 335;
           flash = 0.55;
@@ -148,13 +148,13 @@ export function InteractiveBackdrop({
       const light = document.documentElement.dataset.theme === "light";
       const g = ctx!.createLinearGradient(0, 0, w, h);
       if (light) {
-        g.addColorStop(0, `hsl(${228 - heat * 10} 100% 97%)`);
-        g.addColorStop(0.55, `hsl(${260 - heat * 30} 100% 96%)`);
-        g.addColorStop(1, "hsl(205 100% 96%)");
+        g.addColorStop(0, `hsl(${14 + heat * 10} 100% 97%)`);
+        g.addColorStop(0.55, `hsl(${340 + heat * 5} 100% 96%)`);
+        g.addColorStop(1, "hsl(30 100% 95%)");
       } else {
-        g.addColorStop(0, `hsl(${232 - heat * 18} 62% ${9 + heat * 3}%)`);
-        g.addColorStop(0.55, `hsl(${262 - heat * 40} 55% ${12 + heat * 3}%)`);
-        g.addColorStop(1, `hsl(${214 - heat * 10} 60% ${7 + heat * 2}%)`);
+        g.addColorStop(0, `hsl(${322 + heat * 20} 55% ${8 + heat * 3}%)`);
+        g.addColorStop(0.55, `hsl(${340 + heat * 18} 52% ${11 + heat * 3}%)`);
+        g.addColorStop(1, `hsl(${300 + heat * 20} 50% ${6 + heat * 2}%)`);
       }
       ctx!.globalCompositeOperation = "source-over";
       ctx!.fillStyle = g;
@@ -165,10 +165,10 @@ export function InteractiveBackdrop({
       const px = mouse.active ? (mouse.x / w - 0.5) * 60 : 0;
       const py = mouse.active ? (mouse.y / h - 0.5) * 60 : 0;
       const blobs: [number, number, number, number, number][] = [
-        [0.2, 0.25, 0.34, 225, 0.0],
-        [0.8, 0.3, 0.3, 285, 1.7],
-        [0.65, 0.85, 0.36, 195 - heat * 140, 3.1],
-        [0.12, 0.8, 0.26, 330, 4.4],
+        [0.2, 0.25, 0.34, 345, 0.0],
+        [0.8, 0.3, 0.3, 28, 1.7],
+        [0.65, 0.85, 0.36, 14 + heat * 30, 3.1],
+        [0.12, 0.8, 0.26, 295, 4.4],
       ];
       for (const [bx, by, br, hue, ph] of blobs) {
         const cx = (bx + Math.sin(t * 0.18 + ph) * 0.06) * w + px * (1 + ph * 0.1);
@@ -235,7 +235,7 @@ export function InteractiveBackdrop({
           const d2 = dx * dx + dy * dy;
           if (d2 > LINK * LINK) continue;
           const al = (1 - Math.sqrt(d2) / LINK) * 0.38;
-          ctx!.strokeStyle = `hsl(${(p.hue + q.hue) / 2 + heat * -50} 90% ${light ? 48 : 72}% / ${al * (light ? 1.3 : 1)})`;
+          ctx!.strokeStyle = `hsl(${(p.hue + q.hue) / 2 + heat * 40} 90% ${light ? 48 : 72}% / ${al * (light ? 1.3 : 1)})`;
           ctx!.beginPath();
           ctx!.moveTo(p.x, p.y);
           ctx!.lineTo(q.x, q.y);
@@ -258,7 +258,7 @@ export function InteractiveBackdrop({
       // Dots with a glow.
       for (const p of parts) {
         const alpha = p.life >= 0 ? p.life : 1;
-        const hue = p.hue + heat * -40;
+        const hue = p.hue + heat * 30;
         const size = p.r * (1 + Math.sin(t * 2 + p.seed) * 0.18);
         const gl = ctx!.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 5);
         gl.addColorStop(0, `hsl(${hue} 100% ${light ? 55 : 75}% / ${(light ? 0.4 : 0.55) * alpha})`);
@@ -290,8 +290,8 @@ export function InteractiveBackdrop({
       // Pointer halo.
       if (mouse.active) {
         const hg = ctx!.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 120);
-        hg.addColorStop(0, light ? "hsl(250 100% 60% / 0.16)" : "hsl(210 100% 80% / 0.22)");
-        hg.addColorStop(1, light ? "hsl(250 100% 60% / 0)" : "hsl(210 100% 80% / 0)");
+        hg.addColorStop(0, light ? "hsl(340 100% 60% / 0.16)" : "hsl(30 100% 75% / 0.22)");
+        hg.addColorStop(1, light ? "hsl(340 100% 60% / 0)" : "hsl(30 100% 75% / 0)");
         ctx!.fillStyle = hg;
         ctx!.fillRect(mouse.x - 120, mouse.y - 120, 240, 240);
       }

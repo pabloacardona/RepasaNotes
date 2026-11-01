@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
 import { celebrate } from "@/components/confetti";
 import { RankEmblem } from "./rank-emblem";
+import { AchievementIcon } from "./achievement-icon";
 import { TIERS } from "@/lib/ranks";
 
 export type RankLite = { tierIndex: number; division: number | null; label: string; pct: number; toNext: number };
@@ -131,9 +132,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
                 className="flex items-center gap-3 bg-[var(--fg)]/5 p-3"
                 style={{ borderLeft: `3px solid ${a.rarity.color}` }}
               >
-                <span aria-hidden className="text-3xl">
-                  {a.emoji}
-                </span>
+                <AchievementIcon id={a.id} color={a.rarity.color} tier={a.tier} size={46} />
                 <span className="min-w-0">
                   <span className="block font-bold">
                     {a.name} <span style={{ color: a.rarity.color }}>· {a.rarity.name}</span>

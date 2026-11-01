@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { listNotes } from "@/lib/data";
 import { getStudyStats } from "@/lib/stats";
-import { StudyStatsPanel } from "@/components/study-stats";
+import { CompactStats } from "@/components/study-stats-compact";
 import { Reveal } from "@/components/motion/reveal";
 import { NotesList } from "./notes-list";
 
@@ -39,6 +39,10 @@ export default async function NotesPage() {
         </header>
       </Reveal>
 
+      <div className="mt-6">
+        <CompactStats stats={stats} />
+      </div>
+
       <div className="mt-8">
         <NotesList
           notes={notes.map((n) => ({
@@ -51,20 +55,6 @@ export default async function NotesPage() {
           }))}
         />
       </div>
-
-      {notes.length > 0 && (
-        <details className="group mt-10">
-          <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-2)] px-5 py-2 font-bold transition hover:border-[var(--neon)]">
-            📊 Estadísticas de estudio
-            <span aria-hidden className="text-xs transition-transform group-open:rotate-180">
-              ▼
-            </span>
-          </summary>
-          <div className="mt-4">
-            <StudyStatsPanel stats={stats} />
-          </div>
-        </details>
-      )}
     </>
   );
 }
