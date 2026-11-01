@@ -59,7 +59,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
       </div>
 
       {reward.dailyDone && (
-        <p className="mt-3 border-l-2 border-[#0ac8b9] bg-[#0ac8b9]/10 px-3 py-1.5 text-sm font-bold">☀️ ¡Meta diaria cumplida! Ya cuenta tu bonus de XP.</p>
+        <p className="mt-3 border-l-2 border-[var(--neon)] bg-[var(--neon)]/10 px-3 py-1.5 text-sm font-bold">☀️ ¡Meta diaria cumplida! Ya cuenta tu bonus de XP.</p>
       )}
 
       <AnimatePresence>
@@ -69,9 +69,9 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
             initial={reduce ? false : { opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 14 }}
-            className="hx-shine mt-4 border border-[#c8aa6e] bg-gradient-to-r from-[#c8aa6e]/25 via-[#f0d89a]/25 to-[#c8aa6e]/25 p-3 text-center"
+            className="hx-shine mt-4 border border-[var(--accent)] bg-gradient-to-r from-[var(--accent)]/25 via-[var(--hi)]/25 to-[var(--accent)]/25 p-3 text-center"
           >
-            <p className="hx-kicker !text-[#f0d89a]">¡Ascenso!</p>
+            <p className="hx-kicker !text-[var(--hi)]">¡Ascenso!</p>
             <p className="hx-title hx-gold-text text-2xl">{reward.to.label}</p>
           </motion.div>
         )}
@@ -87,7 +87,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
                 initial={reduce ? false : { opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ type: "spring", stiffness: 240, damping: 18, delay: i * 0.15 }}
-                className="flex items-center gap-3 bg-white/5 p-3"
+                className="flex items-center gap-3 bg-[var(--fg)]/5 p-3"
                 style={{ borderLeft: `3px solid ${a.rarity.color}` }}
               >
                 <span aria-hidden className="text-3xl">

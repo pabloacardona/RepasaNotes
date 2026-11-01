@@ -19,17 +19,17 @@ export function RankHub({ profile }: { profile: GameProfile }) {
           <RankEmblem tierIndex={rank.tierIndex} division={rank.division} size={132} />
           <div className="min-w-0 flex-1">
             <p className="hx-kicker">Tu rango</p>
-            <p className="hx-title hx-gold-text text-3xl sm:text-4xl">{rank.label}</p>
+            <p className="hx-title hx-gold-text text-3xl sm:text-4xl" style={{ ["--tg1" as string]: rank.tier.glow, ["--tg2" as string]: rank.tier.color, ["--tg3" as string]: rank.tier.glow }}>{rank.label}</p>
             <div className="mt-2 flex items-center gap-3">
               <div className="hx-bar flex-1" role="progressbar" aria-valuenow={rank.lp} aria-valuemin={0} aria-valuemax={100} aria-label="Puntos de liga">
                 <span style={{ width: `${Math.max(rank.pct, 3)}%` }} />
               </div>
-              <span className="font-bold tabular-nums text-[#0ac8b9]">{rank.lp} LP</span>
+              <span className="font-bold tabular-nums text-[var(--neon)]">{rank.lp} LP</span>
             </div>
             <p className="hx-mute mt-1.5 text-sm">
               {rank.nextLabel ? (
                 <>
-                  Te faltan <b className="text-[#f0e6d2]">{rank.toNext} XP</b> para <b className="text-[#f0d89a]">{rank.nextLabel}</b>
+                  Te faltan <b className="text-[var(--fg)]">{rank.toNext} XP</b> para <b className="text-[var(--hi)]">{rank.nextLabel}</b>
                 </>
               ) : (
                 "Estás en la cima de la liga."
@@ -48,7 +48,7 @@ export function RankHub({ profile }: { profile: GameProfile }) {
             <p className={`text-4xl ${streak.activeToday && streak.current > 0 ? "animate-pulse" : "grayscale"}`} aria-hidden>
               🔥
             </p>
-            <p className="font-[family-name:var(--font-cinzel)] text-xl font-black leading-none">{streak.current}</p>
+            <p className="font-display text-xl font-black leading-none">{streak.current}</p>
             <p className="hx-mute text-[0.6rem] font-bold uppercase tracking-widest">días</p>
           </div>
           <div className="flex-1">
@@ -57,8 +57,8 @@ export function RankHub({ profile }: { profile: GameProfile }) {
                 <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
                   <span
                     className={`grid h-7 w-7 rotate-45 place-items-center text-sm font-bold ${
-                      d.count > 0 ? "bg-[#c8aa6e] text-[#1a1206] shadow-[0_0_14px_rgba(200,170,110,0.7)]" : "bg-white/10 text-white/30"
-                    } ${i === week.length - 1 ? "outline outline-2 outline-[#0ac8b9]" : ""}`}
+                      d.count > 0 ? "bg-[var(--accent)] text-[var(--on-accent)] shadow-[0_0_14px_rgba(200,170,110,0.7)]" : "bg-[var(--fg)]/10 text-[var(--mute)]"
+                    } ${i === week.length - 1 ? "outline outline-2 outline-[var(--neon)]" : ""}`}
                     title={`${d.date}: ${d.count} respuestas`}
                   >
                     <span className="-rotate-45">{d.count > 0 ? "✓" : ""}</span>
@@ -91,7 +91,7 @@ export function RankHub({ profile }: { profile: GameProfile }) {
             <li key={q.id}>
               <div className="flex items-center gap-2">
                 <span aria-hidden>{q.done ? "✅" : q.emoji}</span>
-                <p className={`flex-1 text-sm font-bold ${q.done ? "text-[#2fd68f]" : ""}`}>{q.label}</p>
+                <p className={`flex-1 text-sm font-bold ${q.done ? "text-[var(--ok)]" : ""}`}>{q.label}</p>
                 <span className="hx-mute text-sm font-bold tabular-nums">
                   {q.value}/{q.goal}
                 </span>
@@ -108,7 +108,7 @@ export function RankHub({ profile }: { profile: GameProfile }) {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="hx-kicker">Conquistas y logros</p>
           <p className="hx-mute text-sm">
-            <b className="text-[#f0d89a]">{achievementPoints}</b> puntos de logro · <b className="text-[#f0e6d2]">{conquered}</b>{" "}
+            <b className="text-[var(--hi)]">{achievementPoints}</b> puntos de logro · <b className="text-[var(--fg)]">{conquered}</b>{" "}
             {conquered === 1 ? "tema conquistado" : "temas conquistados"}
           </p>
         </div>
@@ -117,7 +117,7 @@ export function RankHub({ profile }: { profile: GameProfile }) {
         ) : (
           <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {recent.map((a) => (
-              <li key={a.id} className="flex items-center gap-3 bg-white/5 p-3" style={{ borderLeft: `3px solid ${a.rarity.color}` }}>
+              <li key={a.id} className="flex items-center gap-3 bg-[var(--fg)]/5 p-3" style={{ borderLeft: `3px solid ${a.rarity.color}` }}>
                 <span aria-hidden className="text-3xl">
                   {a.emoji}
                 </span>

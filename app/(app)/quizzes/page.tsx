@@ -10,9 +10,9 @@ import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 export const metadata: Metadata = { title: "Quizzes" };
 
 const DIFF: Record<string, { icon: string; color: string }> = {
-  facil: { icon: "🌿", color: "#2fd68f" },
-  media: { icon: "⚔️", color: "#f0d89a" },
-  dificil: { icon: "🐉", color: "#e8485f" },
+  facil: { icon: "🌿", color: "#2dffa8" },
+  media: { icon: "⚔️", color: "#ffe14d" },
+  dificil: { icon: "🐉", color: "#ff4d79" },
 };
 
 export default async function QuizzesPage() {
@@ -63,7 +63,7 @@ export default async function QuizzesPage() {
                 <div className="hx-panel hx-panel-soft hx-lift">
                   <div className="flex items-center gap-4 p-4">
                     <div
-                      className="grid h-16 w-16 shrink-0 place-items-center font-[family-name:var(--font-cinzel)] text-3xl font-black"
+                      className="grid h-16 w-16 shrink-0 place-items-center font-display text-3xl font-black"
                       style={{
                         clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)",
                         background: isDone ? `linear-gradient(160deg, ${grade.color}, #0a1428 140%)` : "linear-gradient(160deg, #263247, #0a1428)",
@@ -74,7 +74,7 @@ export default async function QuizzesPage() {
                       {isDone ? grade.letter : "?"}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <Link href={isDone ? `/quizzes/${q.id}` : `/quiz/${q.id}`} className="block truncate font-[family-name:var(--font-cinzel)] text-lg font-bold hover:text-[#f0d89a]">
+                      <Link href={isDone ? `/quizzes/${q.id}` : `/quiz/${q.id}`} className="block truncate font-display text-lg font-bold hover:text-[var(--hi)]">
                         {q.title}
                       </Link>
                       <p className="hx-mute truncate text-sm">
@@ -85,11 +85,11 @@ export default async function QuizzesPage() {
                           {d.icon} {DIFFICULTY_LABEL[q.difficulty] ?? q.difficulty}
                         </span>
                         {isDone ? (
-                          <span className={win ? "text-[#2fd68f]" : "text-[#e8485f]"}>
+                          <span className={win ? "text-[var(--ok)]" : "text-[var(--bad)]"}>
                             {win ? "VICTORIA" : "DERROTA"} · {q.score}/{q.total} ({pct}%)
                           </span>
                         ) : (
-                          <span className="text-[#0ac8b9]">MISIÓN PENDIENTE</span>
+                          <span className="text-[var(--neon)]">MISIÓN PENDIENTE</span>
                         )}
                       </p>
                     </div>

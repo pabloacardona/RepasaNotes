@@ -40,7 +40,7 @@ export function ReviewButton({
         {label ?? (mode === "errors" ? "Repasar errores" : "Repetir quiz")}
       </button>
       {error && (
-        <p role="alert" className="mt-1 text-sm font-bold text-[#ff9aa8]">
+        <p role="alert" className="mt-1 text-sm font-bold text-[var(--bad-soft)]">
           {error}
         </p>
       )}

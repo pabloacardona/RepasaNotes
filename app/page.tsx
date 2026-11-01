@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
 import { HeroMascot } from "@/components/landing/hero-mascot";
 import { RankEmblem } from "@/components/game/rank-emblem";
@@ -26,20 +27,21 @@ export default function Landing() {
       <div className="hx-bg" aria-hidden />
       <InteractiveBackdrop calm />
 
-      <header className="sticky top-0 z-30 border-b border-[#785a28]/60 bg-[#010a13]/80 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-[var(--line-strong)]/60 bg-[var(--bg)]/80 backdrop-blur-md">
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
             <RankEmblem tierIndex={3} size={38} />
             <span className="hx-title hx-gold-text text-2xl tracking-[0.18em]">REPASA</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-6">
-            <a href="#como-se-juega" className="hx-mute hidden font-bold hover:text-[#f0d89a] sm:inline">
+            <a href="#como-se-juega" className="hx-mute hidden font-bold hover:text-[var(--hi)] sm:inline">
               Cómo se juega
             </a>
-            <a href="#rangos" className="hx-mute hidden font-bold hover:text-[#f0d89a] sm:inline">
+            <a href="#rangos" className="hx-mute hidden font-bold hover:text-[var(--hi)] sm:inline">
               Rangos
             </a>
-            <Link href="/login" className="font-bold text-[#f0e6d2] hover:text-[#f0d89a]">
+            <ThemeToggle />
+            <Link href="/login" className="font-bold text-[var(--fg)] hover:text-[var(--hi)]">
               Entrar
             </Link>
             <Link href="/login?tab=registro" className="hx-btn hx-btn-gold !px-4 !py-2 text-sm">
@@ -57,8 +59,8 @@ export default function Landing() {
               <Reveal>
                 <p className="hx-kicker flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0ac8b9] opacity-60" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#0ac8b9]" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--neon)] opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--neon)]" />
                   </span>
                   Temporada 1 · Estudia con IA
                 </p>
@@ -86,7 +88,7 @@ export default function Landing() {
                     [`${ACHIEVEMENTS.length * 4}`, "Logros"],
                     [`${MASCOTS.length}`, "Compañeros"],
                   ].map(([n, l]) => (
-                    <div key={l} className="border border-[#785a28]/50 bg-white/5 py-2">
+                    <div key={l} className="border border-[var(--line-strong)]/50 bg-[var(--fg)]/5 py-2">
                       <dd className="hx-title hx-gold-text text-3xl">{n}</dd>
                       <dt className="hx-mute text-[0.65rem] font-bold uppercase tracking-widest">{l}</dt>
                     </div>
@@ -96,18 +98,18 @@ export default function Landing() {
             </div>
 
             <div className="relative mx-auto w-full max-w-md">
-              <div aria-hidden className="absolute inset-x-6 bottom-6 top-16 rounded-full bg-[#0ac8b9]/15 blur-3xl" />
+              <div aria-hidden className="absolute inset-x-6 bottom-6 top-16 rounded-full bg-[var(--neon)]/15 blur-3xl" />
               <HeroMascot className="relative h-[420px] w-full sm:h-[480px]" />
               <div className="hx-panel hx-panel-soft absolute -bottom-2 left-0 right-0 mx-auto w-[88%] p-3">
                 <div className="flex items-center gap-3">
                   <RankEmblem tierIndex={2} division={2} size={44} />
                   <div className="min-w-0 flex-1">
-                    <p className="font-[family-name:var(--font-cinzel)] text-sm font-bold uppercase tracking-wider">Plata II</p>
+                    <p className="font-display text-sm font-bold uppercase tracking-wider">Plata II</p>
                     <div className="hx-bar mt-1">
                       <span style={{ width: "64%" }} />
                     </div>
                   </div>
-                  <span className="font-bold text-[#0ac8b9]">+225 XP</span>
+                  <span className="font-bold text-[var(--neon)]">+225 XP</span>
                 </div>
               </div>
             </div>
@@ -131,7 +133,7 @@ export default function Landing() {
                     <span className="text-4xl" aria-hidden>
                       {a.icon}
                     </span>
-                    <kbd className="grid h-9 w-9 place-items-center border border-[#c8aa6e] bg-[#07101e] font-[family-name:var(--font-cinzel)] text-lg font-black text-[#f0d89a] shadow-[inset_0_-3px_0_rgba(0,0,0,0.5)]">
+                    <kbd className="grid h-9 w-9 place-items-center border border-[var(--accent)] bg-[var(--surface)] font-display text-lg font-black text-[var(--hi)] shadow-[inset_0_-3px_0_rgba(0,0,0,0.5)]">
                       {a.key}
                     </kbd>
                   </div>
@@ -155,7 +157,7 @@ export default function Landing() {
               <StaggerItem key={t.id}>
                 <div className="hx-lift flex flex-col items-center text-center">
                   <RankEmblem tierIndex={i} division={t.divisions ? 1 : null} size={92} />
-                  <p className="mt-1 font-[family-name:var(--font-cinzel)] text-sm font-bold uppercase tracking-wider" style={{ color: t.glow }}>
+                  <p className="mt-1 font-display text-sm font-bold uppercase tracking-wider" style={{ color: t.glow }}>
                     {t.name}
                   </p>
                   <p className="hx-mute text-xs">{t.min.toLocaleString("es-CO")} XP</p>
@@ -174,12 +176,12 @@ export default function Landing() {
               <p className="hx-mute mt-2 text-sm">Sube la maestría de un tema hasta Oro y es tuyo. Los aciertos pesan por tu precisión: adivinar no cuenta.</p>
               <ul className="mt-5 space-y-3">
                 {DEMO_TOPICS.map((t) => (
-                  <li key={t.name} className="flex items-center gap-3 bg-white/5 p-3">
+                  <li key={t.name} className="flex items-center gap-3 bg-[var(--fg)]/5 p-3">
                     <RankEmblem tierIndex={t.tier} size={48} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate font-bold">{t.name}</p>
-                        {t.conquered && <span className="text-xs font-bold text-[#2fd68f]">🏰 Conquistado</span>}
+                        {t.conquered && <span className="text-xs font-bold text-[var(--ok)]">🏰 Conquistado</span>}
                       </div>
                       <div className="hx-bar mt-1.5">
                         <span style={{ width: `${t.pct}%` }} />
@@ -199,7 +201,7 @@ export default function Landing() {
                 {ACHIEVEMENTS.slice(4, 8).map((a, i) => {
                   const r = RARITIES[[0, 2, 3, 4][i]];
                   return (
-                    <li key={a.id} className="flex items-center gap-3 bg-white/5 p-3" style={{ borderLeft: `3px solid ${r.color}` }}>
+                    <li key={a.id} className="flex items-center gap-3 bg-[var(--fg)]/5 p-3" style={{ borderLeft: `3px solid ${r.color}` }}>
                       <span className="grid h-12 w-12 shrink-0 place-items-center text-2xl" style={{ background: `${r.color}22`, border: `1.5px solid ${r.color}`, clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)" }} aria-hidden>
                         {a.emoji}
                       </span>
@@ -256,7 +258,7 @@ export default function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-[#785a28]/50 py-6 text-center text-sm hx-mute">Repasa · Tus apuntes, convertidos en una arena de estudio.</footer>
+      <footer className="border-t border-[var(--line-strong)]/50 py-6 text-center text-sm hx-mute">Repasa · Tus apuntes, convertidos en una arena de estudio.</footer>
     </div>
   );
 }

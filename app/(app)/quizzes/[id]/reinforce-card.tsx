@@ -34,7 +34,7 @@ export function ReinforceCard({ quizId, mistakes }: { quizId: string; mistakes: 
       transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 22 }}
       className="hx-panel p-5"
     >
-      <p className="hx-kicker !text-[#f0d89a]">Recomendado</p>
+      <p className="hx-kicker !text-[var(--hi)]">Recomendado</p>
       <h3 className="hx-title mt-1 text-xl">🎯 Entrena tus puntos débiles</h3>
       <p className="hx-mute mt-1 text-sm">
         La IA crea preguntas nuevas sobre {mistakes === 1 ? "el concepto que fallaste" : `los ${mistakes} conceptos que fallaste`}, desde otros ángulos.
@@ -46,7 +46,7 @@ export function ReinforceCard({ quizId, mistakes }: { quizId: string; mistakes: 
             onClick={() => setCount(n)}
             aria-pressed={count === n}
             className={`whitespace-nowrap border px-3 py-1 text-sm font-bold transition ${
-              count === n ? "border-[#f0d89a] bg-[#c8aa6e]/25 text-[#f0d89a]" : "border-white/15 bg-white/5 hover:bg-white/10"
+              count === n ? "border-[var(--hi)] bg-[var(--accent)]/25 text-[var(--hi)]" : "border-[var(--line-strong)] bg-[var(--fg)]/5 hover:bg-[var(--fg)]/10"
             }`}
           >
             {n} preguntas
@@ -58,7 +58,7 @@ export function ReinforceCard({ quizId, mistakes }: { quizId: string; mistakes: 
         {loading ? "Creando preguntas…" : "Generar quiz de refuerzo"}
       </button>
       {error && (
-        <p role="alert" className="mt-2 text-sm font-bold text-[#ff9aa8]">
+        <p role="alert" className="mt-2 text-sm font-bold text-[var(--bad-soft)]">
           {error}
         </p>
       )}

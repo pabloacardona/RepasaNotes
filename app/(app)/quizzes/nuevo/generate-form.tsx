@@ -11,9 +11,9 @@ type NoteOpt = { id: string; title: string; topic: string; content: string };
 
 const COUNTS = [5, 10, 15] as const;
 const DIFFICULTIES = [
-  { value: "facil", label: "Fácil", icon: "🌿", color: "#2fd68f", blurb: "Conceptos base y definiciones." },
-  { value: "media", label: "Media", icon: "⚔️", color: "#f0d89a", blurb: "Aplicar lo que sabes." },
-  { value: "dificil", label: "Difícil", icon: "🐉", color: "#e8485f", blurb: "Casos y detalles finos. Jefe final." },
+  { value: "facil", label: "Fácil", icon: "🌿", color: "#2dffa8", blurb: "Conceptos base y definiciones." },
+  { value: "media", label: "Media", icon: "⚔️", color: "#ffe14d", blurb: "Aplicar lo que sabes." },
+  { value: "dificil", label: "Difícil", icon: "🐉", color: "#ff4d79", blurb: "Casos y detalles finos. Jefe final." },
 ] as const;
 
 // Most XP a quiz can give: every question right in a row.
@@ -66,7 +66,7 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
             value={noteId}
             onChange={(e) => setNoteId(e.target.value)}
             aria-label="Apunte"
-            className="mt-3 w-full border border-[#785a28] bg-[#07101e] px-3.5 py-3 font-bold text-[#f0e6d2] outline-none focus:border-[#0ac8b9]"
+            className="mt-3 w-full border border-[var(--line-strong)] bg-[var(--surface)] px-3.5 py-3 font-bold text-[var(--fg)] outline-none focus:border-[var(--neon)]"
           >
             {notes.map((n) => (
               <option key={n.id} value={n.id}>
@@ -85,10 +85,10 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
               return (
                 <label
                   key={d.value}
-                  className="relative cursor-pointer p-3 text-center transition has-focus-visible:outline-2 has-focus-visible:outline-[#0ac8b9]"
+                  className="relative cursor-pointer p-3 text-center transition has-focus-visible:outline-2 has-focus-visible:outline-[var(--neon)]"
                   style={{
-                    border: `1.5px solid ${on ? d.color : "rgba(200,170,110,0.25)"}`,
-                    background: on ? `${d.color}1f` : "rgba(255,255,255,0.03)",
+                    border: `1.5px solid ${on ? d.color : "var(--line-strong)"}`,
+                    background: on ? `${d.color}1f` : "color-mix(in oklab, var(--fg) 4%, transparent)",
                     boxShadow: on ? `0 0 22px ${d.color}55, inset 0 0 18px ${d.color}22` : "none",
                     transform: on ? "translateY(-3px)" : "none",
                   }}
@@ -97,7 +97,7 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
                   <span className="block text-3xl" aria-hidden>
                     {d.icon}
                   </span>
-                  <span className="mt-1 block font-[family-name:var(--font-cinzel)] font-bold uppercase tracking-wider" style={{ color: on ? d.color : "#f0e6d2" }}>
+                  <span className="mt-1 block font-display font-bold uppercase tracking-wider" style={{ color: on ? d.color : "#f0e6d2" }}>
                     {d.label}
                   </span>
                   <span className="hx-mute mt-0.5 block text-xs">{d.blurb}</span>
@@ -116,11 +116,11 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
               return (
                 <label
                   key={c}
-                  className="cursor-pointer py-3 text-center transition has-focus-visible:outline-2 has-focus-visible:outline-[#0ac8b9]"
+                  className="cursor-pointer py-3 text-center transition has-focus-visible:outline-2 has-focus-visible:outline-[var(--neon)]"
                   style={{
-                    border: `1.5px solid ${on ? "#c8aa6e" : "rgba(200,170,110,0.25)"}`,
-                    background: on ? "rgba(200,170,110,0.18)" : "rgba(255,255,255,0.03)",
-                    boxShadow: on ? "0 0 18px rgba(200,170,110,0.35)" : "none",
+                    border: `1.5px solid ${on ? "var(--accent)" : "var(--line-strong)"}`,
+                    background: on ? "color-mix(in oklab, var(--accent) 22%, transparent)" : "color-mix(in oklab, var(--fg) 4%, transparent)",
+                    boxShadow: on ? "0 0 18px color-mix(in oklab, var(--accent) 40%, transparent)" : "none",
                   }}
                 >
                   <input type="radio" name="count" value={c} checked={on} onChange={() => setCount(c)} className="sr-only" />
@@ -143,7 +143,7 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
             </p>
           )}
           {error && (
-            <p role="alert" className="mt-3 border-l-2 border-[#e8485f] bg-[#e8485f]/10 px-3 py-2 font-bold text-[#ff9aa8]">
+            <p role="alert" className="mt-3 border-l-2 border-[var(--bad)] bg-[var(--bad)]/10 px-3 py-2 font-bold text-[var(--bad-soft)]">
               {error}
             </p>
           )}
@@ -155,7 +155,7 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
         <p className="hx-kicker">Pergamino</p>
         <p className="hx-title mt-1 text-xl">{note?.title}</p>
         <p className="hx-mute text-sm">{note?.topic}</p>
-        <p className="mt-3 line-clamp-8 whitespace-pre-line leading-relaxed text-[#d8d0bd]">{note?.content}</p>
+        <p className="mt-3 line-clamp-8 whitespace-pre-line leading-relaxed text-[var(--fg2)]">{note?.content}</p>
         <div className="hx-rule my-4">
           <span />
         </div>
@@ -165,7 +165,7 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
         <p className="hx-mute mt-1.5 text-sm">
           {len.toLocaleString("es-CO")} / {NOTE_MAX.toLocaleString("es-CO")} caracteres
         </p>
-        <p className={`mt-1 text-sm font-bold ${lengthOk ? "text-[#2fd68f]" : "text-[#ff9aa8]"}`} role={lengthOk ? undefined : "alert"}>
+        <p className={`mt-1 text-sm font-bold ${lengthOk ? "text-[var(--ok)]" : "text-[var(--bad-soft)]"}`} role={lengthOk ? undefined : "alert"}>
           {lengthOk
             ? "✓ Longitud válida"
             : len < NOTE_MIN

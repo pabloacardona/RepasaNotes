@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { XpChip, type ChipGame } from "@/components/game/xp-chip";
 
 const LINKS = [
@@ -24,9 +25,9 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
   }
 
   return (
-    <header className="sticky top-0 z-20 bg-ink text-white">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link href="/dashboard" className="font-display text-2xl font-bold text-yellow">
+    <header className="sticky top-0 z-20 border-b border-line bg-[var(--bg)]/80 text-ink backdrop-blur-xl">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 sm:px-6">
+        <Link href="/dashboard" className="hx-title hx-gold-text text-xl tracking-wide">
           Repasa
         </Link>
         <div className="flex items-center gap-1 sm:gap-4">
@@ -37,21 +38,22 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
                 key={l.href}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-md px-2 py-1 font-semibold transition ${
-                  active ? "text-yellow" : "text-white/85 hover:text-white"
+                className={`rounded-lg px-2.5 py-1 text-sm font-semibold transition ${
+                  active ? "bg-[var(--fg)]/10 text-ink" : "text-ink-soft hover:bg-[var(--fg)]/5 hover:text-ink"
                 }`}
               >
                 {l.label}
               </Link>
             );
           })}
+          <ThemeToggle />
           {game && <XpChip {...game} />}
           <div className="relative ml-1">
             <button
               onClick={() => setOpen((o) => !o)}
               aria-label="Menú de usuario"
               aria-expanded={open}
-              className="grid h-9 w-9 place-items-center rounded-full bg-blue font-bold"
+              className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] font-bold text-white"
             >
               {name.charAt(0).toUpperCase()}
             </button>
@@ -69,7 +71,7 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
           </div>
         </div>
       </nav>
-      <div className="h-1 bg-yellow" />
+      <div className="h-px bg-gradient-to-r from-transparent via-[var(--neon)] to-transparent opacity-70" />
     </header>
   );
 }

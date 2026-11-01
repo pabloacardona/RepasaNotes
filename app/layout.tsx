@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Rubik, Nunito_Sans, Cinzel } from "next/font/google";
+import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 
-const rubik = Rubik({ variable: "--font-rubik", subsets: ["latin"], weight: ["500", "700", "800"] });
-const cinzel = Cinzel({ variable: "--font-cinzel", subsets: ["latin"], weight: ["600", "700", "800", "900"] });
-const nunito = Nunito_Sans({ variable: "--font-nunito", subsets: ["latin"] });
+const grotesk = Space_Grotesk({ variable: "--font-grotesk", subsets: ["latin"], weight: ["500", "600", "700"] });
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+
+// Sets the theme before the first paint: the saved choice, else the system preference (dark by default).
+const THEME_SCRIPT = `try{var t=localStorage.getItem("repasa_theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="dark"}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -29,7 +31,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${rubik.variable} ${nunito.variable} ${cinzel.variable} h-full antialiased`}>
+    <html lang="es" suppressHydrationWarning className={`${grotesk.variable} ${inter.variable} h-full antialiased`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

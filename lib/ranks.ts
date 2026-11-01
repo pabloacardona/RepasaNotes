@@ -4,16 +4,16 @@
 export type Tier = { id: string; name: string; color: string; glow: string; min: number; divisions: boolean };
 
 export const TIERS: Tier[] = [
-  { id: "hierro", name: "Hierro", color: "#7b7f8a", glow: "#a8adb9", min: 0, divisions: true },
-  { id: "bronce", name: "Bronce", color: "#b0703c", glow: "#e0a06a", min: 300, divisions: true },
-  { id: "plata", name: "Plata", color: "#b9c2d0", glow: "#e6ecf7", min: 800, divisions: true },
-  { id: "oro", name: "Oro", color: "#e0b84a", glow: "#ffe08a", min: 1500, divisions: true },
-  { id: "platino", name: "Platino", color: "#3fb7b0", glow: "#7ff0e8", min: 2500, divisions: true },
-  { id: "esmeralda", name: "Esmeralda", color: "#2fbf71", glow: "#7dffb2", min: 3800, divisions: true },
-  { id: "diamante", name: "Diamante", color: "#5b8cff", glow: "#a6c1ff", min: 5500, divisions: true },
-  { id: "maestro", name: "Maestro", color: "#b05cf0", glow: "#d9a2ff", min: 7800, divisions: false },
-  { id: "gran-maestro", name: "Gran Maestro", color: "#e8485f", glow: "#ff9aa8", min: 10500, divisions: false },
-  { id: "retador", name: "Retador", color: "#f4d27a", glow: "#7ff0ff", min: 14000, divisions: false },
+  { id: "hierro", name: "Hierro", color: "#8e97b8", glow: "#c3cae6", min: 0, divisions: true },
+  { id: "bronce", name: "Bronce", color: "#ff8a3d", glow: "#ffb27a", min: 300, divisions: true },
+  { id: "plata", name: "Plata", color: "#9fd0ff", glow: "#e3f2ff", min: 800, divisions: true },
+  { id: "oro", name: "Oro", color: "#ffd400", glow: "#fff27a", min: 1500, divisions: true },
+  { id: "platino", name: "Platino", color: "#00f0d0", glow: "#7dfff0", min: 2500, divisions: true },
+  { id: "esmeralda", name: "Esmeralda", color: "#1bff8a", glow: "#8cffc4", min: 3800, divisions: true },
+  { id: "diamante", name: "Diamante", color: "#3d9bff", glow: "#8cc8ff", min: 5500, divisions: true },
+  { id: "maestro", name: "Maestro", color: "#c04dff", glow: "#e0a0ff", min: 7800, divisions: false },
+  { id: "gran-maestro", name: "Gran Maestro", color: "#ff3d6e", glow: "#ff9ab0", min: 10500, divisions: false },
+  { id: "retador", name: "Retador", color: "#ffe14d", glow: "#5ff4ff", min: 14000, divisions: false },
 ];
 
 const ROMAN = ["", "I", "II", "III", "IV"];
@@ -97,10 +97,10 @@ export function topicMastery(correct: number, answered: number): Mastery {
 
 // Grade of one quiz, like the post-game letter.
 export function gradeFor(pct: number): { letter: string; color: string } {
-  if (pct >= 100) return { letter: "S+", color: "#f4d27a" };
-  if (pct >= 90) return { letter: "S", color: "#f0d89a" };
-  if (pct >= 80) return { letter: "A", color: "#2fd68f" };
-  if (pct >= 65) return { letter: "B", color: "#0ac8b9" };
-  if (pct >= 50) return { letter: "C", color: "#5b8cff" };
-  return { letter: "D", color: "#e8485f" };
+  if (pct >= 100) return { letter: "S+", color: "#ffe14d" };
+  if (pct >= 90) return { letter: "S", color: "#b8ff6a" };
+  if (pct >= 80) return { letter: "A", color: "#2dffa8" };
+  if (pct >= 65) return { letter: "B", color: "#22e6ff" };
+  if (pct >= 50) return { letter: "C", color: "#6d9bff" };
+  return { letter: "D", color: "#ff4d79" };
 }

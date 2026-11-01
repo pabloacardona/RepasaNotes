@@ -42,7 +42,7 @@ export function ScoreCard({
     return () => cancelAnimationFrame(raf);
   }, [fresh, score, points, win]);
 
-  const color = win ? "#f0d89a" : "#e8485f";
+  const color = win ? "#ffe14d" : "#ff4d79";
 
   return (
     <div className="mt-2">
@@ -57,7 +57,7 @@ export function ScoreCard({
       </div>
       <div className="flex items-center gap-5">
         <div
-          className={`grid h-24 w-24 shrink-0 place-items-center font-[family-name:var(--font-cinzel)] text-5xl font-black text-[#0a1428] ${fresh ? "anim-pop" : ""}`}
+          className={`grid h-24 w-24 shrink-0 place-items-center font-display text-5xl font-black text-[var(--surface)] ${fresh ? "anim-pop" : ""}`}
           style={{
             clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)",
             background: `linear-gradient(160deg, ${grade.color}, #0a1428 150%)`,
@@ -89,7 +89,7 @@ export function ScoreCard({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white/5 px-2 py-2">
+    <div className="bg-[var(--fg)]/5 px-2 py-2">
       <p className="hx-title text-xl tabular-nums">{value}</p>
       <p className="hx-mute text-[0.6rem] font-bold uppercase tracking-widest">{label}</p>
     </div>

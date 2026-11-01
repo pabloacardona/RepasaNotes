@@ -23,17 +23,17 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
             <RankEmblem tierIndex={rank.tierIndex} division={rank.division} size={168} />
             <div className="min-w-0 flex-1">
               <p className="hx-kicker">Rango actual</p>
-              <h1 className="hx-title hx-gold-text text-4xl sm:text-5xl">{rank.label}</h1>
+              <h1 className="hx-title hx-gold-text text-4xl sm:text-5xl" style={{ ["--tg1" as string]: rank.tier.glow, ["--tg2" as string]: rank.tier.color, ["--tg3" as string]: rank.tier.glow }}>{rank.label}</h1>
               <div className="mt-3 flex items-center gap-3">
                 <div className="hx-bar flex-1">
                   <span style={{ width: `${Math.max(rank.pct, 3)}%` }} />
                 </div>
-                <span className="font-bold tabular-nums text-[#0ac8b9]">{rank.lp} LP</span>
+                <span className="font-bold tabular-nums text-[var(--neon)]">{rank.lp} LP</span>
               </div>
               <p className="hx-mute mt-2 text-sm">
                 {rank.nextLabel ? (
                   <>
-                    <b className="text-[#f0e6d2]">{rank.toNext} XP</b> para <b className="text-[#f0d89a]">{rank.nextLabel}</b>
+                    <b className="text-[var(--fg)]">{rank.toNext} XP</b> para <b className="text-[var(--hi)]">{rank.nextLabel}</b>
                   </>
                 ) : (
                   "Estás en la cima de la liga."
@@ -63,7 +63,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
                     <div className={current ? "-translate-y-2 scale-125 transition" : ""}>
                       <RankEmblem tierIndex={i} division={current ? rank.division : null} size={current ? 72 : 56} locked={!reached} />
                     </div>
-                    <span className={`font-[family-name:var(--font-cinzel)] text-[0.65rem] font-bold uppercase tracking-wider ${current ? "text-[#f0d89a]" : ""}`}>{t.name}</span>
+                    <span className={`font-display text-[0.65rem] font-bold uppercase tracking-wider ${current ? "text-[var(--hi)]" : ""}`}>{t.name}</span>
                     <span className="hx-mute text-[0.6rem]">{t.min.toLocaleString("es-CO")} XP</span>
                   </li>
                 );
@@ -96,7 +96,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
                     <RankEmblem tierIndex={t.mastery.tierIndex} size={64} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{t.topic}</p>
-                      <p className="font-[family-name:var(--font-cinzel)] text-sm font-bold uppercase tracking-wider" style={{ color: t.mastery.tier.glow }}>
+                      <p className="font-display text-sm font-bold uppercase tracking-wider" style={{ color: t.mastery.tier.glow }}>
                         {t.mastery.tier.name}
                       </p>
                       <p className="hx-mute text-xs">
@@ -109,7 +109,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
                   </div>
                   <p className="mt-1.5 flex items-center justify-between text-xs">
                     <span className="hx-mute">{t.mastery.nextName ? `Siguiente: ${t.mastery.nextName}` : "Dominio total"}</span>
-                    {t.mastery.conquered ? <span className="font-bold text-[#2fd68f]">🏰 Conquistado</span> : <span className="hx-mute">{t.mastery.pct}%</span>}
+                    {t.mastery.conquered ? <span className="font-bold text-[var(--ok)]">🏰 Conquistado</span> : <span className="hx-mute">{t.mastery.pct}%</span>}
                   </p>
                 </div>
               </StaggerItem>
@@ -139,7 +139,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
 
 function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="bg-white/5 px-2 py-2">
+    <div className="bg-[var(--fg)]/5 px-2 py-2">
       <dd className="hx-title text-2xl">{value}</dd>
       <dt className="hx-mute text-[0.62rem] font-bold uppercase tracking-wider">{label}</dt>
       <p className="hx-mute text-[0.6rem]">{sub}</p>
@@ -157,7 +157,7 @@ function AchievementCard({ a }: { a: AchievementState }) {
           className={`grid h-16 w-16 shrink-0 place-items-center text-3xl ${locked ? "grayscale" : "hx-glow"}`}
           style={{
             background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(0,0,0,0.4))",
-            border: `2px solid ${locked ? "#3b4252" : a.rarity.color}`,
+            border: `2px solid ${locked ? "var(--line-strong)" : a.rarity.color}`,
             clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)",
             ["--glow" as string]: a.rarity.color,
           }}
@@ -169,9 +169,9 @@ function AchievementCard({ a }: { a: AchievementState }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <p className="font-bold">{a.name}</p>
-            <span className="shrink-0 text-xs font-bold tabular-nums text-[#f0d89a]">{a.points} pts</span>
+            <span className="shrink-0 text-xs font-bold tabular-nums text-[var(--hi)]">{a.points} pts</span>
           </div>
-          <p className="text-[0.68rem] font-bold uppercase tracking-widest" style={{ color: locked ? "#6b7385" : a.rarity.color }}>
+          <p className="text-[0.68rem] font-bold uppercase tracking-widest" style={{ color: locked ? "var(--mute)" : a.rarity.color }}>
             {locked ? "Bloqueado" : a.rarity.name}
           </p>
           <p className="hx-mute mt-1 text-sm">{a.complete ? "¡Completado en todos sus niveles!" : a.text}</p>

@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui";
 import { burstAt } from "@/components/confetti";
 import { pointsFor } from "@/lib/score";
 import { moodFor } from "@/lib/mood";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
 import { MascotStage } from "@/components/world/mascot-stage";
 import { MascotPicker } from "@/components/world/mascot-picker";
@@ -196,7 +197,7 @@ export function QuizRunner({
         streak={streak}
         className="fixed left-1/2 top-[3.6rem] z-0 h-[25dvh] w-[min(70vw,280px)] -translate-x-1/2 landscape:left-auto landscape:right-4 landscape:top-20 landscape:h-[min(68dvh,540px)] landscape:w-[min(38vw,460px)] landscape:translate-x-0 sm:landscape:right-8"
       />
-      <header className="z-20 shrink-0 border-b border-[#785a28]/70 bg-[#010a13]/85 text-[#f0e6d2] backdrop-blur-md">
+      <header className="z-20 shrink-0 border-b border-[var(--line-strong)]/70 bg-[var(--bg)]/85 text-[var(--fg)] backdrop-blur-md">
         <div className="flex items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6">
           <span className="hx-title hx-gold-text hidden text-xl lg:inline">Repasa</span>
           <div
@@ -208,7 +209,7 @@ export function QuizRunner({
             aria-valuemax={questions.length}
           >
             <motion.div
-              className="h-full bg-gradient-to-r from-[#a07c36] to-[#f0d89a] shadow-[0_0_12px_rgba(200,170,110,0.7)]"
+              className="h-full bg-gradient-to-r from-[var(--b1)] to-[var(--neon)] shadow-[0_0_12px_var(--neon)]"
               initial={false}
               animate={{ width: `${(answeredCount / questions.length) * 100}%` }}
               transition={{ type: "spring", stiffness: 120, damping: 20 }}
@@ -217,7 +218,7 @@ export function QuizRunner({
           <Chip label="Puntos" bumpKey={feedback?.kind === "hit" ? feedback.key : 0}>
             <AnimatedNumber value={points} />
             {feedback?.kind === "hit" && (
-              <span key={feedback.key} className="anim-float-up absolute -top-2 right-0 text-xs font-bold text-[#2fd68f]">
+              <span key={feedback.key} className="anim-float-up absolute -top-2 right-0 text-xs font-bold text-[var(--ok)]">
                 +{feedback.gained}
               </span>
             )}
@@ -234,11 +235,12 @@ export function QuizRunner({
           <span className="hidden tabular-nums text-sm text-white/75 sm:inline" aria-label="Tiempo">
             ⏱ {formatTime(seconds)}
           </span>
-          <Link href="/quizzes" className="whitespace-nowrap text-sm text-[#a09b8c] hover:text-[#f0d89a]">
+          <ThemeToggle className="!h-8 !w-8" />
+          <Link href="/quizzes" className="whitespace-nowrap text-sm text-[var(--mute)] hover:text-[var(--hi)]">
             Salir
           </Link>
         </div>
-        <div className="h-px bg-gradient-to-r from-transparent via-[#c8aa6e] to-transparent" />
+        <div className="h-px bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent" />
       </header>
 
       {/* Portrait: the top band shows the scene. Landscape: the right side does. */}
@@ -262,11 +264,11 @@ export function QuizRunner({
                   aria-current={i === current ? "step" : undefined}
                   className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold transition ${
                     state === "hit"
-                      ? "bg-[#2fd68f] text-[#06150e]"
+                      ? "bg-[var(--ok)] text-[var(--on-accent)]"
                       : state === "miss"
-                        ? "bg-[#e8485f] text-white"
-                        : "border border-[#785a28] bg-[#07101e] text-[#a09b8c] hover:border-[#0ac8b9]"
-                  } ${i === current ? "ring-2 ring-[#0ac8b9] ring-offset-2 ring-offset-[#07101e]" : ""}`}
+                        ? "bg-[var(--bad)] text-white"
+                        : "border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--mute)] hover:border-[var(--neon)]"
+                  } ${i === current ? "ring-2 ring-[var(--neon)] ring-offset-2 ring-offset-[var(--surface)]" : ""}`}
                 >
                   {state === "hit" ? "✓" : state === "miss" ? "✗" : i + 1}
                 </motion.button>
@@ -293,24 +295,24 @@ export function QuizRunner({
                 animate={{ opacity: 1, x: 0, rotate: 0 }}
                 exit={reduce ? undefined : { opacity: 0, x: -60 * direction, rotate: -1.5 * direction }}
                 transition={{ type: "spring", stiffness: 260, damping: 26 }}
-                className={`border border-[#785a28]/70 bg-[#07101e]/80 p-3 sm:p-5 ${feedback?.kind === "miss" ? "anim-shake" : ""}`}
+                className={`border border-[var(--line-strong)]/70 bg-[var(--surface)]/80 p-3 sm:p-5 ${feedback?.kind === "miss" ? "anim-shake" : ""}`}
               >
                 <h1 className="text-base font-bold leading-snug sm:text-xl">{q.question}</h1>
                 <ul className="mt-3 space-y-2">
                   {q.options.map((opt, i) => {
                     const isCorrect = i === q.correctIndex;
                     const isChosen = i === chosen;
-                    let style = "border-[#785a28]/60 bg-white/[0.03] hover:-translate-y-0.5 hover:border-[#0ac8b9] hover:bg-[#0ac8b9]/10 hover:shadow-[0_0_18px_rgba(10,200,185,0.35)]";
+                    let style = "border-[var(--line-strong)]/60 bg-[var(--fg)]/[0.03] hover:-translate-y-0.5 hover:border-[var(--neon)] hover:bg-[var(--neon)]/10 hover:shadow-[0_0_18px_rgba(10,200,185,0.35)]";
                     let tag: React.ReactNode = null;
                     if (answered) {
                       if (isCorrect) {
-                        style = `border-[#2fd68f] bg-[#2fd68f]/15 shadow-[0_0_20px_rgba(47,214,143,0.35)] ${isChosen ? "anim-pop" : ""}`;
-                        tag = <span className="shrink-0 text-sm font-bold text-[#2fd68f]">✓ Correcta</span>;
+                        style = `border-[var(--ok)] bg-[var(--ok)]/15 shadow-[0_0_20px_rgba(47,214,143,0.35)] ${isChosen ? "anim-pop" : ""}`;
+                        tag = <span className="shrink-0 text-sm font-bold text-[var(--ok)]">✓ Correcta</span>;
                       } else if (isChosen) {
-                        style = "border-[#e8485f] bg-[#e8485f]/15";
-                        tag = <span className="shrink-0 text-sm font-bold text-[#ff9aa8]">✗ Incorrecta</span>;
+                        style = "border-[var(--bad)] bg-[var(--bad)]/15";
+                        tag = <span className="shrink-0 text-sm font-bold text-[var(--bad-soft)]">✗ Incorrecta</span>;
                       } else {
-                        style = "border-white/10 opacity-50";
+                        style = "border-[var(--line)] opacity-50";
                       }
                     }
                     return (
@@ -326,12 +328,12 @@ export function QuizRunner({
                           className={`flex w-full items-center gap-3 rounded-md border-2 px-3 py-2 text-left text-sm transition disabled:cursor-default sm:py-2.5 sm:text-base ${style}`}
                         >
                           <span
-                            className={`grid h-7 w-7 shrink-0 place-items-center rounded-sm font-[family-name:var(--font-cinzel)] font-bold ${
+                            className={`grid h-7 w-7 shrink-0 place-items-center rounded-sm font-display font-bold ${
                               answered && isCorrect
-                                ? "bg-[#2fd68f] text-[#06150e]"
+                                ? "bg-[var(--ok)] text-[var(--on-accent)]"
                                 : answered && isChosen
-                                  ? "bg-[#e8485f] text-white"
-                                  : "border border-[#785a28] bg-[#0a1428] text-[#f0d89a]"
+                                  ? "bg-[var(--bad)] text-white"
+                                  : "border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--hi)]"
                             }`}
                           >
                             {LETTERS[i]}
@@ -348,9 +350,9 @@ export function QuizRunner({
                   {answered && (
                     <div className="anim-rise mt-3 space-y-2">
                       {feedback && (
-                        <p className={`font-display font-bold ${feedback.kind === "hit" ? "text-[#2fd68f]" : "text-[#ff9aa8]"}`}>{feedback.message}</p>
+                        <p className={`font-display font-bold ${feedback.kind === "hit" ? "text-[var(--ok)]" : "text-[var(--bad-soft)]"}`}>{feedback.message}</p>
                       )}
-                      <div className="border-l-2 border-[#c8aa6e] bg-[#c8aa6e]/10 px-3 py-2 text-sm sm:text-base">
+                      <div className="border-l-2 border-[var(--accent)] bg-[var(--accent)]/10 px-3 py-2 text-sm sm:text-base">
                         <span className="font-bold">Explicación:</span> {q.explanation}
                       </div>
                     </div>
@@ -361,7 +363,7 @@ export function QuizRunner({
           </div>
 
           {error && (
-            <p role="alert" className="mt-2 shrink-0 border-l-2 border-[#e8485f] bg-[#e8485f]/10 px-3 py-2 text-sm font-bold text-[#ff9aa8]">
+            <p role="alert" className="mt-2 shrink-0 border-l-2 border-[var(--bad)] bg-[var(--bad)]/10 px-3 py-2 text-sm font-bold text-[var(--bad-soft)]">
               {error}
             </p>
           )}
@@ -428,7 +430,7 @@ function ComboMeter({ streak, points, hit }: { streak: number; points: number; h
   const hot = streak >= 5;
   return (
     <div className="mb-2 flex shrink-0 items-center gap-2" aria-label={`Combo ${streak}`}>
-      <span key={hit} className={`font-display text-sm font-extrabold ${hot ? "text-[#ff9a2e]" : "text-[#a09b8c]"} ${hit ? "anim-pop" : ""}`}>
+      <span key={hit} className={`font-display text-sm font-extrabold ${hot ? "text-[var(--hot)]" : "text-[var(--mute)]"} ${hit ? "anim-pop" : ""}`}>
         {hot ? "🔥" : streak > 0 ? "⚡" : "·"} Combo x{Math.max(streak, 1)}
       </span>
       <div className="flex flex-1 gap-1" aria-hidden>
@@ -436,12 +438,12 @@ function ComboMeter({ streak, points, hit }: { streak: number; points: number; h
           <span
             key={i}
             className={`h-2 flex-1 rounded-full transition-all duration-300 ${
-              i < segs ? (hot ? "bg-gradient-to-r from-[#f0d89a] to-[#ff7a1a] shadow-[0_0_10px_#ff7a1a]" : "bg-[#c8aa6e]") : "bg-white/10"
+              i < segs ? (hot ? "bg-gradient-to-r from-[var(--hi)] to-[var(--hot)] shadow-[0_0_10px_var(--hot)]" : "bg-[var(--accent)]") : "bg-[var(--fg)]/10"
             } ${i < segs && hit ? "scale-y-150" : ""}`}
           />
         ))}
       </div>
-      <span className="text-xs font-bold tabular-nums text-[#0ac8b9]">+{Math.round(points / 10)} XP</span>
+      <span className="text-xs font-bold tabular-nums text-[var(--neon)]">+{Math.round(points / 10)} XP</span>
     </div>
   );
 }
@@ -449,7 +451,7 @@ function ComboMeter({ streak, points, hit }: { streak: number; points: number; h
 function Chip({ label, children, bumpKey = 0, hot = false }: { label: string; children: React.ReactNode; bumpKey?: number; hot?: boolean }) {
   return (
     <div
-      className={`relative flex shrink-0 flex-col items-center border px-2 py-0.5 leading-tight sm:px-3 ${hot ? "border-[#f0d89a] bg-[#c8aa6e] text-[#1a1206]" : "border-[#785a28]/60 bg-white/5"}`}
+      className={`relative flex shrink-0 flex-col items-center border px-2 py-0.5 leading-tight sm:px-3 ${hot ? "border-[var(--hi)] bg-[var(--accent)] text-[var(--on-accent)]" : "border-[var(--line-strong)]/60 bg-[var(--fg)]/5"}`}
       aria-label={label}
     >
       <span className="hidden text-[10px] font-bold uppercase tracking-wider opacity-70 sm:block">{label}</span>
@@ -477,7 +479,7 @@ function ConfirmDialog({
 }) {
   return (
     <div
-      className="hx anim-fade-in fixed inset-0 z-50 grid place-items-center bg-[#010a13]/75 p-4 backdrop-blur-sm"
+      className="hx anim-fade-in fixed inset-0 z-50 grid place-items-center bg-[var(--bg)]/75 p-4 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div

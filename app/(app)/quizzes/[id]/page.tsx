@@ -80,8 +80,8 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
 
           <section className="mt-6">
             {mistakes.length === 0 ? (
-              <div className="anim-rise border-l-2 border-[#2fd68f] bg-[#2fd68f]/10 p-5">
-                <p className="hx-title text-xl text-[#2fd68f]">¡Sin errores! 🏆</p>
+              <div className="anim-rise border-l-2 border-[var(--ok)] bg-[var(--ok)]/10 p-5">
+                <p className="hx-title text-xl text-[var(--ok)]">¡Sin errores! 🏆</p>
                 <p className="mt-1">Dominas este apunte. Prueba con una dificultad mayor.</p>
               </div>
             ) : (
@@ -89,16 +89,16 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
                 <h2 className="hx-kicker mb-3">Revisa {mistakes.length === 1 ? "tu error" : `tus ${mistakes.length} errores`}</h2>
                 <ul className="space-y-3">
                   {mistakes.map(({ q, given, n }, i) => (
-                    <li key={n} className="anim-rise border-l-2 border-[#e8485f] bg-white/5 p-4" style={{ animationDelay: `${i * 80}ms` }}>
+                    <li key={n} className="anim-rise border-l-2 border-[var(--bad)] bg-[var(--fg)]/5 p-4" style={{ animationDelay: `${i * 80}ms` }}>
                       <p className="hx-mute text-xs font-bold uppercase tracking-widest">Pregunta {n}</p>
                       <p className="font-bold">{q.question}</p>
                       <p className="mt-2 text-sm">
-                        <span className="font-bold text-[#ff9aa8]">Tu respuesta:</span>{" "}
-                        <span className="text-[#ff9aa8]">{given >= 0 ? `${LETTERS[given]}. ${q.options[given]}` : "Sin responder"}</span>
+                        <span className="font-bold text-[var(--bad-soft)]">Tu respuesta:</span>{" "}
+                        <span className="text-[var(--bad-soft)]">{given >= 0 ? `${LETTERS[given]}. ${q.options[given]}` : "Sin responder"}</span>
                       </p>
                       <p className="mt-1 text-sm">
-                        <span className="font-bold text-[#2fd68f]">Correcta:</span>{" "}
-                        <span className="text-[#2fd68f]">
+                        <span className="font-bold text-[var(--ok)]">Correcta:</span>{" "}
+                        <span className="text-[var(--ok)]">
                           {LETTERS[q.correctIndex]}. {q.options[q.correctIndex]}
                         </span>
                       </p>

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { StudyStats } from "@/lib/stats";
 
 // Sequential ramp (one hue, light to dark) for questions answered per day.
-const HEAT = ["#e3e8fb", "#aab8f1", "#6f86e3", "#3651d4", "#23379a"];
+const HEAT = ["var(--heat-0)", "var(--heat-1)", "var(--heat-2)", "var(--heat-3)", "var(--heat-4)"];
 const DAYS = ["L", "", "X", "", "V", "", "D"];
 
 const fmtDay = (key: string, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" }) =>
@@ -16,7 +16,7 @@ function Tip({ text, children, className = "", style }: { text: string; children
       {children}
       <span
         role="tooltip"
-        className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs font-semibold text-white shadow-lg group-hover:block"
+        className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-line bg-card px-2 py-1 text-xs font-semibold text-ink shadow-lg group-hover:block"
       >
         {text}
       </span>
@@ -167,7 +167,7 @@ export function StudyStatsPanel({ stats }: { stats: StudyStats }) {
                   <Tip key={day.date} className="w-full" text={`${fmtDay(day.date, { weekday: "short", day: "numeric", month: "short" })}: ${plural(day.count, "pregunta", "preguntas")}`}>
                     <span
                       className={`block aspect-square w-full rounded-[3px] ${day.date === stats.today ? "ring-1 ring-ink" : ""}`}
-                      style={{ background: l < 0 ? "#ece8e0" : HEAT[l] }}
+                      style={{ background: l < 0 ? "var(--track)" : HEAT[l] }}
                     />
                   </Tip>
                 );
