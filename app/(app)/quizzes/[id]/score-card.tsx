@@ -42,13 +42,13 @@ export function ScoreCard({
     return () => cancelAnimationFrame(raf);
   }, [fresh, score, points, win]);
 
-  const color = win ? "#ffe14d" : "#ff4d79";
+  const color = win ? "var(--ok)" : "var(--bad)";
 
   return (
     <div className="mt-2">
       <p
-        className={`hx-title text-center text-4xl uppercase sm:text-5xl ${fresh ? "hx-banner" : ""}`}
-        style={{ color, textShadow: `0 0 28px ${color}88` }}
+        className={`hx-title text-center text-6xl uppercase italic sm:text-7xl ${fresh ? "hx-banner" : ""}`}
+        style={{ color }}
       >
         {win ? "Victoria" : "Derrota"}
       </p>

@@ -17,18 +17,18 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <div className="hx-bg" aria-hidden />
       <div className="absolute right-4 top-4"><ThemeToggle /></div>
       <div className="hx-panel grid w-full max-w-4xl overflow-hidden md:grid-cols-[1fr_1.15fr]">
-        <aside className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[#2b1b8f] via-[#4a2fd6] to-[#0aa7c9] p-8 text-white md:flex">
-          <div aria-hidden className="hx-float absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
-          <Link href="/" className="relative font-display text-3xl font-bold">
+        <aside className="relative hidden flex-col justify-between overflow-hidden bg-[var(--accent)] p-8 text-[var(--on-accent)] md:flex">
+          <div aria-hidden className="hx-float absolute -bottom-6 -right-6 font-display text-[11rem] italic leading-none opacity-15">?</div>
+          <Link href="/" className="relative font-display text-4xl">
             Repasa
           </Link>
           <div>
-            <p className="font-display text-3xl font-bold leading-snug">
+            <p className="font-display text-4xl leading-[1.05]">
               Tus apuntes, convertidos en práctica.
             </p>
-            <div className="mt-4 h-1.5 w-24 rounded-full bg-white/80 shadow-[0_0_14px_#fff]" />
+            <div className="mt-4 h-1.5 w-24 bg-[var(--on-accent)]" />
           </div>
-          <p className="relative text-white/80">¿Muchos temas por repasar? Empieza por el más flojo.</p>
+          <p className="relative font-medium">¿Muchos temas por repasar? Empieza por el más flojo.</p>
         </aside>
         <div className="p-6 sm:p-8">
           <Link href="/" className="mb-6 block font-display text-2xl font-bold text-ink md:hidden">

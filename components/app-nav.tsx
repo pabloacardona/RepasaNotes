@@ -25,9 +25,9 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-[var(--bg)]/80 text-ink backdrop-blur-xl">
+    <header className="sticky top-0 z-20 border-b-[1.5px] border-[var(--line-strong)] bg-[var(--bg)]/90 text-ink backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 sm:px-6">
-        <Link href="/dashboard" className="hx-title hx-gold-text text-xl tracking-wide">
+        <Link href="/dashboard" className="font-display text-3xl leading-none">
           Repasa
         </Link>
         <div className="flex items-center gap-1 sm:gap-4">
@@ -39,7 +39,7 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
                 href={l.href}
                 aria-current={active ? "page" : undefined}
                 className={`rounded-lg px-2.5 py-1 text-sm font-semibold transition ${
-                  active ? "bg-[var(--fg)]/10 text-ink" : "text-ink-soft hover:bg-[var(--fg)]/5 hover:text-ink"
+                  active ? "bg-[var(--accent)] text-[var(--on-accent)]" : "text-ink-soft hover:bg-[var(--fg)]/5 hover:text-ink"
                 }`}
               >
                 {l.label}
@@ -53,7 +53,7 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
               onClick={() => setOpen((o) => !o)}
               aria-label="Menú de usuario"
               aria-expanded={open}
-              className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] font-bold text-white"
+              className="grid h-9 w-9 place-items-center rounded-full border-[1.5px] border-[var(--line-strong)] bg-[var(--accent)] font-bold text-[var(--on-accent)]"
             >
               {name.charAt(0).toUpperCase()}
             </button>
@@ -71,7 +71,7 @@ export function AppNav({ name, game }: { name: string; game?: ChipGame | null })
           </div>
         </div>
       </nav>
-      <div className="h-px bg-gradient-to-r from-transparent via-[var(--neon)] to-transparent opacity-70" />
+      
     </header>
   );
 }

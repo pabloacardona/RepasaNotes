@@ -11,7 +11,7 @@ import { burstAt } from "@/components/confetti";
 import { pointsFor } from "@/lib/score";
 import { moodFor } from "@/lib/mood";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
+import { ShaderBackdrop } from "@/components/world/shader-backdrop";
 import { MascotStage } from "@/components/world/mascot-stage";
 import { MascotPicker } from "@/components/world/mascot-picker";
 import type { Question } from "@/lib/db/schema";
@@ -189,7 +189,7 @@ export function QuizRunner({
 
   return (
     <div className="hx flex h-dvh flex-col overflow-hidden">
-      <InteractiveBackdrop streak={streak} pulse={track.pulse} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
+      <ShaderBackdrop streak={streak} pulse={track.pulse} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
       <MascotStage
         mood={mood}
         pulse={track.pulse}
@@ -430,7 +430,7 @@ function ComboMeter({ streak, points, hit }: { streak: number; points: number; h
   const hot = streak >= 5;
   return (
     <div className="mb-2 flex shrink-0 items-center gap-2" aria-label={`Combo ${streak}`}>
-      <span key={hit} className={`font-display text-sm font-extrabold ${hot ? "text-[var(--hot)]" : "text-[var(--mute)]"} ${hit ? "anim-pop" : ""}`}>
+      <span key={hit} className={`font-mono text-sm font-extrabold ${hot ? "text-[var(--hot)]" : "text-[var(--mute)]"} ${hit ? "anim-pop" : ""}`}>
         {hot ? "🔥" : streak > 0 ? "⚡" : "·"} Combo x{Math.max(streak, 1)}
       </span>
       <div className="flex flex-1 gap-1" aria-hidden>
@@ -455,7 +455,7 @@ function Chip({ label, children, bumpKey = 0, hot = false }: { label: string; ch
       aria-label={label}
     >
       <span className="hidden text-[10px] font-bold uppercase tracking-wider opacity-70 sm:block">{label}</span>
-      <span key={bumpKey} className={`font-display text-sm font-bold tabular-nums sm:text-base ${bumpKey ? "anim-pop" : ""}`}>
+      <span key={bumpKey} className={`font-mono text-sm font-bold tabular-nums sm:text-base ${bumpKey ? "anim-pop" : ""}`}>
         {children}
       </span>
     </div>

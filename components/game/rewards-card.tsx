@@ -46,7 +46,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
         <RankEmblem tierIndex={shown.tierIndex} division={shown.division} size={92} />
         <div className="min-w-0 flex-1">
           <p className="hx-kicker">Recompensa</p>
-          <p className="hx-title hx-gold-text text-4xl tabular-nums">
+          <p className="hx-title text-5xl tabular-nums">
             +<AnimatedNumber from={fresh ? 0 : reward.xpGain} value={shownXp} /> <span className="text-xl">XP</span>
           </p>
           <p className="hx-mute text-sm">
@@ -69,10 +69,10 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
             initial={reduce ? false : { opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 14 }}
-            className="hx-shine mt-4 border border-[var(--accent)] bg-gradient-to-r from-[var(--accent)]/25 via-[var(--hi)]/25 to-[var(--accent)]/25 p-3 text-center"
+            className="hx-shine mt-4 border border-[var(--accent)] bg-[var(--accent)] !text-[var(--on-accent)] p-3 text-center"
           >
-            <p className="hx-kicker !text-[var(--hi)]">¡Ascenso!</p>
-            <p className="hx-title hx-gold-text text-2xl">{reward.to.label}</p>
+            <p className="hx-kicker !text-[var(--on-accent)]">¡Ascenso!</p>
+            <p className="hx-title text-4xl">{reward.to.label}</p>
           </motion.div>
         )}
       </AnimatePresence>
