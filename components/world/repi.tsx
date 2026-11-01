@@ -1,19 +1,23 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { Html, useGLTF } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import {
   AnimationMixer,
   Box3,
   LoopOnce,
   LoopRepeat,
+  Color,
   MathUtils,
+  MeshPhysicalMaterial,
   SkinnedMesh,
   Vector3,
   type AnimationAction,
   type Group,
+  type MeshStandardMaterial,
 } from "three";
+import { toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { Mood } from "@/lib/mood";
 import type { MascotId } from "@/lib/mascots";
@@ -25,8 +29,8 @@ import { FadeIn, MoodFx, type Fx } from "./mood-fx";
 // procedural layer (hop, squash and stretch, lean, sway, shake) that works on all of them.
 // Everything is damped, so there are no cuts between moods.
 
-const HEIGHT = 0.8;
-const MAX_WIDTH = 1.0;
+const HEIGHT = 1.0;
+const MAX_WIDTH = 1.15;
 
 // What each role plays, in order of preference. A role with no available clip falls back to Idle.
 type Role = "idle" | "yes" | "jump" | "dance" | "no" | "hurt";
@@ -97,6 +101,8 @@ const LINES: Record<Mood, string[]> = {
   heartbroken: ["Mañana será mejor 💔", "Repasemos juntos"],
 };
 
+export const mascotLine = (mood: Mood, pulse: number) => LINES[mood][(pulse + mood.length) % LINES[mood].length];
+
 const FIDGET_MOODS = new Set<Mood>(["idle", "curious", "confident", "relieved"]);
 
 type NumKey = "speed" | "bob" | "bobSpeed" | "tilt" | "lean" | "tremble" | "size";
@@ -141,12 +147,10 @@ export function Repi({
   pulse: number;
   lastHit: boolean | null;
   streak: number;
-  windRef?: React.RefObject<number>;
 }) {
   const { scene, animations } = useGLTF(`/3d/mascots/${mascot}.glb`);
   const holder = useRef<Group>(null); // hop and shake, in world
   const body = useRef<Group>(null); // lean, tilt, squash, from the feet
-  const bubble = useRef<Group>(null);
   const rig = useRef<Rig | null>(null);
   const style = useMemo<Style>(() => ({ ...BASE, ...STYLES[mood] }), [mood]);
   const styleRef = useRef(style);
@@ -154,6 +158,16 @@ export function Repi({
     styleRef.current = style;
   }, [style]);
   const v = useRef<Record<NumKey, number>>(Object.fromEntries(NUM.map((k) => [k, BASE[k]])) as Record<NumKey, number>);
+  // Pointer position over the whole window: the canvas lets clicks through, so its own pointer stays at 0.
+  const mouse = useRef({ x: 0, y: 0 });
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.current.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => window.removeEventListener("pointermove", move);
+  }, []);
   const m = useRef({ hopV: 0, hopY: 0, shake: 0, squash: 0, nod: 0, yaw: 0, fidgetAt: 8 });
 
   // ---------- Build the rig once the model is loaded ----------
@@ -179,12 +193,33 @@ export function Repi({
     model.scale.multiplyScalar(s);
     model.position.y = -(box.min.y - gy) * s;
     settle();
+    // Smoother look: creased normals round off the low-poly facets, and a soft physical
+    // material (sheen + a touch of clearcoat) with anisotropic, mip-mapped textures.
+    const made: MeshPhysicalMaterial[] = [];
     model.traverse((o) => {
-      if (o instanceof SkinnedMesh) {
-        o.castShadow = true;
-        o.receiveShadow = true;
-        o.frustumCulled = false;
+      if (!(o instanceof SkinnedMesh)) return;
+      o.castShadow = true;
+      o.receiveShadow = true;
+      o.frustumCulled = false;
+      o.geometry = toCreasedNormals(o.geometry, 2.3);
+      const old = o.material as MeshStandardMaterial;
+      if (old.map) {
+        old.map.anisotropy = 8;
+        old.map.needsUpdate = true;
       }
+      const mat = new MeshPhysicalMaterial({
+        map: old.map,
+        roughness: 0.72,
+        metalness: 0,
+        sheen: 0.3,
+        sheenRoughness: 0.45,
+        sheenColor: new Color("#9fb4ff"),
+        clearcoat: 0,
+        clearcoatRoughness: 0.4,
+        envMapIntensity: 0.6,
+      });
+      made.push(mat);
+      o.material = mat;
     });
 
     const mixer = new AnimationMixer(model);
@@ -193,7 +228,6 @@ export function Repi({
 
     const r: Rig = { model, mixer, actions, loop: null, oneShot: null, top: size.y * s };
     rig.current = r;
-    if (bubble.current) bubble.current.position.y = r.top + 0.32;
 
     const first = pick(r, styleRef.current.role);
     if (first) {
@@ -213,6 +247,7 @@ export function Repi({
       mixer.removeEventListener("finished", onFinished);
       mixer.stopAllAction();
       b.remove(model);
+      made.forEach((mt) => mt.dispose());
       rig.current = null;
     };
   }, [scene, animations]);
@@ -282,10 +317,10 @@ export function Repi({
     g.position.set(tremble, s.hopY + bob + cur.bob, 0);
 
     // Head follows the pointer, plus mood tilt and a head shake after a miss.
-    s.yaw = MathUtils.damp(s.yaw, state.pointer.x * 0.45, 4, d);
+    s.yaw = MathUtils.damp(s.yaw, mouse.current.x * 0.45, 4, d);
     b.rotation.y = s.yaw + Math.sin(t * 22) * s.shake * 0.28;
     b.rotation.z = cur.tilt + Math.sin(t * 1.3) * 0.025;
-    b.rotation.x = cur.lean + s.nod * Math.sin(t * 9) * 0.12 - state.pointer.y * 0.06;
+    b.rotation.x = cur.lean + s.nod * Math.sin(t * 9) * 0.12 - mouse.current.y * 0.06;
 
     // Breathing, plus squash and stretch (volume kept: more height = less width).
     const breathe = 1 + Math.sin(t * 2.1) * 0.012;
@@ -294,20 +329,10 @@ export function Repi({
     b.scale.set(sxz, sy, sxz);
   });
 
-  const line = LINES[mood][(pulse + mood.length) % LINES[mood].length];
-
   return (
     <group>
       <group ref={holder}>
         <group ref={body} />
-        {/* Speech bubble: re-keyed on every mood or answer so the CSS animation replays. */}
-        <group ref={bubble} position={[0, 1.4, 0]}>
-          <Html center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-            <div key={`${mood}-${pulse}`} className="repi-bubble">
-              {line}
-            </div>
-          </Html>
-        </group>
       </group>
 
       <FadeIn on>

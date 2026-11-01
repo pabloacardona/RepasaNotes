@@ -4,7 +4,7 @@ import { getDb, quizzes } from "./db";
 
 // Study statistics built from finished quizzes. Days are counted in Colombia time.
 const TZ = "America/Bogota";
-const dayKey = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d); // YYYY-MM-DD
+export const dayKey = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d); // YYYY-MM-DD
 
 export const HEATMAP_WEEKS = 12;
 export const WEEK_BARS = 8;
@@ -16,7 +16,7 @@ export type Week = { start: string; count: number };
 
 const empty = (): Tally => ({ answered: 0, correct: 0, wrong: 0, skipped: 0, quizzes: 0 });
 
-function addDays(key: string, n: number) {
+export function addDays(key: string, n: number) {
   const d = new Date(`${key}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
 import { Button, Spinner } from "@/components/ui";
 import { burstAt } from "@/components/confetti";
 import { pointsFor } from "@/lib/score";
-import { MOOD_LABEL, moodFor, weatherFor, type WorldState } from "@/lib/mood";
-import { WorldBackdrop } from "@/components/world/world-backdrop";
+import { moodFor } from "@/lib/mood";
+import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
+import { MascotStage } from "@/components/world/mascot-stage";
 import { MascotPicker } from "@/components/world/mascot-picker";
 import type { Question } from "@/lib/db/schema";
 
@@ -90,17 +91,6 @@ export function QuizRunner({
     currentAnswered: answered,
     finished: submitting,
   });
-  const world = useMemo<WorldState>(
-    () => ({
-      mood,
-      weather: weatherFor(hits, answeredCount, streak, track.missStreak),
-      bloom: questions.length ? hits / questions.length : 0,
-      streak,
-      pulse: track.pulse,
-    }),
-    [mood, hits, answeredCount, streak, track.missStreak, track.pulse, questions.length],
-  );
-
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(t);
@@ -197,7 +187,14 @@ export function QuizRunner({
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
-      <WorldBackdrop state={world} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
+      <InteractiveBackdrop streak={streak} pulse={track.pulse} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
+      <MascotStage
+        mood={mood}
+        pulse={track.pulse}
+        lastHit={track.lastResult === null ? null : track.lastResult === "hit"}
+        streak={streak}
+        className="fixed left-1/2 top-[3.6rem] z-0 h-[25dvh] w-[min(70vw,280px)] -translate-x-1/2 landscape:left-auto landscape:right-4 landscape:top-20 landscape:h-[min(68dvh,540px)] landscape:w-[min(38vw,460px)] landscape:translate-x-0 sm:landscape:right-8"
+      />
       <header className="z-20 shrink-0 bg-ink/80 text-white backdrop-blur-md">
         <div className="flex items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6">
           <span className="hidden font-display text-xl font-bold text-yellow lg:inline">Repasa</span>
@@ -224,6 +221,9 @@ export function QuizRunner({
               </span>
             )}
           </Chip>
+          <Chip label="XP" bumpKey={feedback?.kind === "hit" ? feedback.key : 0}>
+            {Math.round(points / 10)}
+          </Chip>
           <Chip label="Racha" bumpKey={feedback?.kind === "hit" ? feedback.key : 0} hot={streak >= 3}>
             {streak > 0 ? `🔥${streak}` : "—"}
           </Chip>
@@ -241,20 +241,10 @@ export function QuizRunner({
       </header>
 
       {/* Portrait: the top band shows the scene. Landscape: the right side does. */}
-      <main className="flex min-h-0 flex-1 px-2 pb-2 pt-[34dvh] sm:px-6 sm:pb-4 landscape:pt-3 sm:landscape:pt-4">
+      <main className="flex min-h-0 flex-1 px-2 pb-2 pt-[27dvh] sm:px-6 sm:pb-4 landscape:pt-3 sm:landscape:pt-4">
         <MascotPicker className="right-3 top-16" />
-        <div className="pointer-events-none fixed bottom-4 right-4 z-10 hidden landscape:md:block" aria-live="polite">
-          <motion.span
-            key={mood}
-            initial={reduce ? false : { opacity: 0, y: 8, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="inline-flex items-center gap-2 rounded-full bg-ink/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-md"
-          >
-            Repi · {MOOD_LABEL[mood]}
-          </motion.span>
-        </div>
-
-        <div className="flex max-h-full min-h-0 w-full flex-col self-start landscape:max-w-[min(600px,56vw)] portrait:max-w-[600px] rounded-3xl border border-white/50 bg-paper/80 p-3 shadow-2xl backdrop-blur-xl sm:p-5">
+        <div className="flex max-h-full min-h-0 w-full flex-col self-start landscape:max-w-[min(600px,56vw)] portrait:max-w-[600px] rounded-3xl border border-white/40 bg-paper/90 p-3 shadow-2xl backdrop-blur-xl sm:p-5">
+          <ComboMeter streak={streak} points={points} hit={feedback?.kind === "hit" ? feedback.key : 0} />
           {/* Question dots */}
           <nav aria-label="Preguntas" className="flex shrink-0 flex-wrap gap-1">
             {questions.map((qq, i) => {
@@ -423,6 +413,30 @@ export function QuizRunner({
           onConfirm={dialog === "restart" ? restart : finish}
         />
       )}
+    </div>
+  );
+}
+
+// Combo bar: five segments fill with the streak; at five the bar burns.
+function ComboMeter({ streak, points, hit }: { streak: number; points: number; hit: number }) {
+  const segs = Math.min(streak, 5);
+  const hot = streak >= 5;
+  return (
+    <div className="mb-2 flex shrink-0 items-center gap-2" aria-label={`Combo ${streak}`}>
+      <span key={hit} className={`font-display text-sm font-extrabold ${hot ? "text-orange-500" : "text-ink-soft"} ${hit ? "anim-pop" : ""}`}>
+        {hot ? "🔥" : streak > 0 ? "⚡" : "·"} Combo x{Math.max(streak, 1)}
+      </span>
+      <div className="flex flex-1 gap-1" aria-hidden>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span
+            key={i}
+            className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+              i < segs ? (hot ? "bg-gradient-to-r from-yellow to-orange-500" : "bg-yellow") : "bg-paper-dark"
+            } ${i < segs && hit ? "scale-y-150" : ""}`}
+          />
+        ))}
+      </div>
+      <span className="text-xs font-bold tabular-nums text-ink-soft">+{Math.round(points / 10)} XP</span>
     </div>
   );
 }

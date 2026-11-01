@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { getStats } from "@/lib/data";
+import { getGameProfile } from "@/lib/game";
+import { GameHub } from "@/components/game/game-hub";
 import { Card, LinkButton } from "@/components/ui";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { AnimatedBar } from "@/components/motion/animated-bar";
@@ -10,7 +12,7 @@ export const metadata: Metadata = { title: "Inicio" };
 
 export default async function Dashboard() {
   const user = await requireUser();
-  const stats = await getStats(user.sub);
+  const [stats, game] = await Promise.all([getStats(user.sub), getGameProfile(user.sub)]);
   const today = new Date().toLocaleDateString("es-CO", {
     weekday: "long",
     day: "numeric",
@@ -29,6 +31,8 @@ export default async function Dashboard() {
         </div>
         <LinkButton href="/quizzes/nuevo">+ Nuevo quiz</LinkButton>
       </div>
+
+      <GameHub profile={game} />
 
       <Stagger className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <StaggerItem>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { XpChip } from "@/components/game/xp-chip";
 
 const LINKS = [
   { href: "/dashboard", label: "Inicio" },
@@ -10,7 +11,9 @@ const LINKS = [
   { href: "/quizzes", label: "Quizzes" },
 ];
 
-export function AppNav({ name }: { name: string }) {
+type Game = { level: number; title: string; pct: number; streak: number; activeToday: boolean };
+
+export function AppNav({ name, game }: { name: string; game?: Game | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -43,6 +46,7 @@ export function AppNav({ name }: { name: string }) {
               </Link>
             );
           })}
+          {game && <XpChip {...game} />}
           <div className="relative ml-1">
             <button
               onClick={() => setOpen((o) => !o)}

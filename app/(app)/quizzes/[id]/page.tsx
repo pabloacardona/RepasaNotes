@@ -3,6 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getQuiz } from "@/lib/data";
 import { scoreRun } from "@/lib/score";
+import { getGameProfile } from "@/lib/game";
+import { DAILY_GOAL } from "@/lib/gamification";
+import { RewardsCard, type Reward } from "@/components/game/rewards-card";
 import { Card, LinkButton } from "@/components/ui";
 import { ReviewButton } from "./review-button";
 import { ScoreCard } from "./score-card";
@@ -27,6 +30,19 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
     answers,
     quiz.questions.map((q) => q.correctIndex),
   );
+  // What this quiz earned: the profile with it, against the profile without it.
+  const [before, after] = await Promise.all([
+    getGameProfile(user.sub, { excludeQuizId: quiz.id }),
+    getGameProfile(user.sub),
+  ]);
+  const had = new Set(before.badges.filter((b) => b.unlocked).map((b) => b.id));
+  const reward: Reward = {
+    xpGain: after.xp - before.xp,
+    fromLevel: { level: before.level.level, pct: before.level.pct, title: before.level.title },
+    toLevel: { level: after.level.level, pct: after.level.pct, title: after.level.title, into: after.level.into, need: after.level.need },
+    newBadges: after.badges.filter((b) => b.unlocked && !had.has(b.id)),
+    dailyDone: before.today.answered < DAILY_GOAL && after.today.answered >= DAILY_GOAL,
+  };
   const mistakes = quiz.questions
     .map((q, i) => ({ q, given: answers[i], n: i + 1 }))
     .filter(({ q, given }) => given !== q.correctIndex);
@@ -50,6 +66,7 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
             bestStreak={bestStreak}
             fresh={nuevo === "1"}
           />
+          <RewardsCard reward={reward} fresh={nuevo === "1"} />
           {mistakes.length > 0 && <ReinforceCard quizId={quiz.id} mistakes={mistakes.length} />}
           {mistakes.length > 0 && <ReviewButton quizId={quiz.id} mode="errors" label="Repetir solo las falladas" />}
           <ReviewButton quizId={quiz.id} mode="all" />
