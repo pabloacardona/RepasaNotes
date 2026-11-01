@@ -69,9 +69,9 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
             initial={reduce ? false : { opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 14 }}
-            className="hx-shine mt-4 border border-[var(--accent)] bg-gradient-to-r from-[var(--accent)]/25 via-[var(--hi)]/25 to-[var(--accent)]/25 p-3 text-center"
+            className="hx-shine mt-4 border border-[var(--accent)] bg-[var(--accent)] !text-[var(--on-accent)] p-3 text-center"
           >
-            <p className="hx-kicker !text-[var(--hi)]">¡Ascenso!</p>
+            <p className="hx-kicker !text-[var(--on-accent)]">¡Ascenso!</p>
             <p className="hx-title hx-gold-text text-2xl">{reward.to.label}</p>
           </motion.div>
         )}

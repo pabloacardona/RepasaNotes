@@ -1,7 +1,68 @@
-import { useId } from "react";
 import { TIERS } from "@/lib/ranks";
 
-// Neon rank crest: a glowing hex frame around a faceted gem. Wings, a spinning halo and a crown appear as the tier rises.
+// Pixel-art rank badge: a shield with a gem, drawn cell by cell on a 20x20 grid. Wings from Bronce, a crown from Maestro.
+const W = 20;
+const H = 20;
+
+function mix(hex: string, to: string, t: number) {
+  const a = parseInt(hex.slice(1), 16);
+  const b = parseInt(to.slice(1), 16);
+  const ch = (s: number) => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t);
+  return `#${[16, 8, 0].map((s) => ch(s).toString(16).padStart(2, "0")).join("")}`;
+}
+
+type Cell = { x: number; y: number; c: string };
+
+function build(tierIndex: number, color: string, glow: string, locked: boolean): Cell[] {
+  const base = locked ? "#5a6078" : color;
+  const light = locked ? "#8a90a8" : glow;
+  const dark = mix(base, "#000000", 0.38);
+  const ink = "#0b0c16";
+  const cells = new Map<string, string>();
+  const put = (x: number, y: number, c: string) => {
+    if (x >= 0 && x < W && y >= 0 && y < H) cells.set(`${x},${y}`, c);
+  };
+
+  // Shield: rows 3..15, 12 wide at the top, narrowing to a point.
+  const half = (y: number) => (y <= 9 ? 6 : Math.max(0, 6 - (y - 9)));
+  const inside = (x: number, y: number) => y >= 3 && y <= 15 && Math.abs(x - 9.5) <= half(y) - 0.5 + (y <= 9 ? 0.5 : 0);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (inside(x, y)) put(x, y, x + y < 20 ? mix(base, "#ffffff", 0.18) : dark);
+  // Outline.
+  const edge: [number, number][] = [];
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++)
+      if (inside(x, y) && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !inside(x + dx, y + dy))) edge.push([x, y]);
+  edge.forEach(([x, y]) => put(x, y, ink));
+
+  // Gem: a diamond with a lit upper half.
+  for (let y = 5; y <= 13; y++) {
+    const r = 4 - Math.abs(y - 9);
+    if (r < 0) continue;
+    for (let x = 10 - r - 1; x <= 9 + r; x++) put(x, y, y <= 9 ? light : base);
+  }
+  put(8, 7, "#ffffff");
+  put(9, 6, "#ffffff");
+
+  // Wings.
+  if (tierIndex >= 1) {
+    const wing = Math.min(1 + Math.floor(tierIndex / 3), 3);
+    for (let i = 0; i < wing; i++) {
+      for (let k = 0; k < 3; k++) {
+        put(2 - k + 0, 6 + i * 2 + (k === 2 ? 1 : 0), i === 0 ? light : base);
+        put(17 + k, 6 + i * 2 + (k === 2 ? 1 : 0), i === 0 ? light : base);
+      }
+    }
+  }
+  // Crown.
+  if (tierIndex >= 7) {
+    [[6, 1], [9, 0], [10, 0], [13, 1], [7, 2], [12, 2], [8, 1], [11, 1]].forEach(([x, y]) => put(x, y, light));
+  }
+  return [...cells.entries()].map(([k, c]) => {
+    const [x, y] = k.split(",").map(Number);
+    return { x, y, c };
+  });
+}
+
 export function RankEmblem({
   tierIndex,
   division = null,
@@ -15,97 +76,26 @@ export function RankEmblem({
   className?: string;
   locked?: boolean;
 }) {
-  const uid = useId().replace(/:/g, "");
   const tier = TIERS[Math.min(tierIndex, TIERS.length - 1)];
-  const c = locked ? "#4a536e" : tier.color;
-  const glow = locked ? "#5b6683" : tier.glow;
-  const wings = Math.min(1 + Math.floor(tierIndex / 2), 5);
-  const halo = tierIndex >= 4;
-  const crown = tierIndex >= 7;
+  const cells = build(tierIndex, tier.color, tier.glow, locked);
   const pips = division ? 5 - division : 0; // IV = 1 pip ... I = 4 pips
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 120 120"
+      viewBox={`0 0 ${W} ${H + 2}`}
+      shapeRendering="crispEdges"
       role="img"
-      aria-label={`Emblema ${tier.name}`}
-      className={`${locked ? "" : "hx-glow"} ${className}`}
-      style={{ ["--glow" as string]: c, overflow: "visible" }}
+      aria-label={`Insignia ${tier.name}`}
+      className={`${locked ? "" : "hx-bob"} ${className}`}
     >
-      <defs>
-        <linearGradient id={`f${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor={glow} />
-          <stop offset="1" stopColor={c} />
-        </linearGradient>
-        <linearGradient id={`g${uid}`} x1="0.1" y1="0" x2="0.9" y2="1">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.95" />
-          <stop offset="0.35" stopColor={glow} />
-          <stop offset="1" stopColor={c} />
-        </linearGradient>
-        <radialGradient id={`b${uid}`} cx="0.5" cy="0.4" r="0.7">
-          <stop offset="0" stopColor={c} stopOpacity="0.5" />
-          <stop offset="1" stopColor={c} stopOpacity="0.08" />
-        </radialGradient>
-      </defs>
-
-      {/* Halo */}
-      {halo && !locked && (
-        <g>
-          <circle cx="60" cy="56" r="50" fill="none" stroke={c} strokeWidth="1.2" strokeDasharray="3 9" opacity="0.7">
-            <animateTransform attributeName="transform" type="rotate" from="0 60 56" to="360 60 56" dur="14s" repeatCount="indefinite" />
-          </circle>
-        </g>
-      )}
-
-      {/* Wings: thin neon blades */}
-      {Array.from({ length: wings }, (_, i) => {
-        const y = 52 + i * 6;
-        const reach = 16 + i * 6;
-        return (
-          <g key={i} opacity={0.95 - i * 0.1} fill="none" stroke={`url(#f${uid})`} strokeWidth={2.2 - i * 0.2} strokeLinecap="round" strokeLinejoin="round">
-            <polyline points={`36,${y} ${36 - reach},${y - 12 - i * 2} ${36 - reach + 7},${y + 2}`} />
-            <polyline points={`84,${y} ${84 + reach},${y - 12 - i * 2} ${84 + reach - 7},${y + 2}`} />
-          </g>
-        );
-      })}
-
-      {/* Crown */}
-      {crown && (
-        <g fill={`url(#f${uid})`}>
-          <polygon points="60,2 55,22 65,22" />
-          <polygon points="43,12 41,30 53,25" />
-          <polygon points="77,12 79,30 67,25" />
-        </g>
-      )}
-
-      {/* Frame */}
-      <polygon points="60,14 92,32 92,72 60,100 28,72 28,32" style={{ fill: "var(--surface)" }} />
-      <polygon points="60,14 92,32 92,72 60,100 28,72 28,32" fill={`url(#b${uid})`} stroke={`url(#f${uid})`} strokeWidth="3" strokeLinejoin="round" />
-      <polygon points="60,22 85,36 85,69 60,92 35,69 35,36" fill="none" stroke={c} strokeWidth="0.8" opacity="0.55" />
-
-      {/* Gem */}
-      <polygon points="60,32 79,52 60,84 41,52" fill={`url(#g${uid})`} />
-      <polygon points="60,32 79,52 60,52" fill="#ffffff" opacity="0.35" />
-      <polygon points="60,52 41,52 60,84" fill="#000000" opacity="0.22" />
-      <polygon points="60,32 79,52 60,84 41,52" fill="none" stroke="#ffffff" strokeOpacity="0.7" strokeWidth="0.8" />
-      {!locked && (
-        <circle cx="52" cy="46" r="2.4" fill="#fff" opacity="0.9">
-          <animate attributeName="opacity" values="0.2;1;0.2" dur="2.6s" repeatCount="indefinite" />
-        </circle>
-      )}
-
-      {/* Division pips */}
-      {division ? (
-        <g>
-          {[0, 1, 2, 3].map((i) => (
-            <rect key={i} x={42 + i * 12} y={104} width="8" height="4" rx="2" fill={i < pips ? glow : "#2a3350"} opacity={i < pips ? 1 : 0.8} />
-          ))}
-        </g>
-      ) : (
-        <polygon points="60,100 65,108 60,116 55,108" fill={glow} />
-      )}
+      {cells.map((p) => (
+        <rect key={`${p.x}-${p.y}`} x={p.x} y={p.y} width="1.02" height="1.02" fill={p.c} />
+      ))}
+      {division
+        ? [0, 1, 2, 3].map((i) => <rect key={i} x={5.5 + i * 2.4} y={H + 0.5} width="1.6" height="1.2" fill={i < pips ? tier.glow : "#2a2f55"} stroke="#0b0c16" strokeWidth="0.25" />)
+        : <rect x="8.8" y={H + 0.3} width="2.4" height="1.6" fill={tier.glow} stroke="#0b0c16" strokeWidth="0.25" />}
     </svg>
   );
 }

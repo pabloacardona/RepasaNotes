@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter } from "next/font/google";
+import { Jersey_10, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 
-const grotesk = Space_Grotesk({ variable: "--font-grotesk", subsets: ["latin"], weight: ["500", "600", "700"] });
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+const jersey = Jersey_10({ variable: "--font-jersey", subsets: ["latin"], weight: "400" });
+const press = Press_Start_2P({ variable: "--font-press", subsets: ["latin"], weight: "400" });
 
 // Sets the theme before the first paint: the saved choice, else the system preference (dark by default).
 const THEME_SCRIPT = `try{var t=localStorage.getItem("repasa_theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="dark"}`;
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" suppressHydrationWarning className={`${grotesk.variable} ${inter.variable} h-full antialiased`}>
+    <html lang="es" suppressHydrationWarning className={`${jersey.variable} ${press.variable} h-full antialiased`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

@@ -11,7 +11,7 @@ import { burstAt } from "@/components/confetti";
 import { pointsFor } from "@/lib/score";
 import { moodFor } from "@/lib/mood";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
+import { RetroBackdrop } from "@/components/world/retro-backdrop";
 import { MascotStage } from "@/components/world/mascot-stage";
 import { MascotPicker } from "@/components/world/mascot-picker";
 import type { Question } from "@/lib/db/schema";
@@ -189,7 +189,7 @@ export function QuizRunner({
 
   return (
     <div className="hx flex h-dvh flex-col overflow-hidden">
-      <InteractiveBackdrop streak={streak} pulse={track.pulse} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
+      <RetroBackdrop streak={streak} pulse={track.pulse} lastHit={track.lastResult === null ? null : track.lastResult === "hit"} />
       <MascotStage
         mood={mood}
         pulse={track.pulse}
@@ -197,7 +197,7 @@ export function QuizRunner({
         streak={streak}
         className="fixed left-1/2 top-[3.6rem] z-0 h-[25dvh] w-[min(70vw,280px)] -translate-x-1/2 landscape:left-auto landscape:right-4 landscape:top-20 landscape:h-[min(68dvh,540px)] landscape:w-[min(38vw,460px)] landscape:translate-x-0 sm:landscape:right-8"
       />
-      <header className="z-20 shrink-0 border-b border-[var(--line-strong)]/70 bg-[var(--bg)]/85 text-[var(--fg)] backdrop-blur-md">
+      <header className="z-20 shrink-0 border-b-4 border-[var(--line-strong)] bg-[var(--bg)] text-[var(--fg)]">
         <div className="flex items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6">
           <span className="hx-title hx-gold-text hidden text-xl lg:inline">Repasa</span>
           <div
@@ -209,7 +209,7 @@ export function QuizRunner({
             aria-valuemax={questions.length}
           >
             <motion.div
-              className="h-full bg-gradient-to-r from-[var(--b1)] to-[var(--neon)] shadow-[0_0_12px_var(--neon)]"
+              className="h-full bg-[var(--b2)]"
               initial={false}
               animate={{ width: `${(answeredCount / questions.length) * 100}%` }}
               transition={{ type: "spring", stiffness: 120, damping: 20 }}
@@ -240,7 +240,6 @@ export function QuizRunner({
             Salir
           </Link>
         </div>
-        <div className="h-px bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent" />
       </header>
 
       {/* Portrait: the top band shows the scene. Landscape: the right side does. */}
@@ -306,7 +305,7 @@ export function QuizRunner({
                     let tag: React.ReactNode = null;
                     if (answered) {
                       if (isCorrect) {
-                        style = `border-[var(--ok)] bg-[var(--ok)]/15 shadow-[0_0_20px_rgba(47,214,143,0.35)] ${isChosen ? "anim-pop" : ""}`;
+                        style = `border-[var(--ok)] bg-[var(--ok)]/15 ${isChosen ? "anim-pop" : ""}`;
                         tag = <span className="shrink-0 text-sm font-bold text-[var(--ok)]">✓ Correcta</span>;
                       } else if (isChosen) {
                         style = "border-[var(--bad)] bg-[var(--bad)]/15";
@@ -438,7 +437,7 @@ function ComboMeter({ streak, points, hit }: { streak: number; points: number; h
           <span
             key={i}
             className={`h-2 flex-1 rounded-full transition-all duration-300 ${
-              i < segs ? (hot ? "bg-gradient-to-r from-[var(--hi)] to-[var(--hot)] shadow-[0_0_10px_var(--hot)]" : "bg-[var(--accent)]") : "bg-[var(--fg)]/10"
+              i < segs ? (hot ? "bg-[var(--hot)]" : "bg-[var(--accent)]") : "bg-[var(--fg)]/10"
             } ${i < segs && hit ? "scale-y-150" : ""}`}
           />
         ))}
@@ -479,7 +478,7 @@ function ConfirmDialog({
 }) {
   return (
     <div
-      className="hx anim-fade-in fixed inset-0 z-50 grid place-items-center bg-[var(--bg)]/75 p-4 backdrop-blur-sm"
+      className="hx anim-fade-in fixed inset-0 z-50 grid place-items-center bg-[var(--bg)]/75 p-4"
       onClick={onCancel}
     >
       <div
