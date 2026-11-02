@@ -37,7 +37,7 @@ export function MascotStage({
   lastHit,
   streak,
   trophy,
-  bubble = "inside",
+  bubbleClassName = "",
   className = "",
 }: {
   mood: Mood;
@@ -45,8 +45,8 @@ export function MascotStage({
   lastHit: boolean | null;
   streak: number;
   trophy?: TrophyTier | null;
-  /** "above" puts the speech bubble outside the canvas so it never covers the model. */
-  bubble?: "inside" | "above";
+  /** Extra classes for the quote bubble (e.g. hide it on small screens). */
+  bubbleClassName?: string;
   className?: string;
 }) {
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
@@ -56,7 +56,7 @@ export function MascotStage({
 
   return (
     <div className={`pointer-events-none ${className}`} aria-hidden>
-      <div className={`absolute inset-x-0 z-10 flex justify-center ${bubble === "above" ? "bottom-full mb-2" : "top-0"}`}>
+      <div className={`absolute inset-x-0 z-10 flex justify-center top-0 ${bubbleClassName}`}>
         <div key={`${mood}-${pulse}`} className="repi-bubble">
           <span className="repi-quote">“{quote.q}”</span>
           <span className="repi-by">— {quote.by}</span>

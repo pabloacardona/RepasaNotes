@@ -203,6 +203,7 @@ export function QuizRunner({
         pulse={track.pulse}
         lastHit={lastHit}
         streak={streak}
+        bubbleClassName="portrait:hidden"
         className="fixed left-1/2 top-[3.6rem] z-0 h-[15dvh] w-[150px] -translate-x-1/2 landscape:bottom-4 landscape:left-auto landscape:right-5 landscape:top-auto landscape:h-[min(32dvh,250px)] landscape:w-[min(20vw,230px)] landscape:translate-x-0"
       />
 
