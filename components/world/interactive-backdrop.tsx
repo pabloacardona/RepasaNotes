@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
 type P = { x: number; y: number; vx: number; vy: number; r: number; hue: number; life: number; seed: number };
 type Ring = { x: number; y: number; r: number; max: number; hue: number; a: number };
 
-const COUNT = 96;
+const COUNT = 72;
 const LINK = 125;
 
 export function InteractiveBackdrop({
@@ -44,6 +44,29 @@ export function InteractiveBackdrop({
     let w = 0;
     let h = 0;
     let dpr = 1;
+    // The soft gradient and blobs are drawn small and a few times per second, then stretched: they are blurry anyway.
+    const off = document.createElement("canvas");
+    const octx = off.getContext("2d");
+    let tick = 0;
+    let lite = false; // drops the links when the device cannot keep up
+    let slow = 0;
+    const sprites = new Map<number, HTMLCanvasElement>();
+    const glow = (hue: number, light: boolean) => {
+      const key = Math.round(hue / 10) * 10 + (light ? 1000 : 0);
+      let c = sprites.get(key);
+      if (!c) {
+        c = document.createElement("canvas");
+        c.width = c.height = 48;
+        const x = c.getContext("2d")!;
+        const g = x.createRadialGradient(24, 24, 0, 24, 24, 24);
+        g.addColorStop(0, `hsl(${key % 1000} 100% ${light ? 55 : 75}% / ${light ? 0.4 : 0.55})`);
+        g.addColorStop(1, `hsl(${key % 1000} 100% ${light ? 55 : 70}% / 0)`);
+        x.fillStyle = g;
+        x.fillRect(0, 0, 48, 48);
+        sprites.set(key, c);
+      }
+      return c;
+    };
     const mouse = { x: -9999, y: -9999, tx: 0, ty: 0, active: false };
     const parts: P[] = [];
     const rings: Ring[] = [];
@@ -61,7 +84,7 @@ export function InteractiveBackdrop({
     });
 
     function resize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = 1; // the scene is soft light, so 1x looks the same and costs a quarter of the pixels
       w = window.innerWidth;
       h = window.innerHeight;
       canvas!.width = Math.round(w * dpr);
@@ -69,6 +92,9 @@ export function InteractiveBackdrop({
       canvas!.style.width = `${w}px`;
       canvas!.style.height = `${h}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      off.width = Math.max(2, Math.ceil(w / 4));
+      off.height = Math.max(2, Math.ceil(h / 4));
+      tick = 0;
       const target = Math.round(COUNT * Math.min(1, (w * h) / (1280 * 720)) + 24);
       while (parts.length < target) parts.push(make());
       parts.length = Math.min(parts.length, target + 80);
@@ -144,46 +170,57 @@ export function InteractiveBackdrop({
         mouse.y = -9999;
       }
 
-      // Base: deep gradient that warms with the streak.
+      // Base gradient, drifting blobs and the answer wash: drawn small, refreshed every third frame.
       const light = document.documentElement.dataset.theme === "light";
-      const g = ctx!.createLinearGradient(0, 0, w, h);
-      if (light) {
-        g.addColorStop(0, `hsl(${14 + heat * 10} 100% 97%)`);
-        g.addColorStop(0.55, `hsl(${340 + heat * 5} 100% 96%)`);
-        g.addColorStop(1, "hsl(30 100% 95%)");
-      } else {
-        g.addColorStop(0, `hsl(${322 + heat * 20} 55% ${8 + heat * 3}%)`);
-        g.addColorStop(0.55, `hsl(${340 + heat * 18} 52% ${11 + heat * 3}%)`);
-        g.addColorStop(1, `hsl(${300 + heat * 20} 50% ${6 + heat * 2}%)`);
+      if (tick++ % 3 === 0 && octx) {
+        const ow = off.width;
+        const oh = off.height;
+        const g = octx.createLinearGradient(0, 0, ow, oh);
+        if (light) {
+          g.addColorStop(0, `hsl(${14 + heat * 10} 100% 97%)`);
+          g.addColorStop(0.55, `hsl(${340 + heat * 5} 100% 96%)`);
+          g.addColorStop(1, "hsl(30 100% 95%)");
+        } else {
+          g.addColorStop(0, `hsl(${322 + heat * 20} 55% ${8 + heat * 3}%)`);
+          g.addColorStop(0.55, `hsl(${340 + heat * 18} 52% ${11 + heat * 3}%)`);
+          g.addColorStop(1, `hsl(${300 + heat * 20} 50% ${6 + heat * 2}%)`);
+        }
+        octx.globalCompositeOperation = "source-over";
+        octx.fillStyle = g;
+        octx.fillRect(0, 0, ow, oh);
+        octx.globalCompositeOperation = light ? "source-over" : "lighter";
+        const px = mouse.active ? (mouse.x / w - 0.5) * 15 : 0;
+        const py = mouse.active ? (mouse.y / h - 0.5) * 15 : 0;
+        const blobs: [number, number, number, number, number][] = [
+          [0.2, 0.25, 0.34, 345, 0.0],
+          [0.8, 0.3, 0.3, 28, 1.7],
+          [0.65, 0.85, 0.36, 14 + heat * 30, 3.1],
+          [0.12, 0.8, 0.26, 295, 4.4],
+        ];
+        for (const [bx, by, br, hue, ph] of blobs) {
+          const cx = (bx + Math.sin(t * 0.18 + ph) * 0.06) * ow + px * (1 + ph * 0.1);
+          const cy = (by + Math.cos(t * 0.15 + ph) * 0.06) * oh + py * (1 + ph * 0.1);
+          const rad = br * Math.max(ow, oh) * (isCalm ? 0.8 : 1);
+          const rg = octx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+          rg.addColorStop(0, `hsl(${hue} 90% ${light ? 70 : 55}% / ${(0.2 + flash * 0.1) * (light ? 0.8 : 1)})`);
+          rg.addColorStop(1, `hsl(${hue} 90% ${light ? 70 : 55}% / 0)`);
+          octx.fillStyle = rg;
+          octx.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
+        }
+        if (flash > 0) {
+          octx.globalCompositeOperation = "source-over";
+          octx.fillStyle = `hsl(${flashHue} 90% 55% / ${flash * 0.16})`;
+          octx.fillRect(0, 0, ow, oh);
+        }
       }
       ctx!.globalCompositeOperation = "source-over";
-      ctx!.fillStyle = g;
-      ctx!.fillRect(0, 0, w, h);
-
-      // Big soft blobs drifting on their own, leaning towards the pointer.
+      ctx!.imageSmoothingEnabled = true;
+      ctx!.drawImage(off, 0, 0, w, h);
       ctx!.globalCompositeOperation = light ? "source-over" : "lighter";
-      const px = mouse.active ? (mouse.x / w - 0.5) * 60 : 0;
-      const py = mouse.active ? (mouse.y / h - 0.5) * 60 : 0;
-      const blobs: [number, number, number, number, number][] = [
-        [0.2, 0.25, 0.34, 345, 0.0],
-        [0.8, 0.3, 0.3, 28, 1.7],
-        [0.65, 0.85, 0.36, 14 + heat * 30, 3.1],
-        [0.12, 0.8, 0.26, 295, 4.4],
-      ];
-      for (const [bx, by, br, hue, ph] of blobs) {
-        const cx = (bx + Math.sin(t * 0.18 + ph) * 0.06) * w + px * (1 + ph * 0.1);
-        const cy = (by + Math.cos(t * 0.15 + ph) * 0.06) * h + py * (1 + ph * 0.1);
-        const rad = br * Math.max(w, h) * (isCalm ? 0.8 : 1);
-        const rg = ctx!.createRadialGradient(cx, cy, 0, cx, cy, rad);
-        rg.addColorStop(0, `hsl(${hue} 90% ${light ? 70 : 55}% / ${(0.2 + flash * 0.1) * (light ? 0.8 : 1)})`);
-        rg.addColorStop(1, `hsl(${hue} 90% ${light ? 70 : 55}% / 0)`);
-        ctx!.fillStyle = rg;
-        ctx!.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
-      }
-      if (flash > 0) {
-        ctx!.fillStyle = `hsl(${flashHue} 90% 55% / ${flash * 0.16})`;
-        ctx!.fillRect(0, 0, w, h);
-      }
+
+      // Frame budget: if frames keep taking too long, switch to the light version (no links).
+      slow = slow * 0.95 + Math.min(dt, 4) * 0.05;
+      lite = slow > 1.6;
 
       // Particles.
       for (let i = parts.length - 1; i >= 0; i--) {
@@ -223,25 +260,33 @@ export function InteractiveBackdrop({
         }
       }
 
-      // Links between close particles (and from the pointer to the ones around it).
-      ctx!.lineWidth = 1;
-      for (let i = 0; i < parts.length; i++) {
-        const p = parts[i];
-        for (let j = i + 1; j < parts.length; j++) {
-          const q = parts[j];
-          const dx = p.x - q.x;
-          if (dx > LINK || dx < -LINK) continue;
-          const dy = p.y - q.y;
-          const d2 = dx * dx + dy * dy;
-          if (d2 > LINK * LINK) continue;
-          const al = (1 - Math.sqrt(d2) / LINK) * 0.38;
-          ctx!.strokeStyle = `hsl(${(p.hue + q.hue) / 2 + heat * 40} 90% ${light ? 48 : 72}% / ${al * (light ? 1.3 : 1)})`;
-          ctx!.beginPath();
-          ctx!.moveTo(p.x, p.y);
-          ctx!.lineTo(q.x, q.y);
-          ctx!.stroke();
+      // Links between close particles, batched into a few strokes by strength (one path per level).
+      if (!lite) {
+        ctx!.lineWidth = 1;
+        const LV = 5;
+        const paths: Path2D[] = Array.from({ length: LV }, () => new Path2D());
+        for (let i = 0; i < parts.length; i++) {
+          const p = parts[i];
+          for (let j = i + 1; j < parts.length; j++) {
+            const q = parts[j];
+            const dx = p.x - q.x;
+            if (dx > LINK || dx < -LINK) continue;
+            const dy = p.y - q.y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 > LINK * LINK) continue;
+            const lv = Math.min(LV - 1, Math.floor((1 - Math.sqrt(d2) / LINK) * LV));
+            paths[lv].moveTo(p.x, p.y);
+            paths[lv].lineTo(q.x, q.y);
+          }
         }
-        if (mouse.active) {
+        for (let lv = 0; lv < LV; lv++) {
+          const al = ((lv + 0.5) / LV) * 0.38 * (light ? 1.3 : 1);
+          ctx!.strokeStyle = `hsl(${350 + heat * 40} 90% ${light ? 48 : 72}% / ${al})`;
+          ctx!.stroke(paths[lv]);
+        }
+      }
+      if (mouse.active) {
+        for (const p of parts) {
           const dx = p.x - mouse.x;
           const dy = p.y - mouse.y;
           const d2 = dx * dx + dy * dy;
@@ -255,21 +300,19 @@ export function InteractiveBackdrop({
         }
       }
 
-      // Dots with a glow.
+      // Dots: a cached glow sprite plus a solid core.
       for (const p of parts) {
         const alpha = p.life >= 0 ? p.life : 1;
         const hue = p.hue + heat * 30;
         const size = p.r * (1 + Math.sin(t * 2 + p.seed) * 0.18);
-        const gl = ctx!.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 5);
-        gl.addColorStop(0, `hsl(${hue} 100% ${light ? 55 : 75}% / ${(light ? 0.4 : 0.55) * alpha})`);
-        gl.addColorStop(1, `hsl(${hue} 100% ${light ? 55 : 70}% / 0)`);
-        ctx!.fillStyle = gl;
-        ctx!.fillRect(p.x - size * 5, p.y - size * 5, size * 10, size * 10);
-        ctx!.fillStyle = `hsl(${hue} 100% ${light ? 52 : 92}% / ${alpha})`;
+        ctx!.globalAlpha = alpha;
+        ctx!.drawImage(glow(hue, light), p.x - size * 5, p.y - size * 5, size * 10, size * 10);
+        ctx!.fillStyle = `hsl(${hue} 100% ${light ? 52 : 92}%)`;
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, size, 0, 6.2832);
         ctx!.fill();
       }
+      ctx!.globalAlpha = 1;
 
       // Ripples.
       ctx!.lineWidth = 2;

@@ -45,7 +45,7 @@ export default function MascotCanvas({
   const [fit, setFit] = useState({ w: 1, h: 1 });
   return (
     <Canvas
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
       camera={{ position: [0, 0.62, 3.1], fov: 36, near: 0.1, far: 30 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
@@ -66,7 +66,7 @@ export default function MascotCanvas({
         </group>
         {trophy && <Trophy tier={trophy} position={[0.62, 0, 0.25]} scale={0.8} />}
       </Suspense>
-      <ContactShadows position={[0, 0.001, 0]} opacity={0.45} scale={4.5} blur={2.6} far={1.6} resolution={512} color="#0b1020" />
+      <ContactShadows position={[0, 0.001, 0]} opacity={0.45} scale={4.5} blur={2.6} far={1.6} resolution={256} color="#0b1020" />
     </Canvas>
   );
 }

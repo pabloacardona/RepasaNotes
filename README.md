@@ -93,3 +93,5 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 - The landing is calm and study-focused: drifting layered waves along the bottom of the hero and slow ripples around the mascot (`components/landing/waves.tsx`). The fire effects stay only inside a quiz, as feedback for a burning combo.
 
 - Mascot speech bubbles now show quotes from philosophers and thinkers (lib/quotes.ts). Animations use one cross-faded clip at a time (reactions play once, then return to idle), which fixes the glitching.
+
+- Landing performance: backdrop drawn at 1x with a low-res cached gradient, batched link strokes and cached glow sprites (auto lite mode on slow devices); 3D canvas capped at 1.5x with a smaller shadow map; epic borders animate in steps.
