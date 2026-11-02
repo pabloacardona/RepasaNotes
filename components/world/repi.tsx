@@ -79,30 +79,6 @@ const STYLES: Record<Mood, Partial<Style>> = {
   heartbroken: { speed: 0.6, lean: 0.32, tilt: -0.08, size: 0.96, fx: ["cloud"] },
 };
 
-const LINES: Record<Mood, string[]> = {
-  idle: ["¡Vamos a repasar!", "Estoy listo 📚"],
-  curious: ["Mmm, ¿cuál será?", "¡Esta me gusta!"],
-  thinking: ["Piénsalo con calma 🤔", "Lee otra vez la pregunta"],
-  sleepy: ["Zzz… ¿sigues ahí?", "Me estoy durmiendo…"],
-  happy: ["¡Eso es!", "¡Bien hecho! ✨", "¡Correcto!"],
-  excited: ["¡Qué racha! 🔥", "¡No pares!"],
-  onFire: ["¡ESTÁS ON FIRE! 🔥", "¡Imparable!"],
-  comeback: ["¡Remontada! 😎", "¡Sabía que podías!"],
-  confident: ["Esto es pan comido", "Dominas el tema 😏"],
-  oops: ["Uy, casi…", "Lee la explicación 👀"],
-  sad: ["Ánimo, tú puedes", "Vamos por la siguiente"],
-  shocked: ["¡¿Qué?! 😱", "¡Se rompió la racha!"],
-  crying: ["Buaaa 😭", "Necesitamos repasar…"],
-  nervous: ["Respira hondo…", "Paso a paso"],
-  determined: ["¡La próxima es nuestra! 💪", "¡A darle!"],
-  celebrating: ["¡PERFECTO! 🏆", "¡Eres un genio!"],
-  proud: ["¡Qué orgullo! 🌟", "¡Gran trabajo!"],
-  relieved: ["Uf, ¡aprobado!", "Vamos mejorando"],
-  heartbroken: ["Mañana será mejor 💔", "Repasemos juntos"],
-};
-
-export const mascotLine = (mood: Mood, pulse: number) => LINES[mood][(pulse + mood.length) % LINES[mood].length];
-
 const FIDGET_MOODS = new Set<Mood>(["idle", "curious", "confident", "relieved"]);
 
 type NumKey = "speed" | "bob" | "bobSpeed" | "tilt" | "lean" | "tremble" | "size";
@@ -112,8 +88,8 @@ type Rig = {
   model: Group;
   mixer: AnimationMixer;
   actions: Record<string, AnimationAction>;
-  loop: AnimationAction | null;
-  oneShot: AnimationAction | null;
+  base: AnimationAction | null; // the idle loop, always what the model returns to
+  active: AnimationAction | null; // what is playing now: the base, or a one-shot reaction
   top: number;
 };
 
@@ -123,16 +99,25 @@ const pick = (r: Rig, role: Role) => {
 };
 const hasRole = (r: Rig, role: Role) => ROLE_CLIPS[role].some((n) => r.actions[n]);
 
+// One animation plays at a time and every change is a cross-fade, so weights always add up to 1
+// and the model never snaps or falls into its bind pose. Reactions play once, then return to the idle loop.
+function fadeTo(r: Rig, to: AnimationAction, once: boolean, dur: number) {
+  const from = r.active;
+  if (from === to) return;
+  to.reset();
+  to.setLoop(once ? LoopOnce : LoopRepeat, once ? 1 : Infinity);
+  to.clampWhenFinished = once;
+  to.setEffectiveWeight(1);
+  to.play();
+  if (from) to.crossFadeFrom(from, dur, false);
+  r.active = to;
+}
+
 function playOnce(r: Rig | null, role: Role) {
-  if (!r || !hasRole(r, role)) return;
+  if (!r || !r.base || !hasRole(r, role)) return;
   const a = pick(r, role);
-  if (!a || a === r.loop) return;
-  r.oneShot?.fadeOut(0.2);
-  a.reset().setLoop(LoopOnce, 1);
-  a.clampWhenFinished = true;
-  a.fadeIn(0.2).play();
-  r.loop?.fadeOut(0.2);
-  r.oneShot = a;
+  if (!a || a === r.base || a === r.active) return;
+  fadeTo(r, a, true, 0.22);
 }
 
 export function Repi({
@@ -234,23 +219,25 @@ export function Repi({
     for (const clip of animations) {
       // The Body bone also slides sideways in some clips (jump, dance, hit). Pin its X and Z so the mascot
       // never drifts out of the centre of the frame; its height still moves.
+      // They are pinned to the bone's rest position (not the clip's first frame), so every clip agrees and cross-fades never jump.
       const c = clip.clone();
+      const rest = model.getObjectByName("Body");
       for (const tr of c.tracks) {
-        if (tr.name === "Body.position") {
+        if (tr.name === "Body.position" && rest) {
           const vals = tr.values;
           for (let i = 0; i < vals.length; i += 3) {
-            vals[i] = vals[0];
-            vals[i + 2] = vals[2];
+            vals[i] = rest.position.x;
+            vals[i + 2] = rest.position.z;
           }
         }
       }
       actions[clip.name.split("|").pop()!] = mixer.clipAction(c);
     }
 
-    const r: Rig = { model, mixer, actions, loop: null, oneShot: null, top: size.y * s };
+    const r: Rig = { model, mixer, actions, base: null, active: null, top: size.y * s };
     rig.current = r;
 
-    const first = pick(r, styleRef.current.role);
+    const first = pick(r, "idle");
     if (first) {
       // Measure the model in its idle pose (not the bind pose) so it is truly centred and fully inside the frame.
       first.setLoop(LoopRepeat, Infinity).reset().play();
@@ -271,14 +258,13 @@ export function Repi({
       r.top = dims.y;
       onFitRef.current?.({ w: dims.x, h: dims.y });
       first.reset().fadeIn(0.4).play();
-      r.loop = first;
+      r.base = first;
+      r.active = first;
     }
 
     const onFinished = (e: { action: AnimationAction }) => {
-      if (e.action !== r.oneShot) return;
-      r.oneShot.fadeOut(0.3);
-      r.oneShot = null;
-      r.loop?.reset().fadeIn(0.3).play();
+      if (e.action !== r.active || !r.base || e.action === r.base) return;
+      fadeTo(r, r.base, false, 0.35);
     };
     mixer.addEventListener("finished", onFinished);
 
@@ -291,17 +277,13 @@ export function Repi({
     };
   }, [scene, animations]);
 
-  // Mood -> looping clip, cross-faded.
+  // A new mood plays its clip once (when the monster has one), then goes back to idle.
+  const lastMood = useRef(mood);
   useEffect(() => {
-    const r = rig.current;
-    if (!r) return;
-    const next = pick(r, style.role);
-    if (!next || next === r.loop) return;
-    next.setLoop(LoopRepeat, Infinity);
-    if (!r.oneShot) next.reset().fadeIn(0.4).play();
-    r.loop?.fadeOut(0.4);
-    r.loop = next;
-  }, [style.role, scene]);
+    if (lastMood.current === mood) return;
+    lastMood.current = mood;
+    if (style.role !== "idle") playOnce(rig.current, style.role);
+  }, [mood, style.role]);
 
   // One-shot reaction to every answer: a clip if there is one, always the procedural layer.
   useEffect(() => {
@@ -335,7 +317,7 @@ export function Repi({
 
     // Idle personality: an occasional gesture.
     if (t > s.fidgetAt) {
-      if (FIDGET_MOODS.has(mood) && !r.oneShot) playOnce(r, Math.random() < 0.5 ? "yes" : "jump");
+      if (FIDGET_MOODS.has(mood) && r.active === r.base) playOnce(r, Math.random() < 0.5 ? "yes" : "jump");
       s.fidgetAt = t + 7 + Math.random() * 6;
     }
 

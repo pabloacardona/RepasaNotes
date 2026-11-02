@@ -18,7 +18,7 @@ export function HeroMascot({ className = "" }: { className?: string }) {
   const [step, setStep] = useState(0);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setInterval(() => setStep((s) => s + 1), 4200);
+    const t = setInterval(() => setStep((s) => s + 1), 8000);
     return () => clearInterval(t);
   }, []);
   const cur = SCRIPT[step % SCRIPT.length];

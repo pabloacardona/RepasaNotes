@@ -226,25 +226,33 @@ h3,
 /* Repi's speech bubble: pops in, holds, fades out. */
 @keyframes repi-bubble {
   0% { opacity: 0; transform: translateY(8px) scale(0.85); }
-  8% { opacity: 1; transform: translateY(0) scale(1.04); }
-  12% { transform: scale(1); }
-  85% { opacity: 1; }
+  4% { opacity: 1; transform: translateY(0) scale(1.03); }
+  6% { transform: scale(1); }
+  90% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-6px) scale(0.96); }
 }
 .repi-bubble {
   position: relative;
-  white-space: nowrap;
-  padding: 0.4rem 0.8rem;
-  border-radius: 999px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: max-content;
+  max-width: min(14.5rem, 80vw);
+  text-align: center;
+  padding: 0.55rem 0.9rem;
+  border-radius: 16px;
   background: var(--surface);
   border: 1px solid var(--line-strong);
   color: var(--fg);
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  line-height: 1.3;
   box-shadow: 0 6px 18px rgb(27 36 51 / 0.25);
-  animation: repi-bubble 3.6s ease-out forwards;
+  animation: repi-bubble 8s ease-out forwards;
 }
+.repi-quote { font-style: italic; text-wrap: balance; }
+.repi-by { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); }
 .repi-bubble::after {
   content: "";
   position: absolute;

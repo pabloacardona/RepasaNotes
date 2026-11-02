@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
 import { useMascot } from "@/lib/mascots";
-import { mascotLine } from "./repi";
+import { mascotQuote } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
 
 // three.js, the models and textures only load in the browser, in their own chunk.
@@ -52,12 +52,14 @@ export function MascotStage({
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
   const { id } = useMascot();
   const [ready, setReady] = useState(false);
+  const quote = mascotQuote(mood, pulse);
 
   return (
     <div className={`pointer-events-none ${className}`} aria-hidden>
-      <div className={`absolute inset-x-0 z-10 flex justify-center ${bubble === "above" ? "-top-11" : "top-0"}`}>
+      <div className={`absolute inset-x-0 z-10 flex justify-center ${bubble === "above" ? "bottom-full mb-2" : "top-0"}`}>
         <div key={`${mood}-${pulse}`} className="repi-bubble">
-          {mascotLine(mood, pulse)}
+          <span className="repi-quote">“{quote.q}”</span>
+          <span className="repi-by">— {quote.by}</span>
         </div>
       </div>
 

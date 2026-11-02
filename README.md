@@ -91,3 +91,5 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 
 - The results screen is one calm column: a score ring with the grade and the verdict, one row with the XP and the rank bar (achievements as small chips), a one-line "reforzar" row, two buttons and the mistakes folded in a details block. A promotion still gets its own full-screen scene.
 - The landing is calm and study-focused: drifting layered waves along the bottom of the hero and slow ripples around the mascot (`components/landing/waves.tsx`). The fire effects stay only inside a quiz, as feedback for a burning combo.
+
+- Mascot speech bubbles now show quotes from philosophers and thinkers (lib/quotes.ts). Animations use one cross-faded clip at a time (reactions play once, then return to idle), which fixes the glitching.
