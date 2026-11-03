@@ -59,9 +59,9 @@ export function AiNotePanel({
   }
 
   return (
-    <div className="hx-panel hx-tier-panel p-5 sm:p-6" style={{ ["--tc" as string]: "#ffd23f" }}>
+    <div className="hx-panel hx-tier-panel p-5 sm:p-6" style={{ ["--tc" as string]: "#e7c88a" }}>
       <div className="flex items-start gap-3">
-        <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#ffd23f] to-[#ff8a3d] text-xl shadow-[0_0_20px_rgba(255,180,60,0.5)]">
+        <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#e7c88a] to-[#d9a066] text-xl shadow-[0_0_20px_rgba(231,200,138,0.28)]">
           💡
         </span>
         <div>

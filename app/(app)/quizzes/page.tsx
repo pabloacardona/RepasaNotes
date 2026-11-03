@@ -10,9 +10,9 @@ import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 export const metadata: Metadata = { title: "Quizzes" };
 
 const DIFF: Record<string, { icon: string; color: string }> = {
-  facil: { icon: "🌿", color: "#2dffa8" },
-  media: { icon: "⚔️", color: "#ffe14d" },
-  dificil: { icon: "🐉", color: "#ff4d79" },
+  facil: { icon: "🌿", color: "#7fc4a4" },
+  media: { icon: "⚔️", color: "#e7c88a" },
+  dificil: { icon: "🐉", color: "#e0788c" },
 };
 
 export default async function QuizzesPage() {
@@ -66,8 +66,8 @@ export default async function QuizzesPage() {
                       className="grid h-16 w-16 shrink-0 place-items-center font-display text-3xl font-black"
                       style={{
                         clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)",
-                        background: isDone ? `linear-gradient(160deg, ${grade.color}, #0a1428 140%)` : "linear-gradient(160deg, #263247, #0a1428)",
-                        color: isDone ? "#0a1428" : "#6b7385",
+                        background: isDone ? `linear-gradient(160deg, ${grade.color}, #1d1826 140%)` : "linear-gradient(160deg, #352c40, #1d1826)",
+                        color: isDone ? "#1d1826" : "#8f8596",
                       }}
                       title={isDone ? `Nota ${grade.letter}` : "Sin jugar"}
                     >

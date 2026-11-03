@@ -11,9 +11,9 @@ type NoteOpt = { id: string; title: string; topic: string; content: string };
 
 const COUNTS = [5, 10, 15] as const;
 const DIFFICULTIES = [
-  { value: "facil", label: "Fácil", icon: "🌿", color: "#2dffa8", blurb: "Conceptos base y definiciones." },
-  { value: "media", label: "Media", icon: "⚔️", color: "#ffe14d", blurb: "Aplicar lo que sabes." },
-  { value: "dificil", label: "Difícil", icon: "🐉", color: "#ff4d79", blurb: "Casos y detalles finos. Jefe final." },
+  { value: "facil", label: "Fácil", icon: "🌿", color: "#7fc4a4", blurb: "Conceptos base y definiciones." },
+  { value: "media", label: "Media", icon: "⚔️", color: "#e7c88a", blurb: "Aplicar lo que sabes." },
+  { value: "dificil", label: "Difícil", icon: "🐉", color: "#e0788c", blurb: "Casos y detalles finos. Jefe final." },
 ] as const;
 
 // Most XP a quiz can give: every question right in a row.
@@ -97,7 +97,7 @@ export function GenerateForm({ notes, initialNoteId }: { notes: NoteOpt[]; initi
                   <span className="block text-3xl" aria-hidden>
                     {d.icon}
                   </span>
-                  <span className="mt-1 block font-display font-bold uppercase tracking-wider" style={{ color: on ? d.color : "#f0e6d2" }}>
+                  <span className="mt-1 block font-display font-bold uppercase tracking-wider" style={{ color: on ? d.color : "#d2c7c4" }}>
                     {d.label}
                   </span>
                   <span className="hx-mute mt-0.5 block text-xs">{d.blurb}</span>

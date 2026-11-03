@@ -59,8 +59,8 @@ export function InteractiveBackdrop({
         c.width = c.height = 48;
         const x = c.getContext("2d")!;
         const g = x.createRadialGradient(24, 24, 0, 24, 24, 24);
-        g.addColorStop(0, `hsl(${key % 1000} 100% ${light ? 55 : 75}% / ${light ? 0.4 : 0.55})`);
-        g.addColorStop(1, `hsl(${key % 1000} 100% ${light ? 55 : 70}% / 0)`);
+        g.addColorStop(0, `hsl(${key % 1000} 55% ${light ? 55 : 72}% / ${light ? 0.3 : 0.4})`);
+        g.addColorStop(1, `hsl(${key % 1000} 55% ${light ? 55 : 70}% / 0)`);
         x.fillStyle = g;
         x.fillRect(0, 0, 48, 48);
         sprites.set(key, c);
@@ -78,7 +78,7 @@ export function InteractiveBackdrop({
       vx: burst ? Math.cos(rand(0, 6.28)) * burst.speed * rand(0.4, 1) : rand(-0.2, 0.2),
       vy: burst ? Math.sin(rand(0, 6.28)) * burst.speed * rand(0.4, 1) : rand(-0.2, 0.2),
       r: burst ? rand(1.5, 3.4) : rand(1.1, 2.8),
-      hue: burst ? burst.hue : [345, 20, 38, 300, 52][Math.floor(Math.random() * 5)] + rand(-10, 10),
+      hue: burst ? burst.hue : [350, 24, 38, 300, 45][Math.floor(Math.random() * 5)] + rand(-10, 10),
       life: burst ? 1 : -1,
       seed: rand(0, 1000),
     });
@@ -177,13 +177,13 @@ export function InteractiveBackdrop({
         const oh = off.height;
         const g = octx.createLinearGradient(0, 0, ow, oh);
         if (light) {
-          g.addColorStop(0, `hsl(${14 + heat * 10} 100% 97%)`);
-          g.addColorStop(0.55, `hsl(${340 + heat * 5} 100% 96%)`);
-          g.addColorStop(1, "hsl(30 100% 95%)");
+          g.addColorStop(0, `hsl(${28 + heat * 6} 45% 96%)`);
+          g.addColorStop(0.55, `hsl(${20 + heat * 4} 40% 94%)`);
+          g.addColorStop(1, "hsl(340 30% 94%)");
         } else {
-          g.addColorStop(0, `hsl(${322 + heat * 20} 55% ${8 + heat * 3}%)`);
-          g.addColorStop(0.55, `hsl(${340 + heat * 18} 52% ${11 + heat * 3}%)`);
-          g.addColorStop(1, `hsl(${300 + heat * 20} 50% ${6 + heat * 2}%)`);
+          g.addColorStop(0, `hsl(${272 + heat * 10} 20% ${8 + heat * 2}%)`);
+          g.addColorStop(0.55, `hsl(${285 + heat * 14} 18% ${10 + heat * 2}%)`);
+          g.addColorStop(1, `hsl(${262 + heat * 10} 22% ${6 + heat * 2}%)`);
         }
         octx.globalCompositeOperation = "source-over";
         octx.fillStyle = g;
@@ -202,14 +202,14 @@ export function InteractiveBackdrop({
           const cy = (by + Math.cos(t * 0.15 + ph) * 0.06) * oh + py * (1 + ph * 0.1);
           const rad = br * Math.max(ow, oh) * (isCalm ? 0.8 : 1);
           const rg = octx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-          rg.addColorStop(0, `hsl(${hue} 90% ${light ? 70 : 55}% / ${(0.2 + flash * 0.1) * (light ? 0.8 : 1)})`);
-          rg.addColorStop(1, `hsl(${hue} 90% ${light ? 70 : 55}% / 0)`);
+          rg.addColorStop(0, `hsl(${hue} 45% ${light ? 72 : 52}% / ${(0.13 + flash * 0.06) * (light ? 0.8 : 1)})`);
+          rg.addColorStop(1, `hsl(${hue} 45% ${light ? 72 : 52}% / 0)`);
           octx.fillStyle = rg;
           octx.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
         }
         if (flash > 0) {
           octx.globalCompositeOperation = "source-over";
-          octx.fillStyle = `hsl(${flashHue} 90% 55% / ${flash * 0.16})`;
+          octx.fillStyle = `hsl(${flashHue} 45% 55% / ${flash * 0.1})`;
           octx.fillRect(0, 0, ow, oh);
         }
       }
@@ -280,8 +280,8 @@ export function InteractiveBackdrop({
           }
         }
         for (let lv = 0; lv < LV; lv++) {
-          const al = ((lv + 0.5) / LV) * 0.38 * (light ? 1.3 : 1);
-          ctx!.strokeStyle = `hsl(${350 + heat * 40} 90% ${light ? 48 : 72}% / ${al})`;
+          const al = ((lv + 0.5) / LV) * 0.26 * (light ? 1.3 : 1);
+          ctx!.strokeStyle = `hsl(${350 + heat * 30} 40% ${light ? 48 : 72}% / ${al})`;
           ctx!.stroke(paths[lv]);
         }
       }
@@ -291,7 +291,7 @@ export function InteractiveBackdrop({
           const dy = p.y - mouse.y;
           const d2 = dx * dx + dy * dy;
           if (d2 < 190 * 190) {
-            ctx!.strokeStyle = `hsl(${p.hue} 95% ${light ? 50 : 78}% / ${(1 - Math.sqrt(d2) / 190) * 0.7})`;
+            ctx!.strokeStyle = `hsl(${p.hue} 50% ${light ? 50 : 76}% / ${(1 - Math.sqrt(d2) / 190) * 0.7})`;
             ctx!.beginPath();
             ctx!.moveTo(p.x, p.y);
             ctx!.lineTo(mouse.x, mouse.y);
@@ -307,7 +307,7 @@ export function InteractiveBackdrop({
         const size = p.r * (1 + Math.sin(t * 2 + p.seed) * 0.18);
         ctx!.globalAlpha = alpha;
         ctx!.drawImage(glow(hue, light), p.x - size * 5, p.y - size * 5, size * 10, size * 10);
-        ctx!.fillStyle = `hsl(${hue} 100% ${light ? 52 : 92}%)`;
+        ctx!.fillStyle = `hsl(${hue} 55% ${light ? 52 : 88}%)`;
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, size, 0, 6.2832);
         ctx!.fill();
@@ -333,8 +333,8 @@ export function InteractiveBackdrop({
       // Pointer halo.
       if (mouse.active) {
         const hg = ctx!.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 120);
-        hg.addColorStop(0, light ? "hsl(340 100% 60% / 0.16)" : "hsl(30 100% 75% / 0.22)");
-        hg.addColorStop(1, light ? "hsl(340 100% 60% / 0)" : "hsl(30 100% 75% / 0)");
+        hg.addColorStop(0, light ? "hsl(340 50% 60% / 0.1)" : "hsl(20 50% 75% / 0.14)");
+        hg.addColorStop(1, light ? "hsl(340 50% 60% / 0)" : "hsl(20 50% 75% / 0)");
         ctx!.fillStyle = hg;
         ctx!.fillRect(mouse.x - 120, mouse.y - 120, 240, 240);
       }

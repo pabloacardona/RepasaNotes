@@ -11,9 +11,9 @@ import { MASCOTS } from "@/lib/mascot-data";
 import { TIERS } from "@/lib/ranks";
 
 const STEPS = [
-  { n: "01", icon: "📜", title: "Pega tus apuntes", text: "Escríbelos, sube un PDF o pídele a la IA que los redacte.", glow: "#ffb347" },
-  { n: "02", icon: "⚔️", title: "Juega el quiz", text: "Preguntas hechas por IA, combos, rachas y una mascota que reacciona.", glow: "#ff5c8a" },
-  { n: "03", icon: "🏆", title: "Sube de rango", text: "Repasa lo que fallas, gana XP y escala de Hierro a Retador.", glow: "#ffd400" },
+  { n: "01", icon: "📜", title: "Pega tus apuntes", text: "Escríbelos, sube un PDF o pídele a la IA que los redacte.", glow: "#d9a066" },
+  { n: "02", icon: "⚔️", title: "Juega el quiz", text: "Preguntas hechas por IA, combos, rachas y una mascota que reacciona.", glow: "#c9667a" },
+  { n: "03", icon: "🏆", title: "Sube de rango", text: "Repasa lo que fallas, gana XP y escala de Hierro a Retador.", glow: "#e7c88a" },
 ];
 
 export default function Landing() {

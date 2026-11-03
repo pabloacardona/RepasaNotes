@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <div className="hx-bg" aria-hidden />
       <div className="absolute right-4 top-4"><ThemeToggle /></div>
       <div className="hx-panel grid w-full max-w-4xl overflow-hidden md:grid-cols-[1fr_1.15fr]">
-        <aside className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[#2b1b8f] via-[#4a2fd6] to-[#0aa7c9] p-8 text-white md:flex">
+        <aside className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[#2b2335] via-[#4a2f48] to-[#8a4a62] p-8 text-white md:flex">
           <div aria-hidden className="hx-float absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
           <Link href="/" className="hx-yellow relative font-display text-3xl font-bold">
             Repasa

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 // A small burst of square pixels wherever a button or link is pressed. Skipped for reduced motion.
-const COLORS = ["#ffec27", "#ff77a8", "#29adff", "#00e436", "#ffa300", "#fff1e8"];
+const COLORS = ["#e7c88a", "#e8a3b0", "#c9a4d8", "#9fd0b8", "#d9a066", "#f1ebe6"];
 
 export function ClickBurst() {
   useEffect(() => {

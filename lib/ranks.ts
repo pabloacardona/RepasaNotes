@@ -4,16 +4,16 @@
 export type Tier = { id: string; name: string; color: string; glow: string; min: number; divisions: boolean };
 
 export const TIERS: Tier[] = [
-  { id: "hierro", name: "Hierro", color: "#8e97b8", glow: "#c3cae6", min: 0, divisions: true },
-  { id: "bronce", name: "Bronce", color: "#ff8a3d", glow: "#ffb27a", min: 300, divisions: true },
-  { id: "plata", name: "Plata", color: "#9fd0ff", glow: "#e3f2ff", min: 800, divisions: true },
-  { id: "oro", name: "Oro", color: "#ffd400", glow: "#fff27a", min: 1500, divisions: true },
-  { id: "platino", name: "Platino", color: "#00f0d0", glow: "#7dfff0", min: 2500, divisions: true },
-  { id: "esmeralda", name: "Esmeralda", color: "#1bff8a", glow: "#8cffc4", min: 3800, divisions: true },
-  { id: "diamante", name: "Diamante", color: "#3d9bff", glow: "#8cc8ff", min: 5500, divisions: true },
-  { id: "maestro", name: "Maestro", color: "#c04dff", glow: "#e0a0ff", min: 7800, divisions: false },
-  { id: "gran-maestro", name: "Gran Maestro", color: "#ff3d6e", glow: "#ff9ab0", min: 10500, divisions: false },
-  { id: "retador", name: "Retador", color: "#ffe14d", glow: "#5ff4ff", min: 14000, divisions: false },
+  { id: "hierro", name: "Hierro", color: "#8f93ab", glow: "#c3c7da", min: 0, divisions: true },
+  { id: "bronce", name: "Bronce", color: "#d9895a", glow: "#e9b393", min: 300, divisions: true },
+  { id: "plata", name: "Plata", color: "#a9c3dc", glow: "#dde9f4", min: 800, divisions: true },
+  { id: "oro", name: "Oro", color: "#e0bb5c", glow: "#f1dc9c", min: 1500, divisions: true },
+  { id: "platino", name: "Platino", color: "#6fc4b6", glow: "#a8e0d6", min: 2500, divisions: true },
+  { id: "esmeralda", name: "Esmeralda", color: "#6fbf8f", glow: "#a8dcc0", min: 3800, divisions: true },
+  { id: "diamante", name: "Diamante", color: "#7a9fd6", glow: "#b0c8ea", min: 5500, divisions: true },
+  { id: "maestro", name: "Maestro", color: "#a97bc9", glow: "#cfb0e2", min: 7800, divisions: false },
+  { id: "gran-maestro", name: "Gran Maestro", color: "#d4637f", glow: "#e8a2b2", min: 10500, divisions: false },
+  { id: "retador", name: "Retador", color: "#ecd27a", glow: "#a8dce0", min: 14000, divisions: false },
 ];
 
 const ROMAN = ["", "I", "II", "III", "IV"];
