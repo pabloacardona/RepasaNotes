@@ -99,3 +99,5 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 - Calm palette: muted dusk-plum dark and warm-paper light themes, dusty-rose accent, soft gold wordmark, sage success, softer rank colours and a quieter backdrop.
 
 - Accent is now soft gold instead of rose; the 3D mascot lighting follows the light/dark theme.
+
+- Mascot framing now leaves room for hops and turning; the mascot switch has quick prev/next arrows and a one-tap face grid.

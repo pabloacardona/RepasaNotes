@@ -256,7 +256,8 @@ export function Repi({
       settle();
       const dims = fit.getSize(new Vector3());
       r.top = dims.y;
-      onFitRef.current?.({ w: dims.x, h: dims.y });
+      // Width is the full turning circle: the model yaws to follow the pointer, so its depth can swing into view.
+      onFitRef.current?.({ w: Math.hypot(dims.x, dims.z), h: dims.y });
       first.reset().fadeIn(0.4).play();
       r.base = first;
       r.active = first;

@@ -37,9 +37,10 @@ function CameraFit({ w, h, extra, cx }: { w: number; h: number; extra: number; c
     const cam = camera as PerspectiveCamera;
     const tan = Math.tan(MathUtils.degToRad(cam.fov / 2));
     const aspect = size.width / Math.max(1, size.height);
-    const dist = Math.max((h * 1.85) / (2 * tan), ((w + extra) * 1.4) / (2 * tan * aspect));
-    cam.position.set(cx, h * 0.56, dist);
-    cam.lookAt(cx, h * 0.6, 0);
+    // Room for a hop (up to ~0.5h), the mood scale-up and the turning circle, so nothing touches the canvas edge.
+    const dist = Math.max((h * 2.35) / (2 * tan), ((w + extra) * 1.55) / (2 * tan * aspect));
+    cam.position.set(cx, h * 0.62, dist);
+    cam.lookAt(cx, h * 0.68, 0);
     cam.updateProjectionMatrix();
   }, [camera, size, w, h, extra, cx]);
   return null;

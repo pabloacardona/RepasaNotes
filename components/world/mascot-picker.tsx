@@ -1,52 +1,95 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MASCOTS, setMascot, useMascot } from "@/lib/mascots";
 
-// Small floating menu to pick which monster plays Repi. "Sorpresa" draws one at random on every visit.
+// Quick mascot switch: ‹ › step through the monsters, the middle button opens a grid of faces (one tap to pick),
+// and the dice draws a random one. The grid closes on a pick, on Escape or on a click outside.
 export function MascotPicker({ className = "" }: { className?: string }) {
   const { choice, id } = useMascot();
   const [open, setOpen] = useState(false);
-  const current = MASCOTS.find((m) => m.id === id)!;
+  const box = useRef<HTMLDivElement>(null);
+  const index = Math.max(0, MASCOTS.findIndex((m) => m.id === id));
+  const current = MASCOTS[index];
+  const step = (d: number) => setMascot(MASCOTS[(index + d + MASCOTS.length) % MASCOTS.length].id);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const arrow =
+    "grid h-8 w-8 place-items-center rounded-full text-lg font-bold text-[var(--fg2)] transition hover:bg-[var(--fg)]/10 hover:text-[var(--fg)]";
 
   return (
-    <div className={`fixed z-30 ${className}`}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-haspopup="true"
-        className="inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] bg-[var(--surface-2)]/90 px-3.5 py-2 text-sm font-bold text-[var(--fg)] shadow-lg backdrop-blur-md transition hover:border-[var(--neon)]"
-      >
-        <span aria-hidden>{current.emoji}</span>
-        Cambiar mascota
-      </button>
+    <div ref={box} className={`fixed z-30 ${className}`}>
+      <div className="flex items-center gap-0.5 rounded-full border border-[var(--line-strong)] bg-[var(--surface-2)]/90 p-0.5 shadow-lg backdrop-blur-md">
+        <button type="button" onClick={() => step(-1)} aria-label="Mascota anterior" className={arrow}>
+          ‹
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-haspopup="true"
+          title="Elegir mascota"
+          className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-sm font-bold text-[var(--fg)] transition hover:bg-[var(--fg)]/10"
+        >
+          <span aria-hidden className="text-base">
+            {current.emoji}
+          </span>
+          {current.label}
+        </button>
+        <button type="button" onClick={() => step(1)} aria-label="Mascota siguiente" className={arrow}>
+          ›
+        </button>
+      </div>
+
       {open && (
-        <div className="mt-2 max-h-[60dvh] w-[min(18rem,calc(100vw-2rem))] overflow-auto rounded-2xl border border-[var(--line-strong)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl">
-          <button
-            type="button"
-            onClick={() => setMascot("auto")}
-            aria-pressed={choice === "auto"}
-            className={`mb-1 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left font-bold transition ${
-              choice === "auto" ? "bg-[var(--accent)] text-[var(--on-accent)]" : "hover:bg-[var(--fg)]/10"
-            }`}
-          >
-            <span aria-hidden>🎲</span> Sorpresa
-          </button>
-          <div className="grid grid-cols-2 gap-1">
+        <div className="absolute right-0 mt-2 w-[min(15rem,calc(100vw-1.5rem))] rounded-2xl border border-[var(--line-strong)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl">
+          <div className="grid grid-cols-5 gap-1">
             {MASCOTS.map((m) => (
               <button
                 key={m.id}
                 type="button"
-                onClick={() => setMascot(m.id)}
+                title={m.label}
+                aria-label={m.label}
                 aria-pressed={choice === m.id}
-                className={`flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition ${
-                  choice === m.id ? "bg-[var(--accent)] font-bold text-[var(--on-accent)]" : "hover:bg-[var(--fg)]/10"
+                onClick={() => {
+                  setMascot(m.id);
+                  setOpen(false);
+                }}
+                className={`grid aspect-square place-items-center rounded-xl text-xl transition ${
+                  choice === m.id ? "bg-[var(--accent)]" : "hover:bg-[var(--fg)]/10"
                 }`}
               >
-                <span aria-hidden>{m.emoji}</span> {m.label}
+                {m.emoji}
               </button>
             ))}
+            <button
+              type="button"
+              title="Sorpresa: una al azar"
+              aria-label="Sorpresa"
+              aria-pressed={choice === "auto"}
+              onClick={() => {
+                setMascot("auto");
+                setOpen(false);
+              }}
+              className={`grid aspect-square place-items-center rounded-xl text-xl transition ${
+                choice === "auto" ? "bg-[var(--accent)]" : "hover:bg-[var(--fg)]/10"
+              }`}
+            >
+              🎲
+            </button>
           </div>
         </div>
       )}
