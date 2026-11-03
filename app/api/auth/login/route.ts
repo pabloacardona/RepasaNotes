@@ -13,7 +13,10 @@ export async function POST(req: Request) {
   }
   const { email, password } = parsed.data;
 
-  const [user] = await getDb().select().from(users).where(eq(users.email, email));
+  // Explicit columns: login must keep working even on a database that has not got newer columns yet.
+  const [user] = await getDb()
+    .select({ id: users.id, name: users.name, email: users.email, passwordHash: users.passwordHash })
+    .from(users).where(eq(users.email, email));
   const ok = user ? await bcrypt.compare(password, user.passwordHash) : false;
   if (!user || !ok) {
     return NextResponse.json(
