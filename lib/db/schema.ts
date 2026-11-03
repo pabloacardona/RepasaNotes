@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   name: varchar("name", { length: 80 }).notNull(),
   email: varchar("email", { length: 160 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  mascot: varchar("mascot", { length: 24 }), // companion chosen by the player; null = a random one each visit
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

@@ -5,6 +5,7 @@ import { RankEmblem } from "@/components/game/rank-emblem";
 import { RankLadder } from "@/components/game/rank-ladder";
 import { Waves, Ripples } from "@/components/landing/waves";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MascotPicker } from "@/components/world/mascot-picker";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { SpotlightCard } from "@/components/motion/spotlight-card";
 import { MASCOTS } from "@/lib/mascot-data";
@@ -95,6 +96,7 @@ export default function Landing() {
             <div className="relative mx-auto w-full max-w-md">
               <Ripples className="absolute inset-0" />
               <HeroMascot className="relative h-[400px] w-full sm:h-[470px]" />
+              <MascotPicker className="!absolute right-0 bottom-24 z-20" />
               <div className="hx-panel hx-epic-soft absolute -bottom-4 left-0 right-0 mx-auto w-[92%] p-3">
                 <div className="flex items-center gap-3">
                   <RankEmblem tierIndex={4} division={2} size={58} />
@@ -149,25 +151,6 @@ export default function Landing() {
           <div className="mt-8">
             <RankLadder preview tierIndex={0} xp={0} />
           </div>
-        </section>
-
-        {/* CTA */}
-        <section className="px-4 pb-20 pt-6 sm:px-6">
-          <Reveal>
-            <div className="hx-epic relative mx-auto max-w-5xl overflow-hidden px-6 py-16 text-center">
-              <div aria-hidden className="absolute -inset-20 opacity-60" style={{ background: "radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--b1) 40%, transparent), transparent 60%)" }} />
-              <div className="relative">
-                <p className="hx-kicker">Tu próximo examen te espera</p>
-                <h2 className="mt-3 font-display text-4xl font-bold sm:text-6xl">
-                  Releer no te dice <span className="hx-gold-text">qué no dominas</span>
-                </h2>
-                <p className="hx-mute mx-auto mt-4 max-w-md text-lg">Un quiz sí. Crea tu cuenta y descubre en qué rango empiezas.</p>
-                <Link href="/login?tab=registro" className="hx-btn hx-btn-gold hx-shine mt-9 !px-10 !py-4 text-lg">
-                  Crear cuenta gratis →
-                </Link>
-              </div>
-            </div>
-          </Reveal>
         </section>
       </main>
 

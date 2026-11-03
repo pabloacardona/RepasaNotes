@@ -3,13 +3,19 @@ import { requireUser } from "@/lib/auth";
 import { getGameProfile } from "@/lib/game";
 import { getStudyStats } from "@/lib/stats";
 import { DAILY_GOAL } from "@/lib/gamification";
+import { MascotSync } from "@/components/world/mascot-sync";
+import { getUserMascot } from "@/lib/mascot-store";
 import { ClickBurst } from "@/components/click-burst";
 import { StatsDock } from "@/components/game/stats-dock";
 import type { HudData } from "@/components/game/hud-utils";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
-  const [game, stats] = await Promise.all([getGameProfile(user.sub).catch(() => null), getStudyStats(user.sub).catch(() => null)]);
+  const [game, stats, mascot] = await Promise.all([
+    getGameProfile(user.sub).catch(() => null),
+    getStudyStats(user.sub).catch(() => null),
+    getUserMascot(user.sub),
+  ]);
   const hud: HudData | null = game && {
     rank: {
       tierIndex: game.rank.tierIndex,
@@ -29,6 +35,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <ClickBurst />
+      <MascotSync saved={mascot} />
       <AppNav name={user.name} game={hud} />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-24 sm:px-6">{children}</main>
       {hud && <StatsDock {...hud} />}

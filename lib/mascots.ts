@@ -25,7 +25,15 @@ function read(): MascotChoice {
   }
 }
 
-export function setMascot(choice: MascotChoice) {
+let persist: ((choice: MascotChoice) => void) | null = null;
+/** While a player is logged in, every change is also sent to the account (see MascotSync). */
+export const setMascotPersist = (fn: typeof persist) => {
+  persist = fn;
+};
+export const readMascotChoice = read;
+
+export function setMascot(choice: MascotChoice, opts: { remote?: boolean } = {}) {
+  if (opts.remote !== false) persist?.(choice);
   try {
     if (choice === "auto") localStorage.removeItem(KEY);
     else localStorage.setItem(KEY, choice);

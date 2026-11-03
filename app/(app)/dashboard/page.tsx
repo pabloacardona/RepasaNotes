@@ -5,6 +5,7 @@ import { getGameProfile } from "@/lib/game";
 import { getStudyStats } from "@/lib/stats";
 import { DAILY_GOAL } from "@/lib/gamification";
 import { DashboardHero } from "@/components/game/dashboard-hero";
+import { DashboardCompanion } from "@/components/world/dashboard-companion";
 import { BadgeWall } from "@/components/game/badge-wall";
 import { RankLadder } from "@/components/game/rank-ladder";
 import { Card, LinkButton } from "@/components/ui";
@@ -43,6 +44,7 @@ export default async function Dashboard() {
         <LinkButton href="/quizzes/nuevo">+ Nuevo quiz</LinkButton>
       </div>
 
+      <DashboardCompanion streak={game.streak.current} />
       <DashboardHero hud={hud} quests={game.quests} bonus={game.questsBonus} />
       <BadgeWall achievements={game.achievements} />
       <div className="mb-6">

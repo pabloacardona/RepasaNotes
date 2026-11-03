@@ -5,7 +5,7 @@ import { MASCOTS, setMascot, useMascot } from "@/lib/mascots";
 
 // Quick mascot switch: ‹ › step through the monsters, the middle button opens a grid of faces (one tap to pick),
 // and the dice draws a random one. The grid closes on a pick, on Escape or on a click outside.
-export function MascotPicker({ className = "" }: { className?: string }) {
+export function MascotPicker({ className = "", up = false }: { className?: string; up?: boolean }) {
   const { choice, id } = useMascot();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -55,7 +55,7 @@ export function MascotPicker({ className = "" }: { className?: string }) {
       </div>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[min(15rem,calc(100vw-1.5rem))] rounded-2xl border border-[var(--line-strong)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl">
+        <div className={`absolute right-0 w-[min(15rem,calc(100vw-1.5rem))] rounded-2xl border border-[var(--line-strong)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl ${up ? "bottom-full mb-2" : "mt-2"}`}>
           <div className="grid grid-cols-5 gap-1">
             {MASCOTS.map((m) => (
               <button
