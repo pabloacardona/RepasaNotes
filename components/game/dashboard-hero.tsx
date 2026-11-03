@@ -12,7 +12,15 @@ import type { HudData } from "./hud-utils";
 
 // Dashboard top: a big rank crest that tilts towards the pointer and celebrates on click, the XP road to the next rank,
 // the streak with its week, and animated stats.
-export function DashboardHero({ hud, quests }: { hud: HudData; quests: { done: boolean; label: string; value: number; goal: number; emoji: string }[] }) {
+export function DashboardHero({
+  hud,
+  quests,
+  bonus,
+}: {
+  hud: HudData;
+  quests: { done: boolean; label: string; value: number; goal: number; emoji: string }[];
+  bonus: { xp: number; claimed: boolean };
+}) {
   const { rank, streak, week, stats, today } = hud;
   const reduce = useReducedMotion();
   const px = useMotionValue(0);
@@ -149,6 +157,17 @@ export function DashboardHero({ hud, quests }: { hud: HudData; quests: { done: b
                 </li>
               ))}
             </ul>
+            <div className={`mt-3 rounded-xl border px-3 py-2 ${bonus.claimed ? "border-[var(--hi)] bg-[var(--yel-soft)]" : "border-[var(--line)] bg-[var(--track)]"}`}>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="font-bold">🎁 Bonus de misiones +{bonus.xp} XP</span>
+                <span className={`text-xs font-bold ${bonus.claimed ? "text-[var(--hi)]" : "hx-mute"}`}>
+                  {bonus.claimed ? "✓ Reclamado" : `${doneQuests}/${quests.length} · sin reclamar`}
+                </span>
+              </div>
+              <div className="hx-bar mt-2 !h-2" role="progressbar" aria-valuenow={doneQuests} aria-valuemin={0} aria-valuemax={quests.length} aria-label="Misiones del día">
+                <span style={{ width: `${Math.max((doneQuests / quests.length) * 100, 3)}%` }} />
+              </div>
+            </div>
             <p className="hx-mute mt-2 text-sm">Hoy llevas {today.answered} de {today.goal} preguntas.</p>
           </div>
         </div>

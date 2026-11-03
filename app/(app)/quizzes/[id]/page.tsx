@@ -48,6 +48,7 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
         const def = ACHIEVEMENTS.find((d) => d.id === a.id)!;
         return { id: a.id, emoji: a.emoji, name: a.name, tier: a.tier, text: def.text(def.goals[a.tier - 1]), rarity: a.rarity };
       }),
+    questsDone: !before.questsBonus.claimed && after.questsBonus.claimed,
     dailyDone: before.today.answered < DAILY_GOAL && after.today.answered >= DAILY_GOAL,
   };
   const mistakes = quiz.questions

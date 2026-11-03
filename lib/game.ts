@@ -7,7 +7,9 @@ import { rankFromXp, topicMastery } from "./ranks";
 import {
   DAILY_BONUS_XP,
   DAILY_GOAL,
+  QUESTS_BONUS_XP,
   dailyQuests,
+  questsComplete,
   evaluateAchievements,
   xpForQuiz,
   type Facts,
@@ -72,7 +74,12 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
   }
 
   // Daily goal bonus.
-  for (const d of perDay.values()) if (d.answered >= DAILY_GOAL) xp += DAILY_BONUS_XP;
+  // Finishing all three daily quests pays a bigger bonus on top. It is derived from the day's activity, so it is
+  // "claimed" the moment the last quest is done.
+  for (const d of perDay.values()) {
+    if (d.answered >= DAILY_GOAL) xp += DAILY_BONUS_XP;
+    if (questsComplete(d)) xp += QUESTS_BONUS_XP;
+  }
 
   // Day streaks.
   const active = (k: string) => (perDay.get(k)?.answered ?? 0) > 0;
@@ -118,6 +125,7 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
     achievements,
     achievementPoints: achievements.reduce((n, a) => n + a.points, 0),
     quests: dailyQuests(todayStats),
+    questsBonus: { xp: QUESTS_BONUS_XP, claimed: questsComplete(todayStats) },
     today: todayStats,
     week,
     facts,

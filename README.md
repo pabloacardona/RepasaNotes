@@ -103,3 +103,5 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 - Mascot framing now leaves room for hops and turning; the mascot switch has quick prev/next arrows and a one-tap face grid.
 
 - Dashboard shows earned achievements as plaques with their description (components/game/badge-wall.tsx); quiz options no longer clip when they scale up.
+
+- Daily quests bonus (+40 XP when all three are done, shown on the dashboard and results); achievements are a compact collectible plaque wall with hover details and level pips.

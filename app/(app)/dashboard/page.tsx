@@ -43,7 +43,7 @@ export default async function Dashboard() {
         <LinkButton href="/quizzes/nuevo">+ Nuevo quiz</LinkButton>
       </div>
 
-      <DashboardHero hud={hud} quests={game.quests} />
+      <DashboardHero hud={hud} quests={game.quests} bonus={game.questsBonus} />
       <BadgeWall achievements={game.achievements} />
       <div className="mb-6">
         <RankLadder tierIndex={game.rank.tierIndex} xp={game.rank.xp} />

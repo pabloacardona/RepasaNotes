@@ -3,6 +3,7 @@
 
 export const DAILY_GOAL = 10; // questions answered per day
 export const DAILY_BONUS_XP = 15;
+export const QUESTS_BONUS_XP = 40; // for finishing all three daily quests in one day
 export const QUIZ_BASE_XP = 20;
 export const PERFECT_BONUS_XP = 30;
 
@@ -97,6 +98,8 @@ export function evaluateAchievements(f: Facts): AchievementState[] {
 }
 
 export type Quest = { id: string; emoji: string; label: string; value: number; goal: number; done: boolean };
+
+export const questsComplete = (day: { answered: number; correct: number; quizzes: number }) => dailyQuests(day).every((q) => q.done);
 
 export function dailyQuests(today: { answered: number; correct: number; quizzes: number }): Quest[] {
   const q = (id: string, emoji: string, label: string, value: number, goal: number): Quest => ({

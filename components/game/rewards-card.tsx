@@ -16,6 +16,7 @@ export type Reward = {
   promoted: boolean;
   unlocked: { id: string; emoji: string; name: string; text: string; tier: number; rarity: { name: string; color: string } }[];
   dailyDone: boolean;
+  questsDone: boolean; // all three daily quests finished with this quiz: the quest bonus was just claimed
 };
 
 // What the quiz earned, in one row: XP, the rank bar and small chips for anything unlocked.
@@ -33,7 +34,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
       () => {
         setReveal(true);
         if (reward.promoted) setUp(true);
-        else if (reward.unlocked.length > 0) celebrate();
+        else if (reward.unlocked.length > 0 || reward.questsDone) celebrate();
       },
       reduce ? 0 : 1300,
     );
@@ -41,7 +42,7 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [fresh, reward.xpGain, reward.unlocked.length, reward.promoted, reduce]);
+  }, [fresh, reward.xpGain, reward.unlocked.length, reward.promoted, reward.questsDone, reduce]);
 
   const shown = reveal ? reward.to : reward.from;
 
@@ -68,8 +69,9 @@ export function RewardsCard({ reward, fresh }: { reward: Reward; fresh: boolean 
         </div>
       </div>
 
-      {reveal && (reward.unlocked.length > 0 || reward.dailyDone) && (
+      {reveal && (reward.unlocked.length > 0 || reward.dailyDone || reward.questsDone) && (
         <ul className="mt-3 flex flex-wrap gap-2 border-t border-[var(--line)] pt-3">
+          {reward.questsDone && <li className="rounded-full border border-[var(--hi)] px-3 py-1 text-xs font-bold text-[var(--hi)]">🎁 Misiones del día completas · bonus reclamado</li>}
           {reward.dailyDone && <li className="rounded-full border border-[var(--line)] px-3 py-1 text-xs font-semibold">☀️ Meta diaria cumplida</li>}
           {reward.unlocked.map((a, i) => (
             <motion.li
