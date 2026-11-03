@@ -288,14 +288,14 @@ export function QuizRunner({
           </div>
 
           {/* Only this area scrolls, and only if a long question does not fit. The padding gives the option scale-up and its glow room, so the scroll box never clips them. */}
-          <div className="-mx-4 mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6 pt-3">
+          <div className="-mx-6 min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-6 pt-3">
             <AnimatePresence mode="wait" initial={false} custom={direction}>
               <motion.section
                 key={current}
                 custom={direction}
-                initial={reduce ? false : { opacity: 0, x: 70 * direction, filter: "blur(6px)" }}
+                initial={reduce ? false : { opacity: 0, x: 24 * direction, filter: "blur(6px)" }}
                 animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                exit={reduce ? undefined : { opacity: 0, x: -70 * direction, filter: "blur(6px)" }}
+                exit={reduce ? undefined : { opacity: 0, x: -24 * direction, filter: "blur(6px)" }}
                 transition={{ type: "spring", stiffness: 300, damping: 28 }}
                 className={feedback?.kind === "miss" ? "anim-shake" : ""}
               >
@@ -320,7 +320,7 @@ export function QuizRunner({
                           onClick={() => choose(i)}
                           disabled={answered}
                           title={`Tecla ${i + 1} o ${LETTERS[i]}`}
-                          className={`q-opt disabled:cursor-default ${cls} ${answered && isCorrect && isChosen ? "anim-pop" : ""}`}
+                          className={`q-opt disabled:cursor-default ${cls} ${answered && isCorrect && isChosen ? "q-pop" : ""}`}
                         >
                           <span className={`q-key ${answered && isCorrect ? "!border-[var(--ok)] !bg-[var(--ok)] !text-[var(--on-accent)] !shadow-none" : answered && isChosen ? "!border-[var(--bad)] !bg-[var(--bad)] !text-white !shadow-none" : ""}`}>
                             {LETTERS[i]}
