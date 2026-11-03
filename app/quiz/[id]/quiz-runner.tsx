@@ -287,8 +287,8 @@ export function QuizRunner({
             </p>
           </div>
 
-          {/* Only this area scrolls, and only if a long question does not fit. */}
-          <div className="mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+          {/* Only this area scrolls, and only if a long question does not fit. The padding gives the option scale-up and its glow room, so the scroll box never clips them. */}
+          <div className="-mx-4 mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6 pt-3">
             <AnimatePresence mode="wait" initial={false} custom={direction}>
               <motion.section
                 key={current}

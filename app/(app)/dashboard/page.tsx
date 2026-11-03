@@ -5,6 +5,7 @@ import { getGameProfile } from "@/lib/game";
 import { getStudyStats } from "@/lib/stats";
 import { DAILY_GOAL } from "@/lib/gamification";
 import { DashboardHero } from "@/components/game/dashboard-hero";
+import { BadgeWall } from "@/components/game/badge-wall";
 import { RankLadder } from "@/components/game/rank-ladder";
 import { Card, LinkButton } from "@/components/ui";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
@@ -43,6 +44,7 @@ export default async function Dashboard() {
       </div>
 
       <DashboardHero hud={hud} quests={game.quests} />
+      <BadgeWall achievements={game.achievements} />
       <div className="mb-6">
         <RankLadder tierIndex={game.rank.tierIndex} xp={game.rank.xp} />
       </div>

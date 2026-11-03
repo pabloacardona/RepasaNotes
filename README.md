@@ -101,3 +101,5 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 - Accent is now soft gold instead of rose; the 3D mascot lighting follows the light/dark theme.
 
 - Mascot framing now leaves room for hops and turning; the mascot switch has quick prev/next arrows and a one-tap face grid.
+
+- Dashboard shows earned achievements as plaques with their description (components/game/badge-wall.tsx); quiz options no longer clip when they scale up.
