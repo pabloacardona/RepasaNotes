@@ -638,3 +638,7 @@ html { scroll-behavior: smooth; }
 }
 .q-pop { animation: q-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
 @media (prefers-reduced-motion: reduce) { .q-pop { animation: none; } }
+
+/* Conquest map tooltip: hover only */
+.map-tip { opacity: 0; visibility: hidden; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); transition: opacity 0.15s; }
+.group:hover > .map-tip { opacity: 1; visibility: visible; }

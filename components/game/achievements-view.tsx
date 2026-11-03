@@ -1,10 +1,10 @@
-import Link from "next/link";
 import type { GameProfile } from "@/lib/game";
-import { TIER_POINTS, type AchievementState } from "@/lib/gamification";
+import { TIER_POINTS } from "@/lib/gamification";
 import { CONQUER_TIER, TIERS } from "@/lib/ranks";
+import { ConquestMap } from "./conquest-map";
+import { AchievementCard } from "./achievement-card";
 import { GameShell } from "./game-shell";
 import { RankEmblem } from "./rank-emblem";
-import { AchievementIcon } from "./achievement-icon";
 import { RankLadder } from "./rank-ladder";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 
@@ -64,43 +64,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
           <h2 className="hx-kicker">Mapa de conquista</h2>
           <p className="hx-mute text-sm">Un tema se conquista al llegar a {TIERS[CONQUER_TIER].name}. Los aciertos pesan por tu precisión.</p>
         </div>
-        {topics.length === 0 ? (
-          <div className="hx-panel mt-3 p-8 text-center">
-            <p className="hx-title text-xl">Territorio sin explorar</p>
-            <p className="hx-mute mt-2">Resuelve quizzes de un tema para empezar a conquistarlo.</p>
-            <Link href="/quizzes/nuevo" className="hx-btn hx-btn-gold mt-5">
-              Nuevo quiz
-            </Link>
-          </div>
-        ) : (
-          <Stagger className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {topics.map((t) => (
-              <StaggerItem key={t.topic}>
-                <div className="hx-panel hx-lift h-full p-4">
-                  <div className="flex items-center gap-3">
-                    <RankEmblem tierIndex={t.mastery.tierIndex} size={64} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-bold">{t.topic}</p>
-                      <p className="font-display text-sm font-bold uppercase tracking-wider" style={{ color: t.mastery.tier.glow }}>
-                        {t.mastery.tier.name}
-                      </p>
-                      <p className="hx-mute text-xs">
-                        {t.correct}/{t.answered} aciertos
-                      </p>
-                    </div>
-                  </div>
-                  <div className="hx-bar mt-3">
-                    <span style={{ width: `${Math.max(t.mastery.pct, 3)}%` }} />
-                  </div>
-                  <p className="mt-1.5 flex items-center justify-between text-xs">
-                    <span className="hx-mute">{t.mastery.nextName ? `Siguiente: ${t.mastery.nextName}` : "Dominio total"}</span>
-                    {t.mastery.conquered ? <span className="font-bold text-[var(--ok)]">🏰 Conquistado</span> : <span className="hx-mute">{t.mastery.pct}%</span>}
-                  </p>
-                </div>
-              </StaggerItem>
-            ))}
-          </Stagger>
-        )}
+        <ConquestMap topics={topics} />
       </section>
 
       {/* Achievements */}
@@ -128,45 +92,6 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
       <dd className="hx-title text-2xl">{value}</dd>
       <dt className="hx-mute text-[0.62rem] font-bold uppercase tracking-wider">{label}</dt>
       <p className="hx-mute text-[0.6rem]">{sub}</p>
-    </div>
-  );
-}
-
-function AchievementCard({ a }: { a: AchievementState }) {
-  const locked = a.tier === 0;
-  const pct = a.complete ? 100 : Math.round(((a.value - a.prev) / (a.goal - a.prev)) * 100);
-  return (
-    <div className={`hx-panel hx-lift h-full p-4 ${locked ? "opacity-80" : ""}`} style={{ ["--ac" as string]: a.rarity.color }}>
-      <div className="flex gap-3">
-        <AchievementIcon id={a.id} color={a.rarity.color} tier={a.tier} size={68} locked={locked} className="shrink-0" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <p className="font-bold">{a.name}</p>
-            <span className="shrink-0 text-xs font-bold tabular-nums text-[var(--hi)]">{a.points} pts</span>
-          </div>
-          <p className="text-[0.68rem] font-bold uppercase tracking-widest" style={{ color: locked ? "var(--mute)" : a.rarity.color }}>
-            {locked ? "Bloqueado" : a.rarity.name}
-          </p>
-          <p className="hx-mute mt-1 text-sm">{a.complete ? "¡Completado en todos sus niveles!" : a.text}</p>
-        </div>
-      </div>
-      <div className="mt-3 flex items-center gap-3">
-        <ol className="flex gap-1" aria-label={`Nivel ${a.tier} de 4`}>
-          {[1, 2, 3, 4].map((t) => (
-            <li
-              key={t}
-              className="h-3 w-3 rotate-45"
-              style={{ background: t <= a.tier ? a.rarity.color : "rgba(255,255,255,0.12)", boxShadow: t <= a.tier ? `0 0 8px ${a.rarity.color}` : "none" }}
-            />
-          ))}
-        </ol>
-        <div className="hx-bar hx-bar-gold flex-1">
-          <span style={{ width: `${Math.max(pct, 3)}%` }} />
-        </div>
-        <span className="hx-mute text-xs font-bold tabular-nums">
-          {a.complete ? "MAX" : `${a.value}/${a.goal}`}
-        </span>
-      </div>
     </div>
   );
 }

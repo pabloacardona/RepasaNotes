@@ -72,7 +72,7 @@ export function rankFromXp(xp: number): Rank {
 }
 
 // ---------- Topic conquest ----------
-const TOPIC_MIN = [0, 8, 22, 45, 80, 125, 185, 260];
+export const TOPIC_MIN = [0, 8, 22, 45, 80, 125, 185, 260];
 export const CONQUER_TIER = 3; // Oro
 
 export type Mastery = { tier: Tier; tierIndex: number; points: number; pct: number; nextName: string | null; conquered: boolean };

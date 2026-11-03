@@ -109,3 +109,5 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 - Landing has the mascot picker and no closing CTA box. Logged-in players save their companion on the account (users.mascot, needs `npm run db:push`) and see it in the dashboard corner.
 
 - Plaque wall: tooltip only on hover; clicking a plaque opens the higher levels still to conquer.
+
+- Logros: hover info on conquest map cards, click an achievement to see the plaques that follow; the user menu now sits above the streak bar.

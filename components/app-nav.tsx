@@ -26,7 +26,7 @@ export function AppNav({ name, game }: { name: string; game?: HudData | null }) 
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-[var(--bg)]/80 text-ink backdrop-blur-xl">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 sm:px-6">
+      <nav className="relative z-30 mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 sm:px-6">
         <Link href="/dashboard" className="hx-yellow font-display text-2xl font-bold tracking-wide">
           Repasa
         </Link>
@@ -61,7 +61,7 @@ export function AppNav({ name, game }: { name: string; game?: HudData | null }) 
               <span className="max-w-[6.5rem] truncate text-sm font-bold">{name.split(" ")[0]}</span>
             </button>
             {open && (
-              <div className="absolute right-0 mt-2 w-48 rounded-xl border border-line bg-card p-2 text-ink shadow-lg">
+              <div className="absolute right-0 z-50 mt-2 w-48 rounded-xl border border-line bg-card p-2 text-ink shadow-lg">
                 <p className="truncate px-2 py-1 text-sm text-muted">{name}</p>
                 <button
                   onClick={logout}
