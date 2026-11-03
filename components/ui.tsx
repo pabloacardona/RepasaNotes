@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from "react";
 type Variant = "primary" | "ai" | "dark" | "outline" | "ghost" | "danger";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-white shadow-[0_4px_18px_rgba(124,92,255,0.4)] hover:brightness-110",
+  primary: "bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-[#2a2012] shadow-[0_4px_18px_rgba(224,181,80,0.4)] hover:brightness-110",
   ai: "bg-[#e7c88a] text-[#2a2012] shadow-[0_4px_16px_rgba(231,200,138,0.25)] hover:brightness-95",
   dark: "border border-[var(--line-strong)] bg-[var(--surface-2)] text-[var(--hi)] hover:border-[var(--neon)]",
   outline: "border-2 border-[var(--line-strong)] text-ink bg-transparent hover:border-[var(--neon)] hover:bg-ink/5",

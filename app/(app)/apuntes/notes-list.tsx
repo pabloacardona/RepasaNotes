@@ -110,7 +110,7 @@ export function NotesList({ notes }: { notes: NoteItem[] }) {
               onClick={() => setTopic(t)}
               aria-pressed={topic === t}
               className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition-all duration-200 ${
-                topic === t ? "border-transparent bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-white shadow-[0_0_18px_color-mix(in_oklab,var(--b1)_55%,transparent)]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--neon)]"
+                topic === t ? "border-transparent bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-[#2a2012] shadow-[0_0_18px_color-mix(in_oklab,var(--b1)_55%,transparent)]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--neon)]"
               }`}
             >
               {t}

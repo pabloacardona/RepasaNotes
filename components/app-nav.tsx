@@ -54,7 +54,7 @@ export function AppNav({ name, game }: { name: string; game?: HudData | null }) 
               aria-expanded={open}
               className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-2)] py-0.5 pl-0.5 pr-3 transition hover:border-[var(--neon)]"
             >
-              <span className="relative grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] font-bold text-white">
+              <span className="relative grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] font-bold text-[#2a2012]">
                 {name.charAt(0).toUpperCase()}
                 <span aria-hidden className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--bg)] bg-[var(--ok)]" />
               </span>

@@ -244,7 +244,7 @@ export function QuizRunner({
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {playerName && (
               <span className="hidden items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] py-1 pl-1 pr-3 sm:flex" title={playerName}>
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] text-sm font-bold text-white">{playerName.charAt(0).toUpperCase()}</span>
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] text-sm font-bold text-[#2a2012]">{playerName.charAt(0).toUpperCase()}</span>
                 <span className="max-w-[7rem] truncate text-sm font-bold">{playerName.split(" ")[0]}</span>
               </span>
             )}

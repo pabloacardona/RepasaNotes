@@ -97,3 +97,5 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 - Landing performance: backdrop drawn at 1x with a low-res cached gradient, batched link strokes and cached glow sprites (auto lite mode on slow devices); 3D canvas capped at 1.5x with a smaller shadow map; epic borders animate in steps.
 
 - Calm palette: muted dusk-plum dark and warm-paper light themes, dusty-rose accent, soft gold wordmark, sage success, softer rank colours and a quieter backdrop.
+
+- Accent is now soft gold instead of rose; the 3D mascot lighting follows the light/dark theme.

@@ -88,7 +88,7 @@ export function AuthForm({ initial }: { initial: Mode }) {
             aria-selected={mode === m}
             onClick={() => switchMode(m)}
             className={`py-2.5 font-bold transition ${
-              mode === m ? "border-transparent bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-white shadow-[0_0_14px_rgba(124,92,255,0.45)]" : "bg-card text-ink-soft hover:text-ink"
+              mode === m ? "border-transparent bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-[#2a2012] shadow-[0_0_14px_rgba(224,181,80,0.45)]" : "bg-card text-ink-soft hover:text-ink"
             }`}
           >
             {m === "login" ? "Iniciar sesión" : "Crear cuenta"}

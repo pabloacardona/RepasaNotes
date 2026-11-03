@@ -78,7 +78,7 @@ export function InteractiveBackdrop({
       vx: burst ? Math.cos(rand(0, 6.28)) * burst.speed * rand(0.4, 1) : rand(-0.2, 0.2),
       vy: burst ? Math.sin(rand(0, 6.28)) * burst.speed * rand(0.4, 1) : rand(-0.2, 0.2),
       r: burst ? rand(1.5, 3.4) : rand(1.1, 2.8),
-      hue: burst ? burst.hue : [350, 24, 38, 300, 45][Math.floor(Math.random() * 5)] + rand(-10, 10),
+      hue: burst ? burst.hue : [44, 38, 50, 32, 46][Math.floor(Math.random() * 5)] + rand(-10, 10),
       life: burst ? 1 : -1,
       seed: rand(0, 1000),
     });
@@ -179,7 +179,7 @@ export function InteractiveBackdrop({
         if (light) {
           g.addColorStop(0, `hsl(${28 + heat * 6} 45% 96%)`);
           g.addColorStop(0.55, `hsl(${20 + heat * 4} 40% 94%)`);
-          g.addColorStop(1, "hsl(340 30% 94%)");
+          g.addColorStop(1, "hsl(44 40% 92%)");
         } else {
           g.addColorStop(0, `hsl(${272 + heat * 10} 20% ${8 + heat * 2}%)`);
           g.addColorStop(0.55, `hsl(${285 + heat * 14} 18% ${10 + heat * 2}%)`);
@@ -192,10 +192,10 @@ export function InteractiveBackdrop({
         const px = mouse.active ? (mouse.x / w - 0.5) * 15 : 0;
         const py = mouse.active ? (mouse.y / h - 0.5) * 15 : 0;
         const blobs: [number, number, number, number, number][] = [
-          [0.2, 0.25, 0.34, 345, 0.0],
-          [0.8, 0.3, 0.3, 28, 1.7],
+          [0.2, 0.25, 0.34, 44, 0.0],
+          [0.8, 0.3, 0.3, 36, 1.7],
           [0.65, 0.85, 0.36, 14 + heat * 30, 3.1],
-          [0.12, 0.8, 0.26, 295, 4.4],
+          [0.12, 0.8, 0.26, 50, 4.4],
         ];
         for (const [bx, by, br, hue, ph] of blobs) {
           const cx = (bx + Math.sin(t * 0.18 + ph) * 0.06) * ow + px * (1 + ph * 0.1);
@@ -281,7 +281,7 @@ export function InteractiveBackdrop({
         }
         for (let lv = 0; lv < LV; lv++) {
           const al = ((lv + 0.5) / LV) * 0.26 * (light ? 1.3 : 1);
-          ctx!.strokeStyle = `hsl(${350 + heat * 30} 40% ${light ? 48 : 72}% / ${al})`;
+          ctx!.strokeStyle = `hsl(${46 + heat * 8} 45% ${light ? 48 : 72}% / ${al})`;
           ctx!.stroke(paths[lv]);
         }
       }
@@ -333,8 +333,8 @@ export function InteractiveBackdrop({
       // Pointer halo.
       if (mouse.active) {
         const hg = ctx!.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 120);
-        hg.addColorStop(0, light ? "hsl(340 50% 60% / 0.1)" : "hsl(20 50% 75% / 0.14)");
-        hg.addColorStop(1, light ? "hsl(340 50% 60% / 0)" : "hsl(20 50% 75% / 0)");
+        hg.addColorStop(0, light ? "hsl(44 60% 55% / 0.1)" : "hsl(44 60% 75% / 0.14)");
+        hg.addColorStop(1, light ? "hsl(44 60% 55% / 0)" : "hsl(44 60% 75% / 0)");
         ctx!.fillStyle = hg;
         ctx!.fillRect(mouse.x - 120, mouse.y - 120, 240, 240);
       }

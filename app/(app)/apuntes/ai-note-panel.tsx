@@ -93,7 +93,7 @@ export function AiNotePanel({
               <label
                 key={l.value}
                 className={`cursor-pointer py-2.5 text-center font-semibold transition has-focus-visible:outline-3 has-focus-visible:outline-blue ${
-                  level === l.value ? "bg-blue font-bold text-white" : "bg-card hover:bg-blue-soft"
+                  level === l.value ? "bg-blue font-bold text-[#2a2012]" : "bg-card hover:bg-blue-soft"
                 }`}
               >
                 <input

@@ -13,29 +13,29 @@
   --line: rgba(110, 80, 95, 0.16);
   --line-strong: rgba(110, 80, 95, 0.32);
   --track: rgba(110, 80, 95, 0.11);
-  --accent: #b04a63;
+  --accent: #9a6a10;
   --hi: #94651d;
-  --neon: #b04a63;
+  --neon: #b8821f;
   --ok: #3f8a6a;
   --bad: #c4455d;
   --bad-soft: #a8324a;
   --hot: #b86a3a;
-  --on-accent: #ffffff;
-  --b1: #c9667a;
-  --b2: #a8485f;
+  --on-accent: #2a2012;
+  --b1: #e6bf5c;
+  --b2: #c99a2e;
   --shadow: 0 8px 28px rgba(90, 60, 75, 0.12);
-  --blue: #b04a63;
-  --blue-dark: #94374f;
-  --blue-soft: #f4dfe4;
+  --blue: #d9a93a;
+  --blue-dark: #b8821f;
+  --blue-soft: #f8efd5;
   --yel: #e6c987;
   --yel-soft: #f8efd5;
   --grn: #3f8a6a;
   --grn-soft: #dcefe6;
   --red: #c4455d;
   --red-soft: #f7dfe4;
-  --blob-a: rgba(201, 102, 122, 0.14);
+  --blob-a: rgba(230, 191, 92, 0.16);
   --blob-b: rgba(217, 160, 102, 0.12);
-  --blob-c: rgba(142, 106, 168, 0.1);
+  --blob-c: rgba(180, 150, 90, 0.1);
 }
 
 :root[data-theme="dark"] {
@@ -50,27 +50,27 @@
   --line: rgba(230, 190, 200, 0.14);
   --line-strong: rgba(230, 190, 200, 0.28);
   --track: rgba(230, 190, 200, 0.1);
-  --accent: #e29aa8;
+  --accent: #f0d27f;
   --hi: #e7c88a;
-  --neon: #e8a3b0;
+  --neon: #f3d88f;
   --ok: #7fc4a4;
   --bad: #e0788c;
   --bad-soft: #eaa0ae;
   --hot: #e0996a;
-  --on-accent: #1d1218;
+  --on-accent: #2a2012;
   --shadow: 0 10px 34px rgba(0, 0, 0, 0.4);
-  --blue: #e29aa8;
-  --blue-dark: #d07d8e;
-  --blue-soft: rgba(226, 154, 168, 0.16);
+  --blue: #e6bf5c;
+  --blue-dark: #c99a2e;
+  --blue-soft: rgba(230, 191, 92, 0.16);
   --yel: #e7c88a;
   --yel-soft: rgba(231, 200, 138, 0.1);
   --grn: #7fc4a4;
   --grn-soft: rgba(127, 196, 164, 0.1);
   --red: #e0788c;
   --red-soft: rgba(224, 120, 140, 0.12);
-  --blob-a: rgba(201, 102, 122, 0.16);
+  --blob-a: rgba(230, 191, 92, 0.12);
   --blob-b: rgba(217, 160, 102, 0.08);
-  --blob-c: rgba(142, 106, 168, 0.12);
+  --blob-c: rgba(180, 150, 90, 0.1);
 }
 
 @theme {
@@ -337,15 +337,15 @@ h3,
 .hx-btn:focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; }
 .hx-btn-gold {
   border-color: transparent;
-  background: #bf5468;
-  color: #fff;
-  box-shadow: 0 6px 24px rgba(191, 84, 104, 0.32);
+  background: #e0b550;
+  color: #2a2012;
+  box-shadow: 0 6px 22px rgba(224, 181, 80, 0.28);
 }
 @keyframes btn-flicker {
-  0%, 100% { box-shadow: 0 6px 22px rgba(191, 84, 104, 0.28), 0 0 0 0 rgba(255, 106, 26, 0); }
-  50% { box-shadow: 0 8px 30px rgba(191, 84, 104, 0.4), 0 -6px 22px rgba(255, 106, 26, 0.35); }
+  0%, 100% { box-shadow: 0 6px 22px rgba(224, 181, 80, 0.26), 0 0 0 0 rgba(255, 106, 26, 0); }
+  50% { box-shadow: 0 8px 30px rgba(224, 181, 80, 0.36), 0 -6px 22px rgba(255, 106, 26, 0.35); }
 }
-.hx-btn-gold:hover:not(:disabled) { border-color: transparent; filter: brightness(1.1); background: #cc6075; }
+.hx-btn-gold:hover:not(:disabled) { border-color: transparent; filter: brightness(1.1); background: #ebc464; }
 .hx-btn-cyan {
   border-color: transparent;
   background: linear-gradient(135deg, #8e6aa8, #b8738f);
@@ -421,7 +421,7 @@ h3,
   position: absolute;
   inset: -3px;
   border-radius: inherit;
-  background: conic-gradient(from 0deg, var(--b1, #7c5cff), var(--neon), #e8a3b0, var(--b1, #7c5cff));
+  background: conic-gradient(from 0deg, var(--b1, #7c5cff), var(--neon), #f3d88f, var(--b1, #7c5cff));
   filter: blur(8px);
   opacity: 0.55;
   z-index: -1;
@@ -438,8 +438,8 @@ h3,
 }
 
 /* Activity heatmap ramp, one hue, per theme */
-:root { --heat-0: #f4e6e2; --heat-1: #ebc7cc; --heat-2: #dca0ad; --heat-3: #c9667a; --heat-4: #94374f; }
-:root[data-theme="dark"] { --heat-0: #26202e; --heat-1: #473049; --heat-2: #8a4a62; --heat-3: #c9667a; --heat-4: #e7c88a; }
+:root { --heat-0: #f6ecd8; --heat-1: #efd9a4; --heat-2: #e6bf5c; --heat-3: #c99a2e; --heat-4: #94651d; }
+:root[data-theme="dark"] { --heat-0: #26202e; --heat-1: #453a30; --heat-2: #8a6a2e; --heat-3: #d9a93a; --heat-4: #f0d27f; }
 
 
 /* ====================================================================================================
@@ -450,7 +450,7 @@ h3,
 .hx-bob { animation: hx-bob 3.2s ease-in-out infinite; }
 @keyframes hx-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 .hx-tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: color-mix(in oklab, var(--fg) 40%, transparent); }
-.hx-sticker { display: inline-block; border-radius: 999px; background: linear-gradient(135deg, var(--b1), var(--b2)); color: #fff; padding: 0.2rem 0.7rem; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 16px color-mix(in oklab, var(--b1) 50%, transparent); }
+.hx-sticker { display: inline-block; border-radius: 999px; background: linear-gradient(135deg, var(--b1), var(--b2)); color: #2a2012; padding: 0.2rem 0.7rem; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 16px color-mix(in oklab, var(--b1) 50%, transparent); }
 
 /* Animated gradient border (epic cards) */
 @keyframes hx-border-spin { to { --ang: 360deg; } }
@@ -461,7 +461,7 @@ h3,
   border-radius: 20px;
   background:
     linear-gradient(var(--panel), var(--panel)) padding-box,
-    conic-gradient(from var(--ang), var(--b1), #e8b4be, var(--b2), #7a3a52, var(--b1)) border-box;
+    conic-gradient(from var(--ang), var(--b1), #f3dc9c, var(--b2), #8a6a2e, var(--b1)) border-box;
   animation: hx-border-spin 6s steps(90, end) infinite; /* stepped: a slow border does not need 60 repaints a second */
   box-shadow: 0 18px 60px color-mix(in oklab, var(--b1) 12%, transparent), 0 2px 0 rgba(255, 255, 255, 0.06) inset;
 }
@@ -583,12 +583,12 @@ html { scroll-behavior: smooth; }
   --line-strong: rgba(255, 255, 255, 0.45);
   --surface-2: rgba(255, 255, 255, 0.08);
   position: relative;
-  background: linear-gradient(180deg, #2b2335 0%, #1d1826 100%);
+  background: linear-gradient(180deg, #2f2a38 0%, #1f1b28 100%);
   border-top: 1px solid color-mix(in oklab, var(--b1) 55%, #fff 10%);
   box-shadow: 0 -14px 36px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
   color: var(--fg);
 }
-.hx-dock-bar::before { content: ""; position: absolute; inset: -1px 0 auto 0; height: 2px; background: linear-gradient(90deg, transparent, var(--b1), var(--neon), #e8a3b0, transparent); }
+.hx-dock-bar::before { content: ""; position: absolute; inset: -1px 0 auto 0; height: 2px; background: linear-gradient(90deg, transparent, var(--b1), var(--neon), #f3d88f, transparent); }
 .hx-dock { background: color-mix(in oklab, var(--surface) 97%, transparent); }
 
 :root:not([data-theme="dark"]) .fire-tongue { mix-blend-mode: normal; }
