@@ -107,3 +107,5 @@ Deployed on Vercel. Set `DATABASE_URL` and `JWT_SECRET` in the project's environ
 - Daily quests bonus (+40 XP when all three are done, shown on the dashboard and results); achievements are a compact collectible plaque wall with hover details and level pips.
 
 - Landing has the mascot picker and no closing CTA box. Logged-in players save their companion on the account (users.mascot, needs `npm run db:push`) and see it in the dashboard corner.
+
+- Plaque wall: tooltip only on hover; clicking a plaque opens the higher levels still to conquer.

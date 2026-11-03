@@ -627,7 +627,8 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
   transition: opacity 0.15s;
 }
-.badge-slot:hover .badge-tip, .badge-slot:focus-within .badge-tip { opacity: 1; visibility: visible; }
+.badge-slot:hover .badge-tip { opacity: 1; visibility: visible; } /* hover only: a click must not leave the text stuck */
+.badge-open { outline: 2px solid var(--ac); outline-offset: 2px; }
 
 /* Chosen-correct option: a small spring and an expanding ring, kept inside the padding of the scroll box so nothing is clipped. */
 @keyframes q-pop {
