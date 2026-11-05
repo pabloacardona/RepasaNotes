@@ -4,7 +4,7 @@ import { getGameProfile } from "@/lib/game";
 import { getStudyStats } from "@/lib/stats";
 import { DAILY_GOAL } from "@/lib/gamification";
 import { MascotSync } from "@/components/world/mascot-sync";
-import { getUserMascot } from "@/lib/mascot-store";
+import { getUserMascots } from "@/lib/mascot-store";
 import { getUserAvatar } from "@/lib/avatar-store";
 import { ClickBurst } from "@/components/click-burst";
 import { StatsDock } from "@/components/game/stats-dock";
@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const [game, stats, mascot, avatar] = await Promise.all([
     getGameProfile(user.sub).catch(() => null),
     getStudyStats(user.sub).catch(() => null),
-    getUserMascot(user.sub),
+    getUserMascots(user.sub),
     getUserAvatar(user.sub),
   ]);
   const hud: HudData | null = game && {

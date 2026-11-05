@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 160 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   avatar: text("avatar"), // profile picture as a small data URL (256px JPEG); null = initial letter
+  mascotBaby: varchar("mascot_baby", { length: 24 }), // the small companion on the other side of the dashboard
   mascot: varchar("mascot", { length: 24 }), // companion chosen by the player; null = a random one each visit
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

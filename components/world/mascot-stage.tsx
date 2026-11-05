@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
-import { useMascot, useMascotGestures } from "@/lib/mascots";
+import { useMascot, useMascotGestures, type MascotSlot } from "@/lib/mascots";
 import { mascotQuote } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
 
@@ -40,6 +40,7 @@ export function MascotStage({
   bubbleClassName = "",
   className = "",
   scrollToSwitch = false,
+  slot = "main",
 }: {
   mood: Mood;
   pulse: number;
@@ -51,11 +52,13 @@ export function MascotStage({
   className?: string;
   /** Scroll or swipe over the mascot to change it. Off by default so it never steals page scrolling. */
   scrollToSwitch?: boolean;
+  /** Which companion this stage shows: the main one or the baby one. */
+  slot?: MascotSlot;
 }) {
   const zone = useRef<HTMLDivElement>(null);
-  useMascotGestures(zone);
+  useMascotGestures(zone, { slot });
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
-  const { id } = useMascot();
+  const { id } = useMascot(slot);
   const [ready, setReady] = useState(false);
   const quote = mascotQuote(mood, pulse);
 
