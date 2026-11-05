@@ -22,5 +22,5 @@ export function HeroMascot({ className = "" }: { className?: string }) {
     return () => clearInterval(t);
   }, []);
   const cur = SCRIPT[step % SCRIPT.length];
-  return <MascotStage fps={30} className={className} mood={cur.mood} pulse={step + 1} lastHit={cur.hit} streak={cur.hit ? 3 : 0} />;
+  return <MascotStage picker fps={30} className={className} mood={cur.mood} pulse={step + 1} lastHit={cur.hit} streak={cur.hit ? 3 : 0} />;
 }

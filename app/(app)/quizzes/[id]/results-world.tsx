@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
 import { MascotStage } from "@/components/world/mascot-stage";
-import { MascotPicker } from "@/components/world/mascot-picker";
 import { moodFor } from "@/lib/mood";
 
 // Quiet scene behind the results: the soft backdrop and a small mascot in a corner. No trophy, no pile of effects.
@@ -20,13 +19,14 @@ export function ResultsWorld({ score, total, bestStreak }: { score: number; tota
     <>
       <InteractiveBackdrop streak={bestStreak} calm />
       <MascotStage
+        picker
+        scrollToSwitch
         mood={mood}
         pulse={0}
         lastHit={null}
         streak={bestStreak}
         className="fixed bottom-16 right-4 z-0 hidden h-[min(30dvh,230px)] w-[min(18vw,210px)] lg:block"
       />
-      <MascotPicker className="right-4 top-20" />
     </>
   );
 }

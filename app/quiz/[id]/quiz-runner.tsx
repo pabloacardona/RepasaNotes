@@ -15,7 +15,6 @@ import { moodFor } from "@/lib/mood";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CalmBackdrop } from "@/components/world/calm-backdrop";
 import { MascotStage } from "@/components/world/mascot-stage";
-import { MascotPicker } from "@/components/world/mascot-picker";
 import { Avatar } from "@/components/avatar";
 import { RichText } from "@/components/rich-text";
 import type { Question } from "@/lib/db/schema";
@@ -237,6 +236,7 @@ export function QuizRunner({
       <CalmBackdrop />
       <MascotStage
         scrollToSwitch
+        picker
         mood={mood}
         pulse={track.pulse}
         lastHit={lastHit}
@@ -317,7 +317,6 @@ export function QuizRunner({
       </header>
 
       <main className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-3 pt-[18dvh] sm:px-6 landscape:pt-3">
-        <MascotPicker className="right-3 top-16" />
 
         <div className={`hx-epic hx-epic-still ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative mx-auto flex max-h-full min-h-0 w-full max-w-[560px] flex-col p-3 sm:p-5`}>
           <FireBorder streak={streak} />

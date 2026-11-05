@@ -6,7 +6,6 @@ import { RankLadder } from "@/components/game/rank-ladder";
 import { SocratesLogo } from "@/components/socrates-logo";
 import { Waves, Ripples } from "@/components/landing/waves";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { MascotPicker } from "@/components/world/mascot-picker";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { SpotlightCard } from "@/components/motion/spotlight-card";
 import { MASCOTS } from "@/lib/mascot-data";
@@ -97,7 +96,6 @@ export default function Landing() {
             <div className="relative mx-auto w-full max-w-md">
               <Ripples className="absolute inset-0" />
               <HeroMascot className="relative h-[400px] w-full sm:h-[470px]" />
-              <MascotPicker className="!absolute right-0 bottom-24 z-20" />
               <div className="hx-panel hx-epic-soft absolute -bottom-4 left-0 right-0 mx-auto w-[92%] p-3">
                 <div className="flex items-center gap-3">
                   <RankEmblem tierIndex={4} division={2} size={58} />

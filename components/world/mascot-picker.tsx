@@ -5,7 +5,7 @@ import { MASCOTS, randomizeMascot, stepMascot, useMascot, useMascotGestures, typ
 
 // One small control, no menus: ‹ › step through the mascots. The wheel or touchpad scroll over it, a swipe, and the
 // left / right arrow keys (while it has focus) do the same. The dice picks a different random mascot right away.
-export function MascotPicker({ className = "", slot = "main", compact = false }: { className?: string; slot?: MascotSlot; compact?: boolean; up?: boolean }) {
+export function MascotPicker({ className = "", slot = "main", compact = false, embedded = false }: { className?: string; slot?: MascotSlot; compact?: boolean; embedded?: boolean; up?: boolean }) {
   const { id } = useMascot(slot);
   const box = useRef<HTMLDivElement>(null);
   useMascotGestures(box, { slot });
@@ -20,7 +20,7 @@ export function MascotPicker({ className = "", slot = "main", compact = false }:
       role="group"
       aria-label={`${label}: usa las flechas izquierda y derecha, o la rueda del mouse, para cambiarla`}
       title="Cambia con ← → , la rueda del mouse, el touchpad o deslizando"
-      className={`fixed z-30 flex touch-pan-y select-none items-center rounded-full border border-[var(--line-strong)] bg-[var(--surface-2)]/90 p-0.5 shadow-lg backdrop-blur-md outline-none focus-visible:ring-2 focus-visible:ring-[var(--neon)] ${className}`}
+      className={`${embedded ? "relative" : "fixed z-30"} flex touch-pan-y select-none items-center rounded-full border border-[var(--line-strong)] bg-[var(--surface-2)]/90 p-0.5 shadow-lg backdrop-blur-md outline-none focus-visible:ring-2 focus-visible:ring-[var(--neon)] ${className}`}
     >
       <button type="button" onClick={() => stepMascot(-1, slot)} aria-label={`${label} anterior`} className={btn} tabIndex={-1}>
         ‹

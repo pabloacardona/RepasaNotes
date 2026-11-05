@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
 import { useMascot, useMascotGestures, type MascotSlot } from "@/lib/mascots";
+import { MascotPicker } from "./mascot-picker";
 import { factSeconds, nextFact } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
 
@@ -42,6 +43,7 @@ export function MascotStage({
   scrollToSwitch = false,
   slot = "main",
   fps = 60,
+  picker = false,
 }: {
   mood: Mood;
   pulse: number;
@@ -57,12 +59,27 @@ export function MascotStage({
   slot?: MascotSlot;
   /** Frame rate cap for the 3D canvas (calm pages use 30). */
   fps?: number;
+  /** Show the mascot picker, but only while the pointer is over the mascot (a tap on touch screens). */
+  picker?: boolean;
 }) {
   const zone = useRef<HTMLDivElement>(null);
   useMascotGestures(zone, { slot });
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
   const { id } = useMascot(slot);
   const [ready, setReady] = useState(false);
+  const [pickerOn, setPickerOn] = useState(false);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showPicker = () => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    setPickerOn(true);
+  };
+  const hidePicker = (delay: number) => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setPickerOn(false), delay);
+  };
+  useEffect(() => () => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+  }, []);
   // Render only while the mascot is on screen and the tab is visible.
   const root = useRef<HTMLDivElement>(null);
   const [onScreen, setOnScreen] = useState(true);
@@ -84,7 +101,36 @@ export function MascotStage({
 
   return (
     <div ref={root} className={`pointer-events-none ${className}`} aria-hidden>
-      <div ref={zone} className={`absolute inset-0 z-20 touch-pan-y ${scrollToSwitch ? "pointer-events-auto" : "pointer-events-none"}`} title={scrollToSwitch ? "Desplaza o desliza para cambiar de mascota" : undefined} />
+      <div
+        ref={zone}
+        className={`absolute inset-0 z-20 touch-pan-y ${scrollToSwitch || picker ? "pointer-events-auto" : "pointer-events-none"}`}
+        title={scrollToSwitch ? "Desplaza o desliza para cambiar de mascota" : undefined}
+        onPointerEnter={picker ? (e) => e.pointerType !== "touch" && showPicker() : undefined}
+        onPointerLeave={picker ? () => hidePicker(700) : undefined}
+        onPointerUp={
+          picker
+            ? (e) => {
+                if (e.pointerType === "touch") {
+                  showPicker();
+                  hidePicker(4000);
+                }
+              }
+            : undefined
+        }
+      />
+      {picker && (
+        <div
+          className={`pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center transition duration-200 ${pickerOn ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
+          onPointerEnter={showPicker}
+          onPointerLeave={() => hidePicker(700)}
+          onFocusCapture={showPicker}
+          onBlurCapture={() => hidePicker(900)}
+        >
+          <div className={pickerOn ? "pointer-events-auto" : "pointer-events-none"}>
+            <MascotPicker embedded slot={slot} compact={slot === "baby"} />
+          </div>
+        </div>
+      )}
       <div className={`absolute inset-x-0 z-10 flex justify-center top-0 ${bubbleClassName}`}>
         {hydrated && <FactBubble key={`${mood}-${pulse}`} />}
       </div>
