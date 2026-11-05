@@ -237,7 +237,7 @@ h3,
   flex-direction: column;
   gap: 0.15rem;
   width: max-content;
-  max-width: min(14.5rem, 80vw);
+  max-width: min(17rem, 82vw);
   text-align: center;
   padding: 0.55rem 0.9rem;
   border-radius: 16px;
@@ -251,7 +251,7 @@ h3,
   box-shadow: 0 6px 18px rgb(27 36 51 / 0.25);
   animation: repi-bubble 8s ease-out forwards;
 }
-.repi-quote { font-style: italic; text-wrap: balance; }
+.repi-quote { text-wrap: pretty; }
 .repi-by { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); }
 .repi-bubble::after {
   content: "";
@@ -643,19 +643,30 @@ html { scroll-behavior: smooth; }
 .map-tip { opacity: 0; visibility: hidden; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); transition: opacity 0.15s; }
 .group:hover > .map-tip { opacity: 1; visibility: visible; }
 
-/* Calm study backdrop: slow, blurred, colour-shifting. */
-.calm-bg { position: fixed; inset: 0; z-index: -10; overflow: hidden; background: var(--bg); animation: calm-hue 420s linear infinite; }
-.calm-blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.38; will-change: transform; }
-.calm-b1 { width: 62vmax; height: 62vmax; left: -18vmax; top: -22vmax; background: #6f5aa8; animation: calm-drift-a 220s ease-in-out infinite alternate; }
-.calm-b2 { width: 56vmax; height: 56vmax; right: -20vmax; top: 8vmax; background: #3f7f9a; animation: calm-drift-b 260s ease-in-out infinite alternate; }
-.calm-b3 { width: 58vmax; height: 58vmax; left: 12vmax; bottom: -30vmax; background: #a8704f; animation: calm-drift-c 300s ease-in-out infinite alternate; }
+/* Calm study backdrop: slow, soft, colour-shifting. No blur or hue filters: each blob is a radial gradient that only moves
+   (transform) and cross-fades to a second colour (opacity), so the browser never repaints it. */
+.calm-bg { position: fixed; inset: 0; z-index: -10; overflow: hidden; background: var(--bg); contain: strict; }
+.calm-blob { position: absolute; border-radius: 50%; will-change: transform; }
+.calm-blob::before, .calm-blob::after { content: ""; position: absolute; inset: 0; border-radius: 50%; }
+.calm-blob::before { background: radial-gradient(circle at 50% 50%, var(--ca) 0%, transparent 68%); opacity: 0.42; }
+.calm-blob::after { background: radial-gradient(circle at 50% 50%, var(--cb) 0%, transparent 68%); opacity: 0; animation: calm-fade 140s ease-in-out infinite alternate; will-change: opacity; }
+.calm-b1 { --ca: #6f5aa8; --cb: #3f8f9a; width: 62vmax; height: 62vmax; left: -18vmax; top: -22vmax; animation: calm-drift-a 220s ease-in-out infinite alternate; }
+.calm-b2 { --ca: #3f7f9a; --cb: #a8704f; width: 56vmax; height: 56vmax; right: -20vmax; top: 8vmax; animation: calm-drift-b 260s ease-in-out infinite alternate; }
+.calm-b3 { --ca: #a8704f; --cb: #6f5aa8; width: 58vmax; height: 58vmax; left: 12vmax; bottom: -30vmax; animation: calm-drift-c 300s ease-in-out infinite alternate; }
+.calm-b2::after { animation-delay: -47s; }
+.calm-b3::after { animation-delay: -94s; }
 .calm-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 35%, color-mix(in oklab, var(--bg) 70%, transparent) 100%); }
-:root:not([data-theme="dark"]) .calm-blob { opacity: 0.3; }
-@keyframes calm-hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
-@keyframes calm-drift-a { from { transform: translate(0, 0) scale(1); } to { transform: translate(14vmax, 10vmax) scale(1.15); } }
-@keyframes calm-drift-b { from { transform: translate(0, 0) scale(1.1); } to { transform: translate(-12vmax, 14vmax) scale(0.95); } }
-@keyframes calm-drift-c { from { transform: translate(0, 0) scale(1); } to { transform: translate(10vmax, -12vmax) scale(1.2); } }
-@media (prefers-reduced-motion: reduce) { .calm-bg, .calm-blob { animation: none; } }
+:root:not([data-theme="dark"]) .calm-blob::before { opacity: 0.3; }
+@keyframes calm-fade { from { opacity: 0; } to { opacity: 0.42; } }
+@keyframes calm-drift-a { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(14vmax, 10vmax, 0) scale(1.15); } }
+@keyframes calm-drift-b { from { transform: translate3d(0, 0, 0) scale(1.1); } to { transform: translate3d(-12vmax, 14vmax, 0) scale(0.95); } }
+@keyframes calm-drift-c { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(10vmax, -12vmax, 0) scale(1.2); } }
+@media (prefers-reduced-motion: reduce) { .calm-blob, .calm-blob::after { animation: none; } }
+
+/* Landing: lighter effects. Panels there skip the backdrop blur (it re-blurs whatever moves behind), and sections below the
+   fold are not painted until they scroll into view. */
+.lite-fx .hx-panel { backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cv-auto { content-visibility: auto; contain-intrinsic-size: auto 720px; }
 
 /* Rich text in questions: code blocks, inline code, charts. */
 :root { --chart-1: #c9893a; --chart-2: #4f8fa8; --chart-3: #8a6bb8; --chart-4: #5c9a6e; --chart-5: #c7647a; --chart-6: #b0a04a; --code-bg: #2a2530; --code-fg: #ece6f2; --tk-c: #8d86a0; --tk-s: #a8d48a; --tk-n: #f0a868; --tk-k: #c79cf0; --tk-f: #7fc4e8; --tk-p: #b9b2c8; }

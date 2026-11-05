@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
+import { CalmBackdrop } from "@/components/world/calm-backdrop";
 import { HeroMascot } from "@/components/landing/hero-mascot";
 import { RankEmblem } from "@/components/game/rank-emblem";
 import { RankLadder } from "@/components/game/rank-ladder";
@@ -20,10 +20,10 @@ const STEPS = [
 
 export default function Landing() {
   return (
-    <div className="hx">
-      <InteractiveBackdrop calm />
+    <div className="hx lite-fx">
+      <CalmBackdrop />
 
-      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[var(--bg)]/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[var(--bg)]/90">
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
             <SocratesLogo size={48} />
@@ -115,7 +115,7 @@ export default function Landing() {
         </section>
 
         {/* Steps */}
-        <section id="como-se-juega" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
+        <section id="como-se-juega" className="cv-auto mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
           <Reveal>
             <p className="hx-kicker">Cómo se juega</p>
             <h2 className="mt-2 font-display text-4xl font-bold sm:text-6xl">Tres pasos. Un solo objetivo.</h2>
@@ -141,7 +141,7 @@ export default function Landing() {
         </section>
 
         {/* Ranks */}
-        <section id="rangos" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
+        <section id="rangos" className="cv-auto mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
           <Reveal>
             <p className="hx-kicker">La escalera</p>
             <h2 className="mt-2 font-display text-4xl font-bold sm:text-6xl">

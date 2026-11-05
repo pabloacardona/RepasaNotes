@@ -14,7 +14,7 @@ export function DashboardCompanion({ streak }: { streak: number }) {
   const [i, setI] = useState(0);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setInterval(() => setI((n) => n + 1), 12000);
+    const t = setInterval(() => setI((n) => n + 1), 16000);
     return () => clearInterval(t);
   }, []);
   return (

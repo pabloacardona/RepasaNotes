@@ -1,10 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
 import { useMascot, useMascotGestures, type MascotSlot } from "@/lib/mascots";
-import { mascotQuote } from "@/lib/quotes";
+import { factSeconds, nextFact } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
 
 // three.js, the models and textures only load in the browser, in their own chunk.
@@ -41,6 +41,7 @@ export function MascotStage({
   className = "",
   scrollToSwitch = false,
   slot = "main",
+  fps = 60,
 }: {
   mood: Mood;
   pulse: number;
@@ -54,22 +55,38 @@ export function MascotStage({
   scrollToSwitch?: boolean;
   /** Which companion this stage shows: the main one or the baby one. */
   slot?: MascotSlot;
+  /** Frame rate cap for the 3D canvas (calm pages use 30). */
+  fps?: number;
 }) {
   const zone = useRef<HTMLDivElement>(null);
   useMascotGestures(zone, { slot });
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
   const { id } = useMascot(slot);
   const [ready, setReady] = useState(false);
-  const quote = mascotQuote(mood, pulse);
+  // Render only while the mascot is on screen and the tab is visible.
+  const root = useRef<HTMLDivElement>(null);
+  const [onScreen, setOnScreen] = useState(true);
+  const [tabOn, setTabOn] = useState(true);
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting), { rootMargin: "60px" });
+    io.observe(el);
+    const vis = () => setTabOn(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", vis);
+    return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", vis);
+    };
+  }, []);
+  // The fact is drawn in the browser (it is random), so nothing is rendered until the page has hydrated.
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
 
   return (
-    <div className={`pointer-events-none ${className}`} aria-hidden>
+    <div ref={root} className={`pointer-events-none ${className}`} aria-hidden>
       <div ref={zone} className={`absolute inset-0 z-20 touch-pan-y ${scrollToSwitch ? "pointer-events-auto" : "pointer-events-none"}`} title={scrollToSwitch ? "Desplaza o desliza para cambiar de mascota" : undefined} />
       <div className={`absolute inset-x-0 z-10 flex justify-center top-0 ${bubbleClassName}`}>
-        <div key={`${mood}-${pulse}`} className="repi-bubble">
-          <span className="repi-quote">“{quote.q}”</span>
-          <span className="repi-by">— {quote.by}</span>
-        </div>
+        {hydrated && <FactBubble key={`${mood}-${pulse}`} />}
       </div>
 
       {enabled ? (
@@ -81,6 +98,8 @@ export function MascotStage({
             lastHit={lastHit}
             streak={streak}
             trophy={trophy}
+            active={onScreen && tabOn}
+            fps={fps}
             onReady={() => setReady(true)}
           />
         </div>
@@ -91,6 +110,17 @@ export function MascotStage({
         </div>
       )}
       <span className="sr-only">Repi: {MOOD_LABEL[mood]}</span>
+    </div>
+  );
+}
+
+// A curious fact in a speech bubble. It stays longer the longer the text is, so there is time to read it.
+function FactBubble() {
+  const [fact] = useState(nextFact);
+  return (
+    <div className="repi-bubble" style={{ animationDuration: `${factSeconds(fact.q)}s` }}>
+      <span className="repi-quote">{fact.q}</span>
+      <span className="repi-by">Dato curioso · {fact.by}</span>
     </div>
   );
 }

@@ -46,6 +46,16 @@ function CameraFit({ w, h, extra, cx }: { w: number; h: number; extra: number; c
   return null;
 }
 
+// With a frame cap the canvas is in "demand" mode: this asks for one frame every 1000/fps ms.
+function FpsClock({ fps }: { fps: number }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const t = setInterval(invalidate, 1000 / fps);
+    return () => clearInterval(t);
+  }, [fps, invalidate]);
+  return null;
+}
+
 // Small transparent canvas: just the mascot (and the trophy on results), well lit and antialiased.
 export default function MascotCanvas({
   mascot,
@@ -54,6 +64,8 @@ export default function MascotCanvas({
   lastHit,
   streak,
   trophy,
+  active = true,
+  fps = 60,
   onReady,
 }: {
   mascot: MascotId;
@@ -62,13 +74,18 @@ export default function MascotCanvas({
   lastHit: boolean | null;
   streak: number;
   trophy?: TrophyTier | null;
+  /** false pauses rendering (off screen or hidden tab). */
+  active?: boolean;
+  /** Frame rate cap: below 60 the canvas renders on a timer instead of every display frame. */
+  fps?: number;
   onReady: () => void;
 }) {
   const [fit, setFit] = useState({ w: 1, h: 1 });
   const light = useLightTheme();
   return (
     <Canvas
-      dpr={[1, 1.5]}
+      dpr={[1, fps < 60 ? 1.25 : 1.5]}
+      frameloop={!active ? "never" : fps < 60 ? "demand" : "always"}
       camera={{ position: [0, 0.62, 3.1], fov: 36, near: 0.1, far: 30 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
@@ -78,6 +95,7 @@ export default function MascotCanvas({
         onReady();
       }}
     >
+      {fps < 60 && active && <FpsClock fps={fps} />}
       <Exposure value={light ? 1.3 : 1} />
       <Environment files="/3d/env.hdr" environmentIntensity={light ? 1.15 : 0.5} />
       <hemisphereLight args={light ? ["#ffffff", "#f1e3cf", 1.9] : ["#fff1e6", "#d9a38f", 1]} />
