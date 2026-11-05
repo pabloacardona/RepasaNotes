@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
 import { useMascot, useMascotGestures, type MascotSlot } from "@/lib/mascots";
 import { MascotPicker } from "./mascot-picker";
-import { factSeconds, nextFact } from "@/lib/quotes";
+import { cheerSeconds, factSeconds, nextFact } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
 
 // three.js, the models and textures only load in the browser, in their own chunk.
@@ -44,6 +44,7 @@ export function MascotStage({
   slot = "main",
   fps = 60,
   picker = false,
+  say,
 }: {
   mood: Mood;
   pulse: number;
@@ -61,6 +62,8 @@ export function MascotStage({
   fps?: number;
   /** Show the mascot picker, but only while the pointer is over the mascot (a tap on touch screens). */
   picker?: boolean;
+  /** Fixed text for the bubble (the baby cheers the player on). Without it, the bubble shows a curious fact. */
+  say?: string;
 }) {
   const zone = useRef<HTMLDivElement>(null);
   useMascotGestures(zone, { slot });
@@ -132,7 +135,7 @@ export function MascotStage({
         </div>
       )}
       <div className={`absolute inset-x-0 z-10 flex justify-center top-0 ${bubbleClassName}`}>
-        {hydrated && <FactBubble key={`${mood}-${pulse}`} />}
+        {hydrated && (say ? <SayBubble key={`${mood}-${pulse}-${say}`} text={say} /> : <FactBubble key={`${mood}-${pulse}`} />)}
       </div>
 
       {enabled ? (
@@ -161,12 +164,21 @@ export function MascotStage({
 }
 
 // A curious fact in a speech bubble. It stays longer the longer the text is, so there is time to read it.
-function FactBubble() {
+export function FactBubble({ delay = 0 }: { delay?: number }) {
   const [fact] = useState(nextFact);
   return (
-    <div className="repi-bubble" style={{ animationDuration: `${factSeconds(fact.q)}s` }}>
+    <div className="repi-bubble" style={{ animationDuration: `${factSeconds(fact.q)}s`, animationDelay: `${delay}s`, animationFillMode: "both" }}>
       <span className="repi-quote">{fact.q}</span>
       <span className="repi-by">Dato curioso · {fact.by}</span>
+    </div>
+  );
+}
+
+// A short line of encouragement.
+export function SayBubble({ text, delay = 0 }: { text: string; delay?: number }) {
+  return (
+    <div className="repi-bubble" style={{ animationDuration: `${cheerSeconds(text)}s`, animationDelay: `${delay}s`, animationFillMode: "both" }}>
+      <span className="repi-quote font-bold">{text}</span>
     </div>
   );
 }

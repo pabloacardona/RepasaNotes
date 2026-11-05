@@ -14,7 +14,7 @@ import { maxLives, pointsFor } from "@/lib/score";
 import { moodFor } from "@/lib/mood";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CalmBackdrop } from "@/components/world/calm-backdrop";
-import { MascotStage } from "@/components/world/mascot-stage";
+import { QuizCompanions } from "@/components/world/quiz-companions";
 import { Avatar } from "@/components/avatar";
 import { RichText } from "@/components/rich-text";
 import type { Question } from "@/lib/db/schema";
@@ -234,15 +234,12 @@ export function QuizRunner({
   return (
     <div className="hx flex h-dvh flex-col overflow-hidden">
       <CalmBackdrop />
-      <MascotStage
-        scrollToSwitch
-        picker
+      <QuizCompanions
         mood={mood}
+        babyMood={lastHit === false ? "determined" : streak >= 3 ? "excited" : "happy"}
         pulse={track.pulse}
         lastHit={lastHit}
         streak={streak}
-        bubbleClassName="portrait:hidden"
-        className="fixed left-1/2 top-[3.6rem] z-0 h-[15dvh] w-[150px] -translate-x-1/2 landscape:bottom-4 landscape:left-auto landscape:right-5 landscape:top-auto landscape:h-[min(32dvh,250px)] landscape:w-[min(20vw,230px)] landscape:translate-x-0"
       />
 
       {/* HUD */}
@@ -316,7 +313,7 @@ export function QuizRunner({
         </div>
       </header>
 
-      <main className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-3 pt-[18dvh] sm:px-6 landscape:pt-3">
+      <main className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-3 pt-[calc(3.6rem+15dvh+9dvh)] sm:px-6 landscape:pt-3">
 
         <div className={`hx-epic hx-epic-still ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative mx-auto flex max-h-full min-h-0 w-full max-w-[560px] flex-col p-3 sm:p-5`}>
           <FireBorder streak={streak} />

@@ -17,6 +17,11 @@ export function DashboardCompanion({ streak }: { streak: number }) {
     return () => clearInterval(t);
   }, []);
   return (
+    <>
+    <div className="mb-4 flex items-end justify-center gap-2 lg:hidden">
+      <MascotStage slot="baby" picker mood={BABY[(i + 2) % BABY.length]} pulse={0} lastHit={null} streak={0} bubbleClassName="hidden" className="relative h-[110px] w-[84px]" />
+      <MascotStage picker mood={CALM[i % CALM.length]} pulse={0} lastHit={null} streak={streak} bubbleClassName="hidden" className="relative h-[170px] w-[150px]" />
+    </div>
     <div className="hidden lg:block">
       <MascotStage
         scrollToSwitch
@@ -40,5 +45,6 @@ export function DashboardCompanion({ streak }: { streak: number }) {
         className="fixed bottom-28 left-[max(1.5rem,6vw)] z-0 h-[min(15dvh,115px)] w-[min(9vw,105px)]"
       />
     </div>
+    </>
   );
 }

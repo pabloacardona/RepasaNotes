@@ -81,3 +81,14 @@ export function factSeconds(text: string): number {
   const words = text.trim().split(/\s+/).length;
   return Math.min(18, Math.max(5, 2.5 + words / 2.6));
 }
+
+// What the baby mascot says to cheer the player on. Picked by position, not at random, so server and client agree.
+export type CheerKind = "start" | "hit" | "streak" | "miss";
+const CHEERS: Record<CheerKind, string[]> = {
+  start: ["¡Tú puedes!", "¡Vamos, con calma!", "Lee con atención, confío en ti."],
+  hit: ["¡Bien hecho!", "¡Exacto!", "¡Lo tienes!", "¡Crack!", "¡Así se hace!", "¡Perfecto!", "¡Sigue así!"],
+  streak: ["¡Estás en racha!", "¡Imparable!", "¡Qué nivel!", "¡Nadie te frena!", "¡Sigue, vas volando!"],
+  miss: ["¡Casi! Tú puedes.", "No pasa nada, así se aprende.", "¡La próxima sale!", "Respira, vas muy bien.", "Equivocarse también es estudiar."],
+};
+export const cheerFor = (kind: CheerKind, n: number) => CHEERS[kind][n % CHEERS[kind].length];
+export const cheerSeconds = (text: string) => Math.min(6, 2 + text.trim().split(/\s+/).length / 2.2);
