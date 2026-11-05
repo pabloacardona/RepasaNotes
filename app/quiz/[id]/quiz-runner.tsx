@@ -236,6 +236,7 @@ export function QuizRunner({
     <div className="hx flex h-dvh flex-col overflow-hidden">
       <CalmBackdrop />
       <MascotStage
+        scrollToSwitch
         mood={mood}
         pulse={track.pulse}
         lastHit={lastHit}

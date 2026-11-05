@@ -1,0 +1,3 @@
+Blacksmith character: KayKit Adventurers Character Pack 1.0 (Barbarian), by Kay Lousberg, CC0 1.0.
+  https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0
+PBR textures (2k, converted to webp): Poly Haven, CC0 1.0 - metal_plate_02, rust_coarse_01, terlenka, brown_leather, marble_tiles.

@@ -21,7 +21,7 @@ export function DashboardHero({
   quests: { done: boolean; label: string; value: number; goal: number; emoji: string }[];
   bonus: { xp: number; claimed: boolean };
 }) {
-  const { rank, streak, week, stats, today } = hud;
+  const { rank, streak, week, today } = hud;
   const reduce = useReducedMotion();
   const px = useMotionValue(0);
   const py = useMotionValue(0);
@@ -42,15 +42,15 @@ export function DashboardHero({
   return (
     <section aria-label="Tu progreso" className="hx mb-6 grid gap-5 lg:grid-cols-[1.5fr_1fr]">
       {/* Rank */}
-      <div className="hx-panel hx-tier-panel relative flex items-center overflow-hidden p-5 sm:p-6" style={{ ["--tc" as string]: tier.color }}>
+      <div className="hx-panel hx-tier-panel relative flex items-center self-start overflow-hidden p-3 sm:p-4" style={{ ["--tc" as string]: tier.color }}>
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 opacity-40" style={{ background: `radial-gradient(circle, ${tier.color}, transparent 65%)` }} />
-        <div className="relative flex w-full flex-wrap items-center gap-6">
+        <div className="relative flex w-full flex-wrap items-center gap-3 sm:gap-5">
           <motion.div
             onPointerMove={reduce ? undefined : onMove}
             onPointerLeave={reset}
             onClick={() => celebrate()}
             style={reduce ? undefined : { rotateX: rx, rotateY: ry, transformPerspective: 700 }}
-            className="cursor-pointer select-none px-3 py-4"
+            className="cursor-pointer select-none"
             role="button"
             tabIndex={0}
             aria-label="Celebrar tu rango"
@@ -97,79 +97,55 @@ export function DashboardHero({
 
       {/* Streak + stats */}
       <div className="grid gap-5">
-        <div className={`hx-panel p-5 ${atRisk ? "border-[var(--bad)]" : ""}`}>
-          <div className="flex items-center gap-4">
-            <StreakFlame size={74} active={streak.activeToday || atRisk} days={streak.current} />
+        <div className={`hx-panel p-3.5 ${atRisk ? "border-[var(--bad)]" : ""}`}>
+          <div className="flex items-center gap-3">
+            <StreakFlame size={44} active={streak.activeToday || atRisk} days={streak.current} />
             <div className="min-w-0 flex-1">
-              <p className="hx-kicker">Racha</p>
-              <p className="font-display font-bold text-3xl leading-none">
-                <AnimatedNumber from={0} value={streak.current} />
+              <p className="flex items-baseline gap-2">
+                <span className="font-display text-2xl font-bold leading-none">
+                  <AnimatedNumber from={0} value={streak.current} />
+                </span>
+                <span className="hx-kicker">días de racha</span>
               </p>
-              <p className={`mt-1 ${atRisk ? "hx-blink font-bold text-[var(--bad)]" : "hx-mute"}`}>
-                {atRisk ? "¡Juega hoy o la pierdes!" : streak.activeToday ? "¡Racha asegurada hoy!" : "Juega hoy para empezarla"} · mejor: {streak.best}
+              <p className={`mt-0.5 text-sm ${atRisk ? "hx-blink font-bold text-[var(--bad)]" : "hx-mute"}`}>
+                {atRisk ? "¡Juega hoy o la pierdes!" : streak.activeToday ? "Asegurada hoy" : "Juega hoy para empezar"} · mejor {streak.best}
               </p>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-7 gap-1.5" role="img" aria-label="Últimos 7 días">
+          <div className="mt-3 grid grid-cols-7 gap-1.5" role="img" aria-label="Últimos 7 días">
             {week.map((d, i) => (
-              <motion.span
+              <span
                 key={d.date}
-                initial={reduce ? false : { scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: i * 0.06, type: "spring", stiffness: 400, damping: 16 }}
-                className={`grid h-9 place-items-center rounded-lg border text-lg ${d.count > 0 ? "border-[var(--line-strong)] bg-[var(--hot)] text-[#1a1c2c]" : "border-[var(--line)] bg-[var(--track)]"} ${i === week.length - 1 ? "outline outline-2 outline-offset-2 outline-[var(--neon)]" : ""}`}
+                className={`wave-cell ${d.count > 0 ? "wave-on" : ""} ${i === week.length - 1 ? "wave-today" : ""}`}
+                style={{ ["--i" as string]: i }}
                 title={`${d.date}: ${d.count} respuestas`}
-              >
-                {d.count > 0 ? "🔥" : ""}
-              </motion.span>
+              />
             ))}
           </div>
         </div>
 
-        <div className="hx-panel p-5">
-          <p className="hx-kicker">Estadísticas</p>
-          <dl className="mt-3 grid grid-cols-3 gap-3 text-center">
-            {[
-              ["Precisión", stats.accuracy ?? 0, "%"],
-              ["Respondidas", stats.answered, ""],
-              ["Quizzes", stats.quizzes, ""],
-            ].map(([k, v, suf]) => (
-              <div key={k as string} className="hx-lift rounded-xl border border-[var(--line)] bg-[var(--track)] px-1 py-2">
-                <dd className="font-display font-bold text-sm">
-                  <AnimatedNumber from={0} value={v as number} />
-                  {suf}
-                </dd>
-                <dt className="hx-mute text-sm">{k}</dt>
-              </div>
-            ))}
-          </dl>
-          <div className="mt-4">
-            <p className="flex justify-between text-sm">
-              <span className="hx-mute">Misiones de hoy</span>
-              <b>{doneQuests}/{quests.length}</b>
+        <div className="hx-panel p-4">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="hx-kicker">Hoy</p>
+            <p className="hx-mute text-sm tabular-nums">
+              <b className="text-[var(--fg)]">{today.answered}</b> / {today.goal} preguntas
             </p>
-            <ul className="mt-2 space-y-1.5">
-              {quests.map((q) => (
-                <li key={q.label} className="flex items-center gap-2">
-                  <span aria-hidden>{q.done ? "✅" : q.emoji}</span>
-                  <span className={`flex-1 ${q.done ? "text-[var(--ok)] line-through" : ""}`}>{q.label}</span>
-                  <span className="hx-mute tabular-nums">{q.value}/{q.goal}</span>
-                </li>
-              ))}
-            </ul>
-            <div className={`mt-3 rounded-xl border px-3 py-2 ${bonus.claimed ? "border-[var(--hi)] bg-[var(--yel-soft)]" : "border-[var(--line)] bg-[var(--track)]"}`}>
-              <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="font-bold">🎁 Bonus de misiones +{bonus.xp} XP</span>
-                <span className={`text-xs font-bold ${bonus.claimed ? "text-[var(--hi)]" : "hx-mute"}`}>
-                  {bonus.claimed ? "✓ Reclamado" : `${doneQuests}/${quests.length} · sin reclamar`}
-                </span>
-              </div>
-              <div className="hx-bar mt-2 !h-2" role="progressbar" aria-valuenow={doneQuests} aria-valuemin={0} aria-valuemax={quests.length} aria-label="Misiones del día">
-                <span style={{ width: `${Math.max((doneQuests / quests.length) * 100, 3)}%` }} />
-              </div>
-            </div>
-            <p className="hx-mute mt-2 text-sm">Hoy llevas {today.answered} de {today.goal} preguntas.</p>
           </div>
+          <div className="hx-bar mt-2 !h-3" role="progressbar" aria-valuenow={Math.min(today.answered, today.goal)} aria-valuemin={0} aria-valuemax={today.goal} aria-label="Meta diaria">
+            <span style={{ width: `${Math.max(Math.min(today.answered / today.goal, 1) * 100, 3)}%` }} />
+          </div>
+          <ul className="mt-3 space-y-1.5 text-sm">
+            {quests.map((q) => (
+              <li key={q.label} className="flex items-center gap-2">
+                <span aria-hidden>{q.done ? "✅" : q.emoji}</span>
+                <span className={`flex-1 ${q.done ? "text-[var(--ok)] line-through" : ""}`}>{q.label}</span>
+                <span className="hx-mute tabular-nums">{q.value}/{q.goal}</span>
+              </li>
+            ))}
+          </ul>
+          <p className={`mt-3 text-sm ${bonus.claimed ? "font-bold text-[var(--hi)]" : "hx-mute"}`}>
+            🎁 {bonus.claimed ? `Bonus de +${bonus.xp} XP reclamado` : `Completa las ${quests.length} misiones y gana +${bonus.xp} XP (${doneQuests}/${quests.length})`}
+          </p>
         </div>
       </div>
     </section>

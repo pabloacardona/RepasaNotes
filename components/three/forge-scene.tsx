@@ -3,37 +3,54 @@
 /* eslint-disable react-hooks/immutability -- three.js scene objects, textures and refs are mutated by design inside useFrame and setup effects */
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, useGLTF, useTexture } from "@react-three/drei";
+import { Environment, RoundedBox, useAnimations, useGLTF, useTexture } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef } from "react";
 import {
   ACESFilmicToneMapping,
   AdditiveBlending,
+  Box3,
   BufferAttribute,
   BufferGeometry,
+  DoubleSide,
   ExtrudeGeometry,
-  LatheGeometry,
+  LoopRepeat,
   MathUtils,
+  Object3D,
   PCFShadowMap,
+  Quaternion,
   RepeatWrapping,
   Shape,
   SRGBColorSpace,
-  Vector2,
+  Vector3,
   type Group,
+  type Mesh,
+  type MeshBasicMaterial,
   type MeshStandardMaterial,
   type PerspectiveCamera,
   type PointLight,
-  type Points,
   type Texture,
 } from "three";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 
-// A blacksmith in Olympian dress forging a quiz on an anvil.
-// Assets: Poly Haven (CC0): metal_plate_02, rust_coarse_01, terlenka, brown_leather, marble_tiles (2k PBR, converted to webp) and the
-// cross_pein_hammer model. The anvil and the smith are built from geometry and wear those PBR materials.
+// A chubby cartoon blacksmith forging a quiz on an anvil.
+// Character: KayKit "Adventurers" Barbarian (CC0, Kay Lousberg), rigged and animated. The head is rebuilt here and the smith
+// is dressed with a leather apron, gauntlets, tool belt and a laurel wreath. Textures: Poly Haven (CC0) PBR at 2k.
+//
+// Coordination of the blow: when the scene loads, the clip is sampled once to find the exact instant the hammer is lowest
+// and where it is. The anvil is then placed under that point, and at that same clip time (not "somewhere near it") the
+// sparks, shockwave, flash, ingot glow and camera shake fire.
 
-const CYCLE = 2.0; // seconds per hammer blow
-const STRIKE_AT = 1.1; // moment of impact inside the cycle
-const ANVIL_TOP = 0.92;
-const HIT_X = 0.0;
+const CLIP = "1H_Melee_Attack_Chop";
+const SMITH_X = -0.1;
+const HEAD_HALF = 0.085; // half the height of the hammer head: its face touches the anvil this far below its centre
+
+type Shared = {
+  impact: { current: number };
+  flame: { current: number };
+  hit: Vector3; // where the hammer head centre is at the moment of impact
+  top: { current: number }; // anvil surface height
+  ready: { current: boolean };
+};
 
 function usePbr(name: string, low: boolean, repeat: [number, number] = [1, 1]) {
   const base = `/3d/forge/${low ? "lo/" : ""}${name}`;
@@ -50,12 +67,11 @@ function usePbr(name: string, low: boolean, repeat: [number, number] = [1, 1]) {
   return { map, normalMap, roughnessMap: arm, metalnessMap: arm };
 }
 
-// ---------- Sparks ----------
+// ---------- Sparks and shockwave ----------
 
-const SPARKS = 70;
+const SPARKS = 90;
 
-function Sparks({ impact }: { impact: React.MutableRefObject<number> }) {
-  const points = useRef<Points>(null);
+function Sparks({ shared }: { shared: Shared }) {
   const state = useMemo(
     () => ({ pos: new Float32Array(SPARKS * 3), vel: new Float32Array(SPARKS * 3), life: new Float32Array(SPARKS), seen: 0 }),
     [],
@@ -69,14 +85,14 @@ function Sparks({ impact }: { impact: React.MutableRefObject<number> }) {
 
   useFrame((_, dt) => {
     const d = Math.min(dt, 0.05);
-    if (impact.current > 0.98 && state.seen !== impact.current) {
-      state.seen = impact.current;
+    if (shared.impact.current > 1 && state.seen !== shared.impact.current) {
+      state.seen = shared.impact.current;
       for (let i = 0; i < SPARKS; i++) {
         const a = Math.random() * Math.PI * 2;
-        const up = 0.8 + Math.random() * 2.2;
-        const out = 0.5 + Math.random() * 1.8;
-        state.pos.set([HIT_X + (Math.random() - 0.5) * 0.08, ANVIL_TOP + 0.03, 0.12 + (Math.random() - 0.5) * 0.06], i * 3);
-        state.vel.set([Math.cos(a) * out, up, Math.sin(a) * out * 0.6], i * 3);
+        const up = 1 + Math.random() * 2.6;
+        const out = 0.4 + Math.random() * 1.9;
+        state.pos.set([shared.hit.x + (Math.random() - 0.5) * 0.08, shared.top.current + 0.02, shared.hit.z + (Math.random() - 0.5) * 0.08], i * 3);
+        state.vel.set([Math.cos(a) * out, up, Math.sin(a) * out], i * 3);
         state.life[i] = 0.5 + Math.random() * 0.7;
       }
     }
@@ -99,57 +115,91 @@ function Sparks({ impact }: { impact: React.MutableRefObject<number> }) {
   });
 
   return (
-    <points ref={points} geometry={geo} frustumCulled={false}>
-      <pointsMaterial color="#ffb347" size={0.035} sizeAttenuation transparent depthWrite={false} blending={AdditiveBlending} />
+    <points geometry={geo} frustumCulled={false}>
+      <pointsMaterial color="#ffb347" size={0.045} sizeAttenuation transparent depthWrite={false} blending={AdditiveBlending} />
     </points>
   );
 }
 
-// ---------- Anvil ----------
+// A flat ring of light that spreads over the anvil face and fades, right at the instant of the blow.
+function Shockwave({ shared }: { shared: Shared }) {
+  const ring = useRef<Mesh>(null);
+  const mat = useRef<MeshBasicMaterial>(null);
+  const age = useRef(9);
+  const seen = useRef(0);
+  useFrame((_, dt) => {
+    if (!ring.current || !mat.current) return;
+    if (shared.impact.current > 1 && seen.current !== shared.impact.current) {
+      seen.current = shared.impact.current;
+      age.current = 0;
+    }
+    age.current += dt;
+    const k = Math.min(1, age.current / 0.4);
+    ring.current.visible = k < 1;
+    ring.current.position.set(shared.hit.x, shared.top.current + 0.012, shared.hit.z);
+    ring.current.scale.setScalar(0.08 + k * 0.7);
+    mat.current.opacity = (1 - k) * 0.9;
+  });
+  return (
+    <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
+      <ringGeometry args={[0.8, 1, 48]} />
+      <meshBasicMaterial ref={mat} color="#ffd9a0" transparent opacity={0} blending={AdditiveBlending} depthWrite={false} side={DoubleSide} />
+    </mesh>
+  );
+}
 
-function Anvil({ low, glow }: { low: boolean; glow: React.MutableRefObject<number> }) {
+// ---------- Anvil (chunky, PBR iron on a log stump) ----------
+
+function Anvil({ low, shared }: { low: boolean; shared: Shared }) {
   const iron = usePbr("anvil", low, [1.2, 1.2]);
-  const leather = usePbr("leather", low, [2, 2]);
+  const wood = usePbr("leather", low, [2, 2]);
+  const group = useRef<Group>(null);
   const body = useMemo(() => {
-    // Side profile (x along the anvil, y up), then extruded across its width.
     const s = new Shape();
-    s.moveTo(-0.17, 0);
-    s.lineTo(0.17, 0);
-    s.lineTo(0.12, 0.05);
-    s.lineTo(0.1, 0.17);
-    s.lineTo(0.2, 0.25);
-    s.lineTo(0.34, 0.285);
-    s.quadraticCurveTo(0.5, 0.31, 0.58, 0.4);
-    s.lineTo(0.5, 0.42);
-    s.lineTo(-0.3, 0.42);
-    s.lineTo(-0.38, 0.4);
-    s.lineTo(-0.34, 0.31);
-    s.lineTo(-0.18, 0.25);
-    s.lineTo(-0.1, 0.17);
-    s.lineTo(-0.12, 0.05);
+    s.moveTo(-0.2, 0);
+    s.lineTo(0.2, 0);
+    s.lineTo(0.15, 0.07);
+    s.lineTo(0.14, 0.2);
+    s.lineTo(0.26, 0.28);
+    s.lineTo(0.42, 0.31);
+    s.quadraticCurveTo(0.6, 0.34, 0.68, 0.43);
+    s.lineTo(0.6, 0.46);
+    s.lineTo(-0.36, 0.46);
+    s.lineTo(-0.44, 0.43);
+    s.lineTo(-0.4, 0.33);
+    s.lineTo(-0.22, 0.27);
+    s.lineTo(-0.14, 0.2);
+    s.lineTo(-0.15, 0.07);
     s.closePath();
-    const g = new ExtrudeGeometry(s, { depth: 0.2, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 2 });
-    g.translate(0, 0, -0.1);
-    // ExtrudeGeometry UVs are in model units; scale them so the 2k texture tiles at a believable size.
+    const g = new ExtrudeGeometry(s, { depth: 0.3, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 4 });
+    g.translate(0, 0, -0.15);
     return g;
   }, []);
   useEffect(() => () => body.dispose(), [body]);
   const hot = useRef<MeshStandardMaterial>(null);
   useFrame(() => {
-    if (hot.current) hot.current.emissiveIntensity = 0.6 + glow.current * 2.4;
+    const g = group.current;
+    if (!g) return;
+    // The anvil is authored with its face at y = 0.86: scale and move it so its face is exactly where the hammer lands.
+    g.visible = shared.ready.current;
+    const s = shared.top.current / 0.86;
+    // Height follows the hammer; length and width stay chunky so the anvil does not look tiny next to the smith.
+    const w = Math.max(s, 0.8);
+    g.scale.set(w, s, w);
+    g.position.set(shared.hit.x - 0.12 * w, 0, shared.hit.z);
+    if (hot.current) hot.current.emissiveIntensity = 0.7 + shared.flame.current * 2.6;
   });
   return (
-    <group>
-      <mesh position={[0, 0.25, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.24, 0.27, 0.5, 40]} />
-        <meshStandardMaterial {...leather} color="#8a6a4a" roughness={1} metalness={0} />
+    <group ref={group} visible={false}>
+      <mesh position={[0, 0.2, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.3, 0.34, 0.4, 32]} />
+        <meshStandardMaterial {...wood} color="#9a7550" roughness={1} metalness={0} />
       </mesh>
-      <mesh geometry={body} position={[0, 0.5, 0]} castShadow receiveShadow>
+      <mesh geometry={body} position={[0, 0.4, 0]} castShadow receiveShadow>
         <meshStandardMaterial {...iron} roughness={1} metalness={1} envMapIntensity={1.1} />
       </mesh>
-      {/* Glowing ingot being forged. */}
-      <mesh position={[HIT_X, ANVIL_TOP + 0.018, 0.12]} castShadow>
-        <boxGeometry args={[0.32, 0.034, 0.075]} />
+      <mesh position={[0.12, 0.86 + 0.022, 0]} castShadow>
+        <boxGeometry args={[0.36, 0.04, 0.1]} />
         <meshStandardMaterial ref={hot} color="#3a1a0c" emissive="#ff6a1a" emissiveIntensity={1} roughness={0.5} metalness={0.6} />
       </mesh>
     </group>
@@ -158,209 +208,308 @@ function Anvil({ low, glow }: { low: boolean; glow: React.MutableRefObject<numbe
 
 // ---------- Blacksmith ----------
 
-function Smith({ low, anim }: { low: boolean; anim: React.MutableRefObject<{ th: number; ph: number; lean: number }> }) {
-  const cloth = usePbr("chiton", low, [4, 2]);
-  const bronze = usePbr("bronze", low, [2, 2]);
-  const leather = usePbr("leather", low, [2, 2]);
-  const hammer = useGLTF("/3d/forge/hammer.gltf");
-  const hammerScene = useMemo(() => hammer.scene.clone(true), [hammer.scene]);
+// Props and clothes of the Barbarian that do not belong to a smith. Its head is rebuilt below.
+// Props only: the original head still counts for the size, because the rebuilt head replaces it at the same height.
+const PROPS = ["1H_Axe_Offhand", "Barbarian_Round_Shield", "1H_Axe", "2H_Axe", "Mug", "Barbarian_Hat", "Barbarian_Cape"];
+const HIDE = ["1H_Axe_Offhand", "Barbarian_Round_Shield", "1H_Axe", "2H_Axe", "Mug", "Barbarian_Hat", "Barbarian_Cape", "Barbarian_Head"];
 
-  const tunic = useMemo(() => {
-    const pts: Vector2[] = [];
-    // Chiton: fitted at the belt, flaring to a rippled hem above the knee.
-    for (let i = 0; i <= 14; i++) {
-      const t = i / 14;
-      const y = 1.02 - t * 0.5;
-      const r = 0.2 + t * 0.1 + Math.sin(t * 9) * 0.008;
-      pts.push(new Vector2(r, y));
-    }
-    return new LatheGeometry(pts, 40);
-  }, []);
-  const top = useMemo(() => {
-    const pts: Vector2[] = [];
-    for (let i = 0; i <= 8; i++) {
-      const t = i / 8;
-      pts.push(new Vector2(0.2 - Math.sin(t * Math.PI) * -0.012 + (t > 0.7 ? -0.02 * (t - 0.7) * 6 : 0), 1.0 + t * 0.42));
-    }
-    return new LatheGeometry(pts, 40);
-  }, []);
-  useEffect(() => () => { tunic.dispose(); top.dispose(); }, [tunic, top]);
+// Puts `obj` on a bone but keeps its size in world units, whatever scale the rig has. With `upright`, the object also
+// ignores the bone's own axes: +Y is up and +Z is forward for the character, so offsets can be written in plain metres.
+function mount(bone: Object3D, obj: Object3D, upright?: Object3D) {
+  bone.updateWorldMatrix(true, false);
+  const s = new Vector3();
+  bone.getWorldScale(s);
+  obj.scale.setScalar(1 / s.x);
+  if (upright) {
+    const qb = new Quaternion();
+    const qr = new Quaternion();
+    bone.getWorldQuaternion(qb);
+    upright.getWorldQuaternion(qr);
+    obj.quaternion.copy(qb.invert().multiply(qr));
+  }
+  bone.add(obj);
+}
 
-  const skin = { color: "#c68a62", roughness: 0.62, metalness: 0 } as const;
-  const rightShoulder = useRef<Group>(null);
-  const rightElbow = useRef<Group>(null);
-  const torso = useRef<Group>(null);
+function BoneMount({ bone, upright, children }: { bone: Object3D; upright?: Object3D; children: React.ReactNode }) {
+  const holder = useMemo(() => new Object3D(), []);
+  useEffect(() => {
+    mount(bone, holder, upright);
+    return () => {
+      bone.remove(holder);
+    };
+  }, [bone, holder, upright]);
+  return <primitive object={holder}>{children}</primitive>;
+}
 
-  useFrame(() => {
-    const a = anim.current;
-    if (rightShoulder.current) rightShoulder.current.rotation.z = a.th;
-    if (rightElbow.current) rightElbow.current.rotation.z = a.ph;
-    if (torso.current) torso.current.rotation.z = a.lean;
-  });
+const SKIN = "#e3a57b";
+const HAIR = "#4a3828";
 
-  const leaves = useMemo(
-    () => Array.from({ length: 16 }, (_, i) => ({ a: (i / 16) * Math.PI * 2, tilt: i % 2 ? 0.5 : -0.5 })),
-    [],
-  );
-
-  const arm = (side: 1 | -1, refs?: { shoulder: React.Ref<Group>; elbow: React.Ref<Group> }, th = 0.2, ph = 0.1, yaw = 0, withHammer = false) => (
-    <group position={[0.04, 1.48, side * 0.19]} rotation={[0, yaw, 0]}>
-      <group ref={refs?.shoulder} rotation={[0, 0, th]}>
-        <mesh position={[0, -0.15, 0]} castShadow>
-          <capsuleGeometry args={[0.07, 0.22, 6, 14]} />
-          <meshStandardMaterial {...skin} />
-        </mesh>
-        <mesh position={[0, 0.0, 0]} castShadow>
-          <sphereGeometry args={[0.085, 20, 14]} />
-          <meshStandardMaterial {...skin} />
-        </mesh>
-        <group position={[0, -0.3, 0]} ref={refs?.elbow} rotation={[0, 0, ph]}>
-          <mesh position={[0, -0.14, 0]} castShadow>
-            <capsuleGeometry args={[0.058, 0.2, 6, 14]} />
-            <meshStandardMaterial {...skin} />
-          </mesh>
-          {/* Bronze bracer */}
-          <mesh position={[0, -0.17, 0]} castShadow>
-            <cylinderGeometry args={[0.058, 0.052, 0.11, 24]} />
-            <meshStandardMaterial {...bronze} roughness={1} metalness={1} color="#d9a45a" />
-          </mesh>
-          <mesh position={[0, -0.3, 0]} castShadow>
-            <sphereGeometry args={[0.052, 18, 14]} />
-            <meshStandardMaterial {...skin} />
-          </mesh>
-          {withHammer && (
-            <group position={[0, -0.363, 0]} rotation={[Math.PI, 0, 0]} scale={1.9}>
-              <primitive object={hammerScene} />
-            </group>
-          )}
-          {!withHammer && (
-            // Tongs holding the ingot: two bronze bars closing on it.
-            <group position={[0, -0.34, 0]}>
-              {[-1, 1].map((k) => (
-                <mesh key={k} position={[k * 0.012, -0.12, 0]} rotation={[0, 0, k * 0.05]} castShadow>
-                  <boxGeometry args={[0.014, 0.34, 0.03]} />
-                  <meshStandardMaterial {...bronze} roughness={1} metalness={1} color="#8a6a44" />
-                </mesh>
-              ))}
-            </group>
-          )}
-        </group>
-      </group>
-    </group>
-  );
-
+function Head({ low }: { low: boolean }) {
+  void low;
   return (
-    <group position={[-0.78, 0, 0]}>
-      {/* Legs and sandals */}
-      {[0.1, -0.1].map((z, i) => (
-        <group key={z} position={[i ? -0.06 : 0.05, 0, z]}>
-          <mesh position={[0, 0.34, 0]} castShadow>
-            <capsuleGeometry args={[0.078, 0.5, 6, 14]} />
-            <meshStandardMaterial {...skin} />
+    <group>
+      {/* neck */}
+      <mesh position={[0, 0.06, 0]} castShadow>
+        <cylinderGeometry args={[0.13, 0.15, 0.2, 20]} />
+        <meshStandardMaterial color={SKIN} roughness={0.7} />
+      </mesh>
+      {/* skull */}
+      <mesh position={[0, 0.42, 0]} scale={[1, 0.98, 0.96]} castShadow>
+        <sphereGeometry args={[0.36, 36, 28]} />
+        <meshStandardMaterial color={SKIN} roughness={0.65} />
+      </mesh>
+      {/* hair at the sides and back, leaving the crown and forehead bare */}
+      <mesh position={[0, 0.4, -0.05]} rotation={[-0.55, 0, 0]} scale={[1.0, 1, 1]}>
+        <sphereGeometry args={[0.372, 28, 20, 0, Math.PI * 2, 0.55, 1.6]} />
+        <meshStandardMaterial color={HAIR} roughness={0.95} side={DoubleSide} />
+      </mesh>
+      {/* ears */}
+      {[-1, 1].map((x) => (
+        <mesh key={x} position={[x * 0.355, 0.4, 0]} scale={[0.55, 1, 0.8]} castShadow>
+          <sphereGeometry args={[0.085, 14, 12]} />
+          <meshStandardMaterial color={SKIN} roughness={0.7} />
+        </mesh>
+      ))}
+      {/* eyes and brows */}
+      {[-1, 1].map((x) => (
+        <group key={x}>
+          <mesh position={[x * 0.125, 0.47, 0.305]} scale={[1, 1.15, 0.6]}>
+            <sphereGeometry args={[0.062, 16, 12]} />
+            <meshStandardMaterial color="#fffaf0" roughness={0.3} />
           </mesh>
-          <mesh position={[0.05, 0.035, 0]} castShadow>
-            <boxGeometry args={[0.27, 0.05, 0.11]} />
-            <meshStandardMaterial {...leather} roughness={1} metalness={0} color="#9a7550" />
+          <mesh position={[x * 0.125, 0.465, 0.345]}>
+            <sphereGeometry args={[0.032, 14, 10]} />
+            <meshStandardMaterial color="#1d1510" roughness={0.2} />
           </mesh>
-          <mesh position={[0, 0.2, 0]}>
-            <cylinderGeometry args={[0.083, 0.083, 0.012, 16]} />
-            <meshStandardMaterial {...leather} roughness={1} metalness={0} color="#9a7550" />
+          <mesh position={[x * 0.125, 0.555, 0.31]} rotation={[0, 0, x * -0.28]} castShadow>
+            <boxGeometry args={[0.15, 0.04, 0.05]} />
+            <meshStandardMaterial color={HAIR} roughness={0.9} />
+          </mesh>
+          {/* rosy cheeks */}
+          <mesh position={[x * 0.2, 0.34, 0.27]} scale={[1, 0.7, 0.4]}>
+            <sphereGeometry args={[0.06, 12, 10]} />
+            <meshStandardMaterial color="#e58a78" roughness={0.8} />
           </mesh>
         </group>
       ))}
+      {/* round nose */}
+      <mesh position={[0, 0.375, 0.345]} castShadow>
+        <sphereGeometry args={[0.08, 18, 14]} />
+        <meshStandardMaterial color="#e8937a" roughness={0.6} />
+      </mesh>
+      {/* moustache and bushy beard */}
+      {[-1, 1].map((x) => (
+        <mesh key={x} position={[x * 0.085, 0.3, 0.335]} rotation={[0, 0, x * 0.35]} scale={[1.5, 0.8, 0.8]} castShadow>
+          <sphereGeometry args={[0.07, 14, 10]} />
+          <meshStandardMaterial color={HAIR} roughness={0.95} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.12, 0.2]} scale={[1, 1.1, 0.75]} castShadow>
+        <sphereGeometry args={[0.25, 24, 18]} />
+        <meshStandardMaterial color={HAIR} roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 0.22, 0.31]} scale={[1.2, 0.5, 0.5]}>
+        <sphereGeometry args={[0.07, 12, 10]} />
+        <meshStandardMaterial color="#c9695a" roughness={0.5} />
+      </mesh>
+    </group>
+  );
+}
 
-      <group ref={torso} position={[0, 0.98, 0]}>
-        <group position={[0, -0.98, 0]}>
-          <mesh geometry={tunic} castShadow receiveShadow>
-            <meshStandardMaterial {...cloth} color="#f1e6cf" roughness={1} metalness={0} side={2} />
-          </mesh>
-          <mesh geometry={top} castShadow>
-            <meshStandardMaterial {...cloth} color="#f1e6cf" roughness={1} metalness={0} side={2} />
-          </mesh>
-          {/* Bare shoulders and chest */}
-          <mesh position={[0, 1.36, 0]} scale={[1, 1, 1.12]} castShadow>
-            <capsuleGeometry args={[0.172, 0.1, 6, 20]} />
-            <meshStandardMaterial {...skin} />
-          </mesh>
-          {/* One-shoulder drape and belt */}
-          <mesh position={[0.01, 1.22, 0]} rotation={[0.45, 0, -0.18]} castShadow>
-            <torusGeometry args={[0.2, 0.034, 10, 40, Math.PI * 1.05]} />
-            <meshStandardMaterial {...cloth} color="#e7d9bb" roughness={1} metalness={0} />
-          </mesh>
-          <mesh position={[0, 1.02, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <torusGeometry args={[0.205, 0.028, 12, 40]} />
-            <meshStandardMaterial {...bronze} roughness={1} metalness={1} color="#d9a45a" />
-          </mesh>
-          <mesh position={[0, 0.91, 0.0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.215, 0.012, 8, 40]} />
-            <meshStandardMaterial {...leather} roughness={1} metalness={0} color="#7a5a3a" />
-          </mesh>
-          {/* Fibula (shoulder clasp) */}
-          <mesh position={[0.02, 1.5, 0.19]} castShadow>
-            <sphereGeometry args={[0.028, 16, 12]} />
-            <meshStandardMaterial {...bronze} roughness={1} metalness={1} color="#f0c070" />
-          </mesh>
+function Smith({ low, shared }: { low: boolean; shared: Shared }) {
+  const gltf = useGLTF("/3d/forge/smith.glb");
+  const root = useRef<Group>(null);
+  const hammerHead = useRef<Object3D>(null);
+  const bronze = usePbr("bronze", low, [2, 2]);
+  const leather = usePbr("leather", low, [1.5, 1.5]);
+  const cloth = usePbr("chiton", low, [3, 2]);
+  const iron = usePbr("anvil", low, [1, 1]);
 
-          {/* Neck and head */}
-          <mesh position={[0.01, 1.58, 0]} castShadow>
-            <cylinderGeometry args={[0.052, 0.06, 0.1, 16]} />
-            <meshStandardMaterial {...skin} />
+  const model = useMemo(() => {
+    const m = cloneSkinned(gltf.scene);
+    m.traverse((o) => {
+      if (HIDE.includes(o.name)) o.visible = false;
+      if ("isMesh" in o) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+      }
+    });
+    return m;
+  }, [gltf.scene]);
+
+  // The pack is authored small: scale the character to a chubby 1.75 m.
+  const scale = useMemo(() => {
+    // Only the parts that stay visible: the hidden props would stretch the box.
+    const box = new Box3();
+    model.traverse((o) => {
+      if ("isMesh" in o && !PROPS.includes(o.name) && o.parent && !PROPS.includes(o.parent.name)) box.union(new Box3().setFromObject(o));
+    });
+    return 1.75 / Math.max(0.01, box.max.y - box.min.y);
+  }, [model]);
+
+  const { actions } = useAnimations(gltf.animations, root);
+  const impactTime = useRef(0);
+  const lastTime = useRef(0);
+
+  // Sample the clip once: when and where is the hammer lowest? Then start it for real.
+  useEffect(() => {
+    const act = actions[CLIP];
+    const head = hammerHead.current;
+    const group = root.current;
+    if (!act || !head || !group) return;
+    const mixer = act.getMixer();
+    const dur = act.getClip().duration;
+    const v = new Vector3();
+    let best = { y: Infinity, t: 0, p: new Vector3() };
+    act.reset().setLoop(LoopRepeat, Infinity).play();
+    act.paused = true;
+    const steps = 160;
+    for (let i = 0; i < steps; i++) {
+      const t = (dur * i) / steps;
+      act.time = t;
+      mixer.update(0);
+      group.updateMatrixWorld(true);
+      head.getWorldPosition(v);
+      if (v.y < best.y) best = { y: v.y, t, p: v.clone() };
+    }
+    impactTime.current = best.t;
+    shared.hit.copy(best.p);
+    shared.top.current = best.p.y - HEAD_HALF;
+    shared.ready.current = true;
+    act.paused = false;
+    act.time = 0;
+    lastTime.current = 0;
+    act.setEffectiveTimeScale(0.8);
+    return () => {
+      act.stop();
+    };
+  }, [actions, shared]);
+
+  // Fire the effects at the measured instant of the clip (handles the loop wrapping around).
+  useFrame(() => {
+    const act = actions[CLIP];
+    if (!act || !shared.ready.current) return;
+    const t = act.time;
+    const t0 = impactTime.current;
+    const prev = lastTime.current;
+    const crossed = t >= prev ? prev < t0 && t >= t0 : t0 > prev || t >= t0;
+    if (crossed) shared.impact.current = 1 + Math.random() * 0.01;
+    lastTime.current = t;
+  });
+
+  const leaves = useMemo(() => Array.from({ length: 18 }, (_, i) => ({ a: (i / 18) * Math.PI * 2, t: i % 2 ? 0.4 : -0.4 })), []);
+  const handBone = model.getObjectByName("handslotr");
+  const headBone = model.getObjectByName("head");
+  const hipsBone = model.getObjectByName("hips");
+  const chestBone = model.getObjectByName("chest");
+  const lowerArmR = model.getObjectByName("lowerarmr");
+  const lowerArmL = model.getObjectByName("lowerarml");
+
+  const leatherMat = { ...leather, color: "#8a5a34", roughness: 1, metalness: 0 } as const;
+
+  return (
+    <group ref={root} position={[SMITH_X, 0, 0]} rotation={[0, Math.PI / 2, 0]} scale={scale}>
+      <primitive object={model} />
+
+      {/* Hammer in the right hand: chunky, cartoon proportions. */}
+      {handBone && (
+        <BoneMount bone={handBone}>
+          <mesh position={[0, 0.12, 0]} castShadow>
+            <cylinderGeometry args={[0.03, 0.035, 0.5, 16]} />
+            <meshStandardMaterial {...leather} color="#a67c52" roughness={1} metalness={0} />
           </mesh>
-          <group position={[0.03, 1.72, 0]}>
-            <mesh castShadow>
-              <sphereGeometry args={[0.118, 28, 22]} />
-              <meshStandardMaterial {...skin} />
-            </mesh>
-            <mesh position={[-0.02, 0.035, 0]} scale={[1.02, 0.92, 1.02]}>
-              <sphereGeometry args={[0.122, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
-              <meshStandardMaterial color="#3b2a1e" roughness={0.9} />
-            </mesh>
-            <mesh position={[0.045, -0.075, 0]} scale={[0.95, 1.15, 1]} castShadow>
-              <sphereGeometry args={[0.09, 20, 16]} />
-              <meshStandardMaterial color="#4a3426" roughness={1} />
-            </mesh>
-            <mesh position={[0.115, -0.005, 0]} castShadow>
-              <sphereGeometry args={[0.022, 12, 10]} />
-              <meshStandardMaterial {...skin} />
-            </mesh>
-            {[0.05, -0.05].map((z) => (
-              <group key={z}>
-                <mesh position={[0.095, 0.025, z]}>
-                  <sphereGeometry args={[0.013, 10, 8]} />
-                  <meshStandardMaterial color="#1c1410" roughness={0.3} />
-                </mesh>
-                <mesh position={[0.1, 0.05, z]} rotation={[0, 0, -0.25]}>
-                  <boxGeometry args={[0.03, 0.01, 0.04]} />
-                  <meshStandardMaterial color="#3b2a1e" roughness={1} />
-                </mesh>
-              </group>
-            ))}
-            {/* Laurel wreath */}
-            <group position={[-0.005, 0.075, 0]}>
-              <mesh rotation={[Math.PI / 2, 0, 0]}>
-                <torusGeometry args={[0.122, 0.008, 8, 36]} />
-                <meshStandardMaterial {...bronze} roughness={1} metalness={1} color="#e8c070" />
-              </mesh>
-              {leaves.map((l, i) => (
-                <mesh key={i} position={[Math.cos(l.a) * 0.125, l.tilt * 0.012, Math.sin(l.a) * 0.125]} rotation={[0, -l.a, l.tilt]} scale={[1, 0.35, 0.6]} castShadow>
-                  <sphereGeometry args={[0.03, 10, 8]} />
-                  <meshStandardMaterial color="#6f8f3a" roughness={0.5} metalness={0.35} />
-                </mesh>
-              ))}
-            </group>
+          <group position={[0, 0.4, 0]}>
+            <RoundedBox args={[0.3, 0.17, 0.15]} radius={0.04} smoothness={4} castShadow>
+              <meshStandardMaterial {...iron} roughness={1} metalness={1} />
+            </RoundedBox>
+            <object3D ref={hammerHead} />
           </group>
+        </BoneMount>
+      )}
 
-          {arm(1, { shoulder: rightShoulder, elbow: rightElbow }, 0.35, 0, 0, true)}
-          {arm(-1, undefined, 0.92, 0.12, -0.3, false)}
-        </group>
-      </group>
+      {/* Rebuilt head with laurel wreath */}
+      {headBone && (
+        <BoneMount bone={headBone} upright={model}>
+          <Head low={low} />
+          <group position={[0, 0.66, 0]} rotation={[-0.15, 0, 0]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.33, 0.018, 8, 48]} />
+              <meshStandardMaterial color="#f0c15a" roughness={0.35} metalness={0.7} emissive="#6a4a10" emissiveIntensity={0.4} />
+            </mesh>
+            {leaves.map((l, i) => (
+              <mesh key={i} position={[Math.cos(l.a) * 0.335, l.t * 0.03, Math.sin(l.a) * 0.335]} rotation={[0, -l.a, l.t]} scale={[1, 0.35, 0.6]} castShadow>
+                <sphereGeometry args={[0.08, 10, 8]} />
+                <meshStandardMaterial color="#7fb040" roughness={0.5} metalness={0.2} />
+              </mesh>
+            ))}
+          </group>
+        </BoneMount>
+      )}
+
+      {/* Short tunic and bronze belt with tools */}
+      {hipsBone && (
+        <BoneMount bone={hipsBone} upright={model}>
+          <mesh position={[0, -0.04, 0]} castShadow>
+            <cylinderGeometry args={[0.22, 0.32, 0.34, 32, 1, true]} />
+            <meshStandardMaterial {...cloth} color="#e8dcc0" roughness={1} metalness={0} side={DoubleSide} />
+          </mesh>
+          <mesh position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <torusGeometry args={[0.22, 0.04, 12, 40]} />
+            <meshStandardMaterial {...leatherMat} />
+          </mesh>
+          {/* pouch and tongs hanging from the belt */}
+          <mesh position={[0.2, 0.0, 0.1]} scale={[1, 1.1, 0.8]} castShadow>
+            <sphereGeometry args={[0.08, 14, 12]} />
+            <meshStandardMaterial {...leatherMat} />
+          </mesh>
+          {[-0.014, 0.014].map((o) => (
+            <mesh key={o} position={[-0.2 + o, -0.04, 0.12]} rotation={[0.1, 0, o * 6]} castShadow>
+              <boxGeometry args={[0.02, 0.3, 0.02]} />
+              <meshStandardMaterial {...bronze} roughness={1} metalness={1} color="#8a6a44" />
+            </mesh>
+          ))}
+        </BoneMount>
+      )}
+
+      {/* Leather apron over the chest */}
+      {chestBone && (
+        <BoneMount bone={chestBone} upright={model}>
+          <mesh position={[0, -0.12, 0.2]} rotation={[0.05, 0, 0]} castShadow>
+            <boxGeometry args={[0.46, 0.7, 0.05]} />
+            <meshStandardMaterial {...leatherMat} />
+          </mesh>
+          <mesh position={[0, 0.2, 0.2]} castShadow>
+            <boxGeometry args={[0.28, 0.14, 0.055]} />
+            <meshStandardMaterial {...leatherMat} color="#76492a" />
+          </mesh>
+          {/* neck strap */}
+          {[-1, 1].map((x) => (
+            <mesh key={x} position={[x * 0.13, 0.34, 0.12]} rotation={[0.4, 0, x * -0.25]} castShadow>
+              <boxGeometry args={[0.05, 0.3, 0.03]} />
+              <meshStandardMaterial {...leatherMat} color="#5e3a22" />
+            </mesh>
+          ))}
+        </BoneMount>
+      )}
+
+      {/* Leather gauntlets */}
+      {[lowerArmR, lowerArmL].map((b, i) =>
+        b ? (
+          <BoneMount key={i} bone={b}>
+            <mesh position={[0, 0.17, 0]} castShadow>
+              <cylinderGeometry args={[0.095, 0.085, 0.2, 20]} />
+              <meshStandardMaterial {...leatherMat} color="#5e3a22" />
+            </mesh>
+          </BoneMount>
+        ) : null,
+      )}
     </group>
   );
 }
 
 // ---------- Forge, columns and floor ----------
 
-function Surroundings({ low, flame }: { low: boolean; flame: React.MutableRefObject<number> }) {
+function Surroundings({ low, flame }: { low: boolean; flame: Shared["flame"] }) {
   const marble = usePbr("floor", low, [3, 3]);
   const col = usePbr("floor", low, [1, 3]);
   const iron = usePbr("anvil", low, [1, 1]);
@@ -396,7 +545,6 @@ function Surroundings({ low, flame }: { low: boolean; flame: React.MutableRefObj
           </mesh>
         </group>
       ))}
-      {/* Forge hearth */}
       <group position={[-1.9, 0, -0.9]}>
         <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
           <boxGeometry args={[0.9, 0.6, 0.6]} />
@@ -420,69 +568,42 @@ function Surroundings({ low, flame }: { low: boolean; flame: React.MutableRefObj
   );
 }
 
-// ---------- Driver: hammer cycle, camera and impact effects ----------
+// ---------- Camera and impact reaction ----------
 
-function Director({ impact, anim, flame }: { impact: React.MutableRefObject<number>; anim: React.MutableRefObject<{ th: number; ph: number; lean: number }>; flame: React.MutableRefObject<number> }) {
+function Director({ shared }: { shared: Shared }) {
   const { camera, size } = useThree();
   const flash = useRef<PointLight>(null);
-  const last = useRef(0);
   const shake = useRef(0);
+  const lastSeen = useRef(0);
 
   useEffect(() => {
     const cam = camera as PerspectiveCamera;
     const aspect = size.width / Math.max(1, size.height);
     const tan = Math.tan(MathUtils.degToRad(cam.fov / 2));
-    // Fit the smith, anvil and the forge glow: about 3.4m wide and 2.2m tall.
-    const dist = Math.max(2.05 / (2 * tan), 2.9 / (2 * tan * aspect));
+    const dist = Math.max(2.5 / (2 * tan), 2.7 / (2 * tan * aspect));
     // On wide banners the title sits on the left, so the scene is pushed to the right.
-    const lx = aspect > 2 ? -0.95 : aspect > 1.2 ? -0.6 : -0.3;
-    cam.position.set(lx + dist * 0.28, 1.45, dist * 0.96);
-    cam.lookAt(lx, 1.02, 0.05);
+    const lx = aspect > 2 ? -0.75 : aspect > 1.2 ? -0.45 : -0.15;
+    cam.position.set(lx + dist * 0.2, 1.3, dist * 0.97);
+    cam.lookAt(lx, 0.9, 0.2);
     cam.updateProjectionMatrix();
   }, [camera, size]);
 
-  useFrame((_, dt) => {
-    const t = performance.now() / 1000;
-    const p = t % CYCLE;
-    const e = MathUtils.smootherstep;
-    let th: number;
-    let ph: number;
-    let lean: number;
-    if (p < 0.95) {
-      const k = e(p / 0.95, 0, 1);
-      th = MathUtils.lerp(0.35, 2.0, k);
-      ph = MathUtils.lerp(0, 0.6, k);
-      lean = MathUtils.lerp(0, 0.13, k);
-    } else if (p < STRIKE_AT) {
-      const k = (p - 0.95) / (STRIKE_AT - 0.95);
-      const q = k * k;
-      th = MathUtils.lerp(2.0, 0.965, q);
-      ph = MathUtils.lerp(0.6, 0.1, q);
-      lean = MathUtils.lerp(0.13, -0.1, q);
-    } else {
-      const k = e((p - STRIKE_AT - 0.08) / (CYCLE - STRIKE_AT - 0.08), 0, 1);
-      th = MathUtils.lerp(0.965, 0.35, k);
-      ph = MathUtils.lerp(0.1, 0, k);
-      lean = MathUtils.lerp(-0.1, 0, k);
-    }
-    anim.current.th = th;
-    anim.current.ph = ph;
-    anim.current.lean = lean;
-
-    if (last.current < STRIKE_AT && p >= STRIKE_AT) {
-      impact.current = 1 + Math.random() * 0.01; // changes every blow so the sparks restart
+  useFrame(({ camera: cam }, dt) => {
+    // Everything reacts on the very frame the blow lands.
+    if (shared.impact.current > 1 && shared.impact.current !== lastSeen.current) {
+      lastSeen.current = shared.impact.current;
       shake.current = 1;
+      shared.flame.current = 1;
     }
-    last.current = p;
-    impact.current = Math.max(0.0001, impact.current > 1 ? impact.current : impact.current - dt * 2.4);
-    if (impact.current > 1 && p > STRIKE_AT + 0.03) impact.current = 0.97;
-    const glow = Math.min(1, impact.current);
-    flame.current = glow * (impact.current > 0.5 ? 1 : impact.current * 2);
+    shared.flame.current = Math.max(0, shared.flame.current - dt * 2.4);
     shake.current = Math.max(0, shake.current - dt * 7);
-    if (flash.current) flash.current.intensity = glow > 0.5 ? (glow - 0.5) * 22 : 0;
-    camera.position.y = 1.45 + Math.sin(t * 60) * 0.006 * shake.current;
+    if (flash.current) {
+      flash.current.intensity = shared.flame.current > 0.5 ? (shared.flame.current - 0.5) * 24 : 0;
+      flash.current.position.set(shared.hit.x, shared.top.current + 0.25, shared.hit.z + 0.4);
+    }
+    cam.position.y = 1.3 + Math.sin((performance.now() / 1000) * 60) * 0.007 * shake.current;
   });
-  return <pointLight ref={flash} position={[HIT_X, ANVIL_TOP + 0.25, 0.4]} color="#ffb060" distance={3.4} decay={2} intensity={0} />;
+  return <pointLight ref={flash} color="#ffb060" distance={3.4} decay={2} intensity={0} />;
 }
 
 function Ready({ onReady }: { onReady: () => void }) {
@@ -491,25 +612,26 @@ function Ready({ onReady }: { onReady: () => void }) {
 }
 
 export default function ForgeScene({ low, active, onReady }: { low: boolean; active: boolean; onReady: () => void }) {
-  const impact = useRef(0);
-  const flame = useRef(0);
-  const anim = useRef({ th: 0.35, ph: 0, lean: 0 });
+  const shared = useMemo<Shared>(
+    () => ({ impact: { current: 0 }, flame: { current: 0 }, hit: new Vector3(0.39, 0.5, 0.45), top: { current: 0.43 }, ready: { current: false } }),
+    [],
+  );
   return (
     <Canvas
       frameloop={active ? "always" : "never"}
       dpr={low ? [1, 1.25] : [1, 1.75]}
       shadows={low ? false : { type: PCFShadowMap }}
-      camera={{ fov: 30, near: 0.1, far: 40, position: [1, 1.5, 6] }}
+      camera={{ fov: 30, near: 0.1, far: 40, position: [1, 1.3, 6] }}
       gl={{ antialias: !low, alpha: true, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
         gl.outputColorSpace = SRGBColorSpace;
         gl.toneMapping = ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMappingExposure = 1.1;
       }}
     >
       <fog attach="fog" args={["#120d14", 7, 14]} />
-      <Environment files="/3d/env.hdr" environmentIntensity={0.5} />
-      <hemisphereLight args={["#c8d0ff", "#4a3020", 0.75]} />
+      <Environment files="/3d/env.hdr" environmentIntensity={0.55} />
+      <hemisphereLight args={["#c8d0ff", "#4a3020", 0.8]} />
       <directionalLight
         position={[2.2, 3.6, 3]}
         intensity={2.9}
@@ -525,13 +647,14 @@ export default function ForgeScene({ low, active, onReady }: { low: boolean; act
         shadow-bias={-0.0004}
       />
       <Suspense fallback={null}>
-        <Surroundings low={low} flame={flame} />
-        <Anvil low={low} glow={flame} />
-        <Smith low={low} anim={anim} />
-        <Sparks impact={impact} />
+        <Surroundings low={low} flame={shared.flame} />
+        <Anvil low={low} shared={shared} />
+        <Smith low={low} shared={shared} />
+        <Sparks shared={shared} />
+        <Shockwave shared={shared} />
         <Ready onReady={onReady} />
       </Suspense>
-      <Director impact={impact} anim={anim} flame={flame} />
+      <Director shared={shared} />
     </Canvas>
   );
 }

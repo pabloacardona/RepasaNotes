@@ -679,3 +679,20 @@ html { scroll-behavior: smooth; }
 
 /* Quiz card: a still gradient border. The spinning sweep looked like a clock hand and pulled the eye off the question. */
 .hx-epic-still { animation: none; --ang: 135deg; }
+
+/* Streak week: molten cells. Days played glow like incandescent lava; days missed are cold basalt. */
+.lava-cell { display: block; position: relative; height: 1.5rem; border-radius: 0.5rem; background: linear-gradient(160deg, var(--track), color-mix(in oklab, var(--track) 70%, #000)); border: 1px solid var(--line); }
+.lava-on { border-color: #ff9a3c; background: radial-gradient(120% 140% at 50% 110%, #fff2a8 0%, #ffb02e 22%, #ff5a14 52%, #7a1606 100%); box-shadow: 0 0 12px 1px rgba(255, 110, 20, 0.55), inset 0 -6px 10px rgba(255, 220, 120, 0.35), inset 0 2px 6px rgba(60, 8, 0, 0.5); animation: lava-glow 3.4s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -0.45s); }
+.lava-on::after { content: ""; position: absolute; inset: 3px 5px; border-radius: 0.3rem; background: linear-gradient(100deg, transparent 20%, rgba(70, 10, 0, 0.45) 22%, transparent 26%, transparent 58%, rgba(70, 10, 0, 0.4) 60%, transparent 64%); mix-blend-mode: multiply; pointer-events: none; }
+.lava-today { outline: 2px solid var(--neon); outline-offset: 2px; }
+@keyframes lava-glow { 0%, 100% { filter: brightness(0.95); box-shadow: 0 0 9px 0 rgba(255, 100, 20, 0.45), inset 0 -6px 10px rgba(255, 220, 120, 0.3), inset 0 2px 6px rgba(60, 8, 0, 0.5); } 50% { filter: brightness(1.22); box-shadow: 0 0 16px 2px rgba(255, 120, 30, 0.7), inset 0 -6px 12px rgba(255, 230, 140, 0.5), inset 0 2px 6px rgba(60, 8, 0, 0.5); } }
+@media (prefers-reduced-motion: reduce) { .lava-on { animation: none; } }
+
+/* Streak week: luminous ripples. A played day sends rings outward from a glowing core; a missed day is a dim, still cell. */
+.wave-cell { display: block; position: relative; height: 1.6rem; overflow: hidden; border-radius: 0.65rem; border: 1px solid var(--line); background: var(--track); }
+.wave-on { border-color: rgba(120, 232, 250, 0.75); background: radial-gradient(circle at 50% 50%, rgba(140, 240, 255, 0.6) 0%, rgba(80, 90, 220, 0.5) 55%, rgba(24, 18, 70, 0.92) 100%); box-shadow: 0 0 14px rgba(110, 225, 250, 0.45), inset 0 0 10px rgba(160, 245, 255, 0.35); }
+.wave-on::before, .wave-on::after { content: ""; position: absolute; left: 50%; top: 50%; width: 150%; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid rgba(200, 252, 255, 0.9); transform: translate(-50%, -50%) scale(0.15); opacity: 0; animation: wave-ring 2.8s ease-out infinite; animation-delay: calc(var(--i, 0) * -0.31s); pointer-events: none; }
+.wave-on::after { animation-delay: calc(var(--i, 0) * -0.31s - 1.4s); }
+.wave-today { outline: 2px solid var(--neon); outline-offset: 2px; }
+@keyframes wave-ring { 0% { transform: translate(-50%, -50%) scale(0.15); opacity: 0.95; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .wave-on::before, .wave-on::after { animation: none; opacity: 0.4; transform: translate(-50%, -50%) scale(0.6); } }

@@ -1,9 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
-import { useMascot } from "@/lib/mascots";
+import { useMascot, useMascotGestures } from "@/lib/mascots";
 import { mascotQuote } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
 
@@ -39,6 +39,7 @@ export function MascotStage({
   trophy,
   bubbleClassName = "",
   className = "",
+  scrollToSwitch = false,
 }: {
   mood: Mood;
   pulse: number;
@@ -48,7 +49,11 @@ export function MascotStage({
   /** Extra classes for the quote bubble (e.g. hide it on small screens). */
   bubbleClassName?: string;
   className?: string;
+  /** Scroll or swipe over the mascot to change it. Off by default so it never steals page scrolling. */
+  scrollToSwitch?: boolean;
 }) {
+  const zone = useRef<HTMLDivElement>(null);
+  useMascotGestures(zone);
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
   const { id } = useMascot();
   const [ready, setReady] = useState(false);
@@ -56,6 +61,7 @@ export function MascotStage({
 
   return (
     <div className={`pointer-events-none ${className}`} aria-hidden>
+      <div ref={zone} className={`absolute inset-0 z-20 touch-pan-y ${scrollToSwitch ? "pointer-events-auto" : "pointer-events-none"}`} title={scrollToSwitch ? "Desplaza o desliza para cambiar de mascota" : undefined} />
       <div className={`absolute inset-x-0 z-10 flex justify-center top-0 ${bubbleClassName}`}>
         <div key={`${mood}-${pulse}`} className="repi-bubble">
           <span className="repi-quote">“{quote.q}”</span>

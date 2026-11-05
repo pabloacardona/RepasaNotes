@@ -19,13 +19,14 @@ export function DashboardCompanion({ streak }: { streak: number }) {
   return (
     <div className="hidden lg:block">
       <MascotStage
+        scrollToSwitch
         mood={CALM[i % CALM.length]}
         pulse={0}
         lastHit={null}
         streak={streak}
         className="fixed bottom-16 right-4 z-0 h-[min(30dvh,230px)] w-[min(18vw,210px)]"
       />
-      <MascotPicker up className="right-4 bottom-[calc(4rem+min(30dvh,230px)+0.5rem)]" />
+      <MascotPicker className="right-4 bottom-[calc(4rem+min(30dvh,230px)+0.5rem)]" />
     </div>
   );
 }

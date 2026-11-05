@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { listNotes } from "@/lib/data";
 import { GenerateForm } from "./generate-form";
+import { ForgeBanner } from "@/components/three/forge-banner";
 
 export const metadata: Metadata = { title: "Nuevo quiz" };
 
@@ -16,11 +17,13 @@ export default async function NewQuizPage({ searchParams }: PageProps<"/quizzes/
 
   return (
     <>
-      <div className="mb-6">
-        <p className="hx-kicker">Preparar misión</p>
-        <h1 className="hx-title hx-gold-text text-3xl sm:text-4xl">Forja tu quiz</h1>
-        <p className="hx-mute mt-1">La IA crea las preguntas solo con el contenido de tu apunte.</p>
-      </div>
+      <ForgeBanner fallback={<p aria-hidden className="absolute bottom-3 right-6 text-7xl opacity-60">🔨</p>}>
+        <div>
+          <p className="hx-kicker">Preparar misión</p>
+          <h1 className="hx-title hx-gold-text text-3xl sm:text-4xl">Forja tu quiz</h1>
+          <p className="hx-mute mt-1 max-w-sm">La IA crea las preguntas solo con el contenido de tu apunte.</p>
+        </div>
+      </ForgeBanner>
       {notes.length === 0 ? (
         <div className="hx-panel p-10 text-center">
           <p className="text-5xl" aria-hidden>📜</p>
