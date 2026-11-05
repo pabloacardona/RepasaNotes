@@ -1,0 +1,19 @@
+"use client";
+
+import { getApp, getApps, initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+
+// Firebase Authentication on the browser. It only turns on when the public keys are in the environment,
+// so the app keeps working with email + password alone until Firebase is configured.
+const config = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+export const firebaseEnabled = Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
+
+export function firebaseAuth() {
+  return getAuth(getApps().length ? getApp() : initializeApp(config));
+}

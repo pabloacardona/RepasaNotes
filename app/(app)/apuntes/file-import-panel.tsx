@@ -7,6 +7,22 @@ import type { NoteDraft } from "./ai-note-panel";
 const ACCEPT = ".txt,.md,.pdf,.docx";
 const MAX_BYTES = 4 * 1024 * 1024;
 
+// Phone photos are 3-8 MB: shrink to a readable size before upload (keeps the request under the host limit).
+async function shrink(file: File): Promise<File> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+    return blob ? new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }) : file;
+  } catch {
+    return file;
+  }
+}
+
 export function FileImportPanel({
   hasContent,
   onDraft,
@@ -15,6 +31,7 @@ export function FileImportPanel({
   onDraft: (draft: NoteDraft) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,11 +66,31 @@ export function FileImportPanel({
     );
   }
 
+  async function uploadPhotos(list: File[]) {
+    setError(null);
+    setNotice(null);
+    const files = list.slice(0, 6);
+    if (files.some((f) => !f.type.startsWith("image/"))) return setError("Solo se aceptan imágenes (JPG, PNG o WebP).");
+    if (hasContent && !window.confirm("El apunte actual se reemplazará por el de las fotos. ¿Continuar?")) return;
+    setLoading(files.length === 1 ? "tu foto" : `${files.length} fotos`);
+    const body = new FormData();
+    for (const f of files) body.append("photos", await shrink(f));
+    const res = await fetch("/api/notes/import", { method: "POST", body }).catch(() => null);
+    setLoading(null);
+    if (!res) return setError("Sin conexión. Intenta de nuevo.");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return setError(data.errors?.form ?? "No se pudieron leer las fotos");
+    onDraft(data.draft);
+    setNotice("✓ La IA transcribió tus fotos abajo. Revisa que todo esté bien, completa el tema y guarda.");
+  }
+
   function onDrop(e: DragEvent) {
     e.preventDefault();
     setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file && !loading) upload(file);
+    const list = Array.from(e.dataTransfer.files);
+    if (!list.length || loading) return;
+    if (list[0].type.startsWith("image/")) uploadPhotos(list);
+    else upload(list[0]);
   }
 
   return (
@@ -80,15 +117,30 @@ export function FileImportPanel({
             <span aria-hidden className="text-4xl">📎</span>
             <p className="font-display text-lg font-bold">Arrastra aquí tu archivo</p>
             <p className="text-sm text-ink-soft">PDF, Word (.docx), .txt o .md · máximo 4 MB</p>
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="hx-btn hx-btn-gold"
-            >
-              Elegir archivo
-            </button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button type="button" onClick={() => inputRef.current?.click()} className="hx-btn hx-btn-gold">
+                Elegir archivo
+              </button>
+              <button type="button" onClick={() => photoRef.current?.click()} className="hx-btn">
+                📷 Fotos de apuntes
+              </button>
+            </div>
+            <p className="text-xs text-ink-soft">En el celular puedes tomar la foto al momento. Hasta 6 imágenes.</p>
           </>
         )}
+        <input
+          ref={photoRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          className="sr-only"
+          aria-label="Subir fotos de apuntes"
+          onChange={(e) => {
+            const l = Array.from(e.target.files ?? []);
+            e.target.value = "";
+            if (l.length) uploadPhotos(l);
+          }}
+        />
         <input
           ref={inputRef}
           type="file"

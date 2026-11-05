@@ -10,12 +10,14 @@ import { FireBorder } from "@/components/game/fire-border";
 import type { ComponentProps } from "react";
 import { Spinner } from "@/components/ui";
 import { burstAt } from "@/components/confetti";
-import { pointsFor } from "@/lib/score";
+import { maxLives, pointsFor } from "@/lib/score";
 import { moodFor } from "@/lib/mood";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
+import { CalmBackdrop } from "@/components/world/calm-backdrop";
 import { MascotStage } from "@/components/world/mascot-stage";
 import { MascotPicker } from "@/components/world/mascot-picker";
+import { Avatar } from "@/components/avatar";
+import { RichText } from "@/components/rich-text";
 import type { Question } from "@/lib/db/schema";
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -53,12 +55,16 @@ export function QuizRunner({
   topic,
   questions,
   playerName,
+  playerAvatar,
+  shared = false,
 }: {
   id: string;
   title: string;
   topic: string;
   questions: Question[];
   playerName?: string;
+  playerAvatar?: string | null;
+  shared?: boolean;
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState(0);
@@ -74,6 +80,12 @@ export function QuizRunner({
   const reduce = useReducedMotion();
   const [direction, setDirection] = useState(1);
   const [track, setTrack] = useState<Track>(TRACK0);
+  const totalLives = maxLives(questions.length);
+  const [lives, setLives] = useState(totalLives);
+  const [hints, setHints] = useState<Record<number, string>>({});
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintError, setHintError] = useState<string | null>(null);
+  const [localDone, setLocalDone] = useState(false);
 
   const q = questions[current];
   const chosen = answers[current];
@@ -139,7 +151,28 @@ export function QuizRunner({
     [current, questions.length, seconds],
   );
 
+  async function useHint() {
+    if (lives <= 0 || hints[current] || hintLoading || answers[current] !== -1) return;
+    setHintLoading(true);
+    setHintError(null);
+    const res = await fetch(shared ? `/api/share/${id}/hint` : `/api/quizzes/${id}/hint`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(shared ? { question: q.question, options: q.options, correctIndex: q.correctIndex, explanation: q.explanation } : { index: current }),
+    }).catch(() => null);
+    const data = res ? await res.json().catch(() => null) : null;
+    setHintLoading(false);
+    if (!res || !res.ok || !data?.hint) return setHintError(data?.error ?? "No se pudo obtener la pista. No perdiste ninguna vida.");
+    setHints((h) => ({ ...h, [current]: data.hint }));
+    setLives((l) => l - 1);
+  }
+
   async function finish() {
+    if (shared) {
+      setDialog(null);
+      setLocalDone(true);
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const res = await fetch(`/api/quizzes/${id}/submit`, {
@@ -166,6 +199,10 @@ export function QuizRunner({
     setDialog(null);
     setError(null);
     setTrack(TRACK0);
+    setLives(totalLives);
+    setHints({});
+    setHintError(null);
+    setLocalDone(false);
   }
 
   // Keyboard: 1-4 / A-D answer, arrows or Enter navigate, Esc closes dialogs.
@@ -197,7 +234,7 @@ export function QuizRunner({
 
   return (
     <div className="hx flex h-dvh flex-col overflow-hidden">
-      <InteractiveBackdrop streak={streak} pulse={track.pulse} lastHit={lastHit} />
+      <CalmBackdrop />
       <MascotStage
         mood={mood}
         pulse={track.pulse}
@@ -210,7 +247,7 @@ export function QuizRunner({
       {/* HUD */}
       <header className="hx-hud z-20 shrink-0">
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-3 py-1.5 sm:gap-3 sm:px-6">
-          <Link href="/quizzes" className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface-2)] font-bold transition hover:border-[var(--bad)] hover:text-[var(--bad)]" aria-label="Salir del quiz" title="Salir">
+          <Link href={shared ? "/" : "/quizzes"} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface-2)] font-bold transition hover:border-[var(--bad)] hover:text-[var(--bad)]" aria-label="Salir del quiz" title="Salir">
             ✕
           </Link>
 
@@ -244,7 +281,7 @@ export function QuizRunner({
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {playerName && (
               <span className="hidden items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] py-1 pl-1 pr-3 sm:flex" title={playerName}>
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[var(--b1)] to-[var(--b2)] text-sm font-bold text-[#2a2012]">{playerName.charAt(0).toUpperCase()}</span>
+                <Avatar name={playerName} src={playerAvatar} size={28} />
                 <span className="max-w-[7rem] truncate text-sm font-bold">{playerName.split(" ")[0]}</span>
               </span>
             )}
@@ -265,6 +302,11 @@ export function QuizRunner({
                 x{streak}
               </span>
             </div>
+            <div className="flex items-center gap-0.5" aria-label={`Vidas de pista: ${lives} de ${totalLives}`} title="Vidas: cada pista de la IA cuesta una">
+              {Array.from({ length: totalLives }, (_, i) => (
+                <span key={i} className={`text-sm leading-none transition ${i < lives ? "text-[var(--bad)]" : "text-[var(--track)]"}`}>♥</span>
+              ))}
+            </div>
             <span className="hidden font-display text-sm tabular-nums text-[var(--mute)] sm:inline" aria-label="Tiempo">
               ⏱ {formatTime(seconds)}
             </span>
@@ -276,7 +318,7 @@ export function QuizRunner({
       <main className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-3 pt-[18dvh] sm:px-6 landscape:pt-3">
         <MascotPicker className="right-3 top-16" />
 
-        <div className={`hx-epic ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative mx-auto flex max-h-full min-h-0 w-full max-w-[560px] flex-col p-3 sm:p-5`}>
+        <div className={`hx-epic hx-epic-still ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative mx-auto flex max-h-full min-h-0 w-full max-w-[560px] flex-col p-3 sm:p-5`}>
           <FireBorder streak={streak} />
           <div className="flex shrink-0 items-center justify-between gap-2">
             <p className="hx-kicker">
@@ -299,7 +341,26 @@ export function QuizRunner({
                 transition={{ type: "spring", stiffness: 300, damping: 28 }}
                 className={feedback?.kind === "miss" ? "anim-shake" : ""}
               >
-                <h1 className="font-display text-lg font-bold leading-snug sm:text-[1.35rem]">{q.question}</h1>
+                <div role="heading" aria-level={1} className="font-display text-lg font-bold leading-snug sm:text-[1.35rem]">
+                  <RichText text={q.question} />
+                </div>
+
+                {!answered && (
+                  <div className="mt-3">
+                    {hints[current] ? (
+                      <p className="rounded-xl border-l-4 border-[var(--neon)] bg-[var(--neon)]/10 px-3 py-2 text-sm">💡 {hints[current]}</p>
+                    ) : (
+                      <button
+                        onClick={useHint}
+                        disabled={lives <= 0 || hintLoading}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--surface-2)] px-3 py-1.5 text-sm font-semibold transition hover:border-[var(--neon)] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {hintLoading ? <Spinner /> : "💡"} {lives > 0 ? `Pista (cuesta 1 ♥ · quedan ${lives})` : "Sin vidas"}
+                      </button>
+                    )}
+                    {hintError && <p role="alert" className="mt-1 text-xs font-bold text-[var(--bad)]">{hintError}</p>}
+                  </div>
+                )}
 
                 <ul className="mt-4 space-y-2">
                   {q.options.map((opt, i) => {
@@ -325,7 +386,8 @@ export function QuizRunner({
                           <span className={`q-key ${answered && isCorrect ? "!border-[var(--ok)] !bg-[var(--ok)] !text-[var(--on-accent)] !shadow-none" : answered && isChosen ? "!border-[var(--bad)] !bg-[var(--bad)] !text-white !shadow-none" : ""}`}>
                             {LETTERS[i]}
                           </span>
-                          <span className={`flex-1 text-[0.9rem] leading-snug sm:text-[0.95rem] ${answered && (isCorrect || isChosen) ? "font-bold" : ""}`}>{opt}</span>
+                          <span className={`flex-1 text-[0.9rem] leading-snug sm:text-[0.95rem] ${answered && (isCorrect || isChosen) ? "font-bold" : ""}`}><RichText text={opt} inlineOnly />
+                          </span>
                           {answered && isCorrect && <span className="shrink-0 text-sm font-bold text-[var(--ok)]">✓</span>}
                           {answered && isChosen && !isCorrect && <span className="shrink-0 text-sm font-bold text-[var(--bad)]">✗</span>}
                         </button>
@@ -347,7 +409,7 @@ export function QuizRunner({
                         </p>
                       )}
                       <div className="rounded-xl border-l-4 border-[var(--neon)] bg-[var(--neon)]/10 px-3.5 py-2.5 text-sm sm:text-base">
-                        <span className="font-bold">Explicación:</span> {q.explanation}
+                        <span className="font-bold">Explicación:</span> <RichText text={q.explanation} />
                       </div>
                     </motion.div>
                   )}
@@ -387,6 +449,15 @@ export function QuizRunner({
           </div>
         </div>
       </main>
+
+      {localDone && (
+        <SharedResults
+          questions={questions}
+          answers={answers}
+          points={points}
+          onAgain={restart}
+        />
+      )}
 
       {dialog && (
         <ConfirmDialog
@@ -455,6 +526,39 @@ function ConfirmDialog({
             {confirmLabel}
           </Btn>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SharedResults({ questions, answers, points, onAgain }: { questions: Question[]; answers: number[]; points: number; onAgain: () => void }) {
+  const hits = answers.filter((a, i) => a === questions[i].correctIndex).length;
+  const wrong = questions.map((q, i) => ({ q, given: answers[i], n: i + 1 })).filter(({ q, given }) => given !== q.correctIndex);
+  return (
+    <div className="hx anim-fade-in fixed inset-0 z-50 overflow-y-auto bg-[var(--bg)]/95 p-4 backdrop-blur-md">
+      <div className="hx-epic pop-in mx-auto my-6 w-full max-w-lg p-5 sm:p-7">
+        <p className="hx-kicker text-center">Resultado</p>
+        <p className="mt-1 text-center font-display text-5xl font-bold">
+          {hits}<span className="hx-mute text-3xl"> / {questions.length}</span>
+        </p>
+        <p className="hx-mute mt-1 text-center text-sm">{Math.round(points / 10)} XP en este intento</p>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <Btn variant="gold" onClick={onAgain}>Intentar de nuevo</Btn>
+          <Link href="/" className="hx-btn !px-3 !py-2 text-sm">Conocer Repasa</Link>
+        </div>
+        {wrong.length > 0 && (
+          <ul className="mt-6 space-y-4 border-t border-[var(--line)] pt-4">
+            {wrong.map(({ q, given, n }) => (
+              <li key={n} className="text-sm">
+                <p className="hx-mute text-xs font-bold uppercase tracking-widest">Pregunta {n}</p>
+                <RichText text={q.question} className="font-semibold" compact />
+                <p className="mt-1 text-[var(--bad)]">✗ {given >= 0 ? <RichText text={q.options[given]} inlineOnly /> : "Sin responder"}</p>
+                <p className="text-[var(--ok)]">✓ <RichText text={q.options[q.correctIndex]} inlineOnly /></p>
+                <div className="hx-mute mt-1"><RichText text={q.explanation} compact /></div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

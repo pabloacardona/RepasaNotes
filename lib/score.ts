@@ -23,3 +23,8 @@ export function scoreRun(answers: number[], correct: number[]) {
   });
   return { points, bestStreak };
 }
+
+// Hint lives per quiz: 3 for 5 questions, 5 for 10, 6 for 15 or more.
+export function maxLives(total: number) {
+  return total <= 5 ? 3 : total <= 10 ? 5 : 6;
+}

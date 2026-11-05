@@ -17,8 +17,8 @@ export function FireBorder({ streak }: { streak: number }) {
   const reduce = useReducedMotion();
   const id = useId().replace(/:/g, "");
   const level = streak >= 8 ? 3 : streak >= 5 ? 2 : streak >= 3 ? 1 : 0;
-  const count = [0, 16, 22, 30][level];
-  const base = [0, 38, 54, 72][level];
+  const count = [0, 8, 11, 14][level];
+  const base = [0, 20, 26, 32][level];
   const tongues = useMemo(() => {
     const r = seeded(11);
     return Array.from({ length: 30 }, (_, i) => ({ left: 1 + (i / 29) * 98 + (r() - 0.5) * 2, scale: 0.55 + r() * 0.9, delay: r() * 1.2, d: 0.5 + r() * 0.5 }));
@@ -51,8 +51,8 @@ export function FireBorder({ streak }: { streak: number }) {
               </linearGradient>
             </defs>
           </svg>
-          <div className="absolute inset-x-0 bottom-0 h-0" style={{ filter: `drop-shadow(0 0 ${6 + level * 4}px ${level === 3 ? "#38bdf8" : "#ff7a00"})` }}>
-            <div aria-hidden className="absolute inset-x-1 bottom-[-3px] h-3 rounded-full blur-md" style={{ background: `linear-gradient(90deg, transparent, ${inner[0]}, ${inner[1]}, ${inner[0]}, transparent)`, opacity: 0.9 }} />
+          <div className="absolute inset-x-0 bottom-0 h-0" style={{ filter: `drop-shadow(0 0 ${3 + level * 2}px ${level === 3 ? "#38bdf8" : "#ff7a00"})`, opacity: 0.6 }}>
+            <div aria-hidden className="absolute inset-x-1 bottom-[-3px] h-3 rounded-full blur-md" style={{ background: `linear-gradient(90deg, transparent, ${inner[0]}, ${inner[1]}, ${inner[0]}, transparent)`, opacity: 0.35 }} />
             {tongues.slice(0, count).map((t, i) => (
               <svg
                 key={i}
@@ -67,7 +67,7 @@ export function FireBorder({ streak }: { streak: number }) {
             ))}
           </div>
           {level >= 2 &&
-            embers.slice(0, level === 3 ? 16 : 9).map((e, i) => (
+            embers.slice(0, level === 3 ? 5 : 3).map((e, i) => (
               <span key={i} className="ember" style={{ left: `${e.left}%`, bottom: 4, ["--d" as string]: `${e.d}s`, ["--delay" as string]: `${e.delay}s`, ["--ex" as string]: `${e.ex}px`, background: level === 3 ? "#bfeaff" : undefined, boxShadow: level === 3 ? "0 0 8px 2px #38bdf8" : undefined }} />
             ))}
         </motion.div>

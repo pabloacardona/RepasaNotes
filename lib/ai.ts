@@ -20,7 +20,7 @@ type Candidate = { name: ProviderName; model: LanguageModel; options?: ProviderO
 function buildCandidates(): Candidate[] {
   const env = process.env;
   const all: Record<ProviderName, () => Candidate | null> = {
-    google: () => (env.GOOGLE_GENERATIVE_AI_API_KEY ? { name: "google", model: google(env.GOOGLE_MODEL ?? "gemini-3.1-flash-lite") } : null),
+    google: () => (env.GOOGLE_GENERATIVE_AI_API_KEY ? { name: "google", model: google(env.GOOGLE_MODEL ?? "gemini-flash-latest") } : null),
     groq: () => (env.GROQ_API_KEY ? { name: "groq", model: groq(env.GROQ_MODEL ?? "openai/gpt-oss-120b") } : null),
     anthropic: () => (env.AI_PROVIDER === "anthropic" && env.ANTHROPIC_API_KEY ? { name: "anthropic", model: anthropic(env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5") } : null),
     gateway: () => ({
@@ -101,6 +101,9 @@ const DIFFICULTY_PROMPT: Record<string, string> = {
   dificil: "difícil: preguntas de aplicación y análisis, con distractores plausibles",
 };
 
+const TICK = "`";
+const FENCE = "```";
+
 const QUIZ_SYSTEM = `Eres un profesor que crea quizzes de repaso en español a partir de los apuntes de un estudiante.
 Reglas:
 - Usa SOLO la información del apunte. No inventes datos que no estén ahí.
@@ -109,7 +112,9 @@ Reglas:
 - Opciones breves (máximo 15 palabras), sin prefijos como "A." o "1)".
 - La explicación (1-2 frases) dice por qué la respuesta correcta es la correcta.
 - No repitas preguntas.
-- Escribe todo en español.`;
+- Escribe todo en español.
+- Formato visual (solo cuando aporte): si la pregunta trata de código, incluye el fragmento en un bloque con tres comillas invertidas y el lenguaje (${FENCE}js ... ${FENCE}), de pocas líneas. Usa ${TICK}código${TICK} en línea para nombres de funciones o variables. Una opción puede ser un fragmento corto en línea.
+- Si el apunte contiene datos numéricos o un bloque ${FENCE}chart, puedes incluir un gráfico en el enunciado con un bloque ${FENCE}chart con JSON válido: {"type":"bar"|"line"|"pie","title":"...","labels":[...],"values":[...]} (máximo 8 puntos, valores numéricos). No inventes datos que no estén en el apunte.`;
 
 export async function generateQuestions(opts: {
   title: string;
@@ -117,6 +122,7 @@ export async function generateQuestions(opts: {
   content: string;
   count: number;
   difficulty: string;
+  variation?: boolean;
 }): Promise<Question[]> {
   let output: z.infer<typeof QuizSchema>;
   try {
@@ -127,7 +133,8 @@ export async function generateQuestions(opts: {
 Título del apunte: ${opts.title}
 Dificultad: ${DIFFICULTY_PROMPT[opts.difficulty] ?? opts.difficulty}
 Número de preguntas: ${opts.count}
-
+${opts.variation ? `Este quiz es una variante única para un estudiante: formula las preguntas con enunciados originales, elige conceptos del apunte de forma aleatoria y cambia el orden de los temas. Semilla: ${Math.random().toString(36).slice(2, 8)}
+` : ""}
 <apunte>
 ${opts.content}
 </apunte>`,
@@ -257,6 +264,7 @@ Reglas de contenido:
 - Usa terminología técnica exacta y define cada concepto clave.
 - Incluye ejemplos concretos (código corto si el tema es de programación, casos o cifras si no).
 - Incluye errores o confusiones frecuentes.
+- El código va en bloques con tres comillas invertidas y lenguaje (${FENCE}js ... ${FENCE}). Si un dato numérico se entiende mejor con un gráfico, añade un bloque ${FENCE}chart con JSON {"type":"bar"|"line"|"pie","title":"...","labels":[...],"values":[...]}; solo con datos reales y verificables.
 
 Estructura del campo content (texto plano, sin negritas ni tablas):
 ## Introducción  (2-3 frases: qué es y por qué importa)
@@ -366,6 +374,94 @@ Nivel: ${LEVEL_PROMPT[opts.level] ?? opts.level}`,
   return {
     title: output.title.trim().slice(0, 120) || opts.topic.slice(0, 120),
     topic: (output.topic.trim() || opts.topic).slice(0, 60),
+    content,
+  };
+}
+
+// ---------- Hints (cost one life in the quiz) ----------
+
+const HintSchema = z.object({
+  hint: z.string().describe("Pista de 1-2 frases que ayuda a razonar hacia la respuesta sin nombrarla"),
+});
+
+const HINT_SYSTEM = `Eres un tutor. Das UNA pista breve para una pregunta de opción múltiple.
+Reglas:
+- La pista debe permitir inferir cuál es la correcta, pero NO digas la letra, el número ni el texto exacto de la opción correcta.
+- Puedes descartar una idea equivocada o señalar el concepto clave que hay que recordar.
+- Máximo 2 frases, en español.`;
+
+export async function generateHint(q: Question): Promise<string> {
+  try {
+    const result = await withFallback((c) => generateText({
+      model: c.model,
+      system: HINT_SYSTEM,
+      prompt: `Pregunta: ${q.question}
+Opciones:
+${q.options.map((o, i) => `${i + 1}. ${o}`).join("\n")}
+Opción correcta (secreta, no la reveles): ${q.correctIndex + 1}
+Explicación: ${q.explanation}`,
+      output: Output.object({ schema: HintSchema }),
+      maxOutputTokens: 400,
+      providerOptions: c.options,
+    }));
+    const hint = result.output.hint.trim();
+    if (!hint) throw new AIGenerationError("La IA no devolvió una pista.");
+    return hint;
+  } catch (err) {
+    throw err instanceof AIGenerationError ? err : toUserError(err);
+  }
+}
+
+// ---------- Notes from photos ----------
+
+const PHOTO_SYSTEM = `Eres un asistente que convierte fotografías de apuntes (cuaderno, pizarra, diapositivas, libro) en un apunte de estudio en español.
+Reglas:
+- Transcribe fielmente lo que se ve: no inventes ni agregues datos que no estén en las imágenes. Si algo es ilegible, omítelo.
+- Respeta el orden de las imágenes y une el contenido en un solo apunte coherente.
+- Estructura el content en texto plano con encabezados '## ' y viñetas '- '. Corrige la ortografía evidente.
+- El código va en bloques con tres comillas invertidas y lenguaje (${FENCE}js ... ${FENCE}). Si ves un gráfico con valores legibles, represéntalo con un bloque ${FENCE}chart con JSON {"type":"bar"|"line"|"pie","title":"...","labels":[...],"values":[...]}; si no se pueden leer los valores, descríbelo en texto.
+- Longitud del content: máximo ${NOTE_MAX} caracteres.
+- suitable=false solo si las imágenes no contienen texto de estudio legible.`;
+
+export async function transcribeNotes(images: { data: Uint8Array; mediaType: string }[], titleHint: string) {
+  const vision = CANDIDATES.filter((c) => c.name !== "groq");
+  if (vision.length === 0) throw new AIGenerationError("La IA configurada no puede leer imágenes. Configura GOOGLE_GENERATIVE_AI_API_KEY.");
+  let output: z.infer<typeof NoteSchema> | undefined;
+  let last: unknown;
+  for (const c of vision) {
+    try {
+      const result = await generateText({
+        model: c.model,
+        system: PHOTO_SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: `Nombre sugerido: ${titleHint}. Convierte estas ${images.length} imagen(es) en un apunte.` },
+              ...images.map((im) => ({ type: "image" as const, image: im.data, mediaType: im.mediaType })),
+            ],
+          },
+        ],
+        output: Output.object({ schema: NoteSchema }),
+        maxOutputTokens: 12000,
+        providerOptions: c.options,
+      });
+      output = result.output;
+      break;
+    } catch (err) {
+      last = err;
+      console.warn(`ai vision provider "${c.name}" failed`);
+    }
+  }
+  if (!output) throw toUserError(last);
+  if (!output.suitable) {
+    throw new AIGenerationError(output.reason?.trim() || "No se pudo leer texto de estudio en las fotos.");
+  }
+  const content = fitLength(output.content);
+  if (content.length < 20) throw new AIGenerationError("No se pudo leer suficiente texto en las fotos. Prueba con mejor luz y más cerca.");
+  return {
+    title: output.title.trim().slice(0, 120) || titleHint,
+    topic: output.topic.trim().slice(0, 60) || "",
     content,
   };
 }

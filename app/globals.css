@@ -568,9 +568,9 @@ html { scroll-behavior: smooth; }
 @keyframes fire-dance { 0%, 100% { transform: scale(1, 1) skewX(0deg); opacity: 0.95; } 25% { transform: scale(0.92, 1.12) skewX(3deg); opacity: 1; } 50% { transform: scale(1.06, 0.9) skewX(-2deg); opacity: 0.85; } 75% { transform: scale(0.96, 1.08) skewX(-4deg); opacity: 1; } }
 .fire-tongue { position: absolute; bottom: 0; transform-origin: 50% 100%; animation: fire-dance var(--d, 0.8s) ease-in-out infinite; animation-delay: var(--delay, 0s); mix-blend-mode: screen; }
 @keyframes ember-rise { 0% { transform: translate(0, 0) scale(1); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(var(--ex, 10px), -90px) scale(0.2); opacity: 0; } }
-.ember { position: absolute; bottom: 8px; width: 5px; height: 5px; border-radius: 50%; background: #ffd27a; box-shadow: 0 0 8px 2px #ff7a00; animation: ember-rise var(--d, 2s) ease-out infinite; animation-delay: var(--delay, 0s); }
-.hx-epic-hot { --b1: #ff3d00; --neon: #ffb300; --b2: #ffd400; box-shadow: 0 0 70px color-mix(in oklab, #ff6a00 55%, transparent), 0 18px 60px color-mix(in oklab, #ff3d00 30%, transparent); }
-.hx-epic-blaze { box-shadow: 0 0 110px color-mix(in oklab, #ff6a00 70%, transparent), 0 0 40px color-mix(in oklab, #ffd400 50%, transparent); }
+.ember { position: absolute; bottom: 8px; width: 3px; height: 3px; opacity: 0.7; border-radius: 50%; background: #ffd27a; box-shadow: 0 0 4px 1px #ff7a00; animation: ember-rise var(--d, 2s) ease-out infinite; animation-delay: var(--delay, 0s); }
+.hx-epic-hot { --b1: #e0803a; --neon: #e8b25a; --b2: #f0c970; box-shadow: 0 0 26px color-mix(in oklab, #ff8a30 22%, transparent), 0 10px 30px color-mix(in oklab, #ff6a30 12%, transparent); }
+.hx-epic-blaze { box-shadow: 0 0 36px color-mix(in oklab, #ff8a30 28%, transparent), 0 0 14px color-mix(in oklab, #ffd060 18%, transparent); }
 @media (prefers-reduced-motion: reduce) { .fire-tongue, .ember { animation: none; } .ember { display: none; } }
 
 /* Solid bottom bar: its own colour so it never blends with the page. It carries its own dark palette in both themes. */
@@ -642,3 +642,40 @@ html { scroll-behavior: smooth; }
 /* Conquest map tooltip: hover only */
 .map-tip { opacity: 0; visibility: hidden; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); transition: opacity 0.15s; }
 .group:hover > .map-tip { opacity: 1; visibility: visible; }
+
+/* Calm study backdrop: slow, blurred, colour-shifting. */
+.calm-bg { position: fixed; inset: 0; z-index: -10; overflow: hidden; background: var(--bg); animation: calm-hue 420s linear infinite; }
+.calm-blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.38; will-change: transform; }
+.calm-b1 { width: 62vmax; height: 62vmax; left: -18vmax; top: -22vmax; background: #6f5aa8; animation: calm-drift-a 220s ease-in-out infinite alternate; }
+.calm-b2 { width: 56vmax; height: 56vmax; right: -20vmax; top: 8vmax; background: #3f7f9a; animation: calm-drift-b 260s ease-in-out infinite alternate; }
+.calm-b3 { width: 58vmax; height: 58vmax; left: 12vmax; bottom: -30vmax; background: #a8704f; animation: calm-drift-c 300s ease-in-out infinite alternate; }
+.calm-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 35%, color-mix(in oklab, var(--bg) 70%, transparent) 100%); }
+:root:not([data-theme="dark"]) .calm-blob { opacity: 0.3; }
+@keyframes calm-hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+@keyframes calm-drift-a { from { transform: translate(0, 0) scale(1); } to { transform: translate(14vmax, 10vmax) scale(1.15); } }
+@keyframes calm-drift-b { from { transform: translate(0, 0) scale(1.1); } to { transform: translate(-12vmax, 14vmax) scale(0.95); } }
+@keyframes calm-drift-c { from { transform: translate(0, 0) scale(1); } to { transform: translate(10vmax, -12vmax) scale(1.2); } }
+@media (prefers-reduced-motion: reduce) { .calm-bg, .calm-blob { animation: none; } }
+
+/* Rich text in questions: code blocks, inline code, charts. */
+:root { --chart-1: #c9893a; --chart-2: #4f8fa8; --chart-3: #8a6bb8; --chart-4: #5c9a6e; --chart-5: #c7647a; --chart-6: #b0a04a; --code-bg: #2a2530; --code-fg: #ece6f2; --tk-c: #8d86a0; --tk-s: #a8d48a; --tk-n: #f0a868; --tk-k: #c79cf0; --tk-f: #7fc4e8; --tk-p: #b9b2c8; }
+:root[data-theme="dark"] { --code-bg: #1d1a24; }
+.rt-inline { border-radius: 6px; border: 1px solid var(--line); background: color-mix(in oklab, var(--fg) 8%, transparent); padding: 0.05em 0.4em; font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; font-size: 0.88em; }
+.rt-code { margin: 0; max-width: 100%; overflow: hidden; border-radius: 12px; border: 1px solid color-mix(in oklab, var(--code-fg) 14%, transparent); background: var(--code-bg); color: var(--code-fg); text-align: left; font-weight: 400; }
+.rt-code .rt-lang { padding: 0.25rem 0.75rem; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tk-c); border-bottom: 1px solid color-mix(in oklab, var(--code-fg) 10%, transparent); }
+.rt-code pre { margin: 0; overflow-x: auto; padding: 0.7rem 0.85rem; font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; font-size: 0.82rem; line-height: 1.55; tab-size: 2; }
+.rt-code-compact pre { font-size: 0.76rem; padding: 0.55rem 0.7rem; }
+.tok-c { color: var(--tk-c); font-style: italic; } .tok-s { color: var(--tk-s); } .tok-n { color: var(--tk-n); } .tok-k { color: var(--tk-k); font-weight: 600; } .tok-f { color: var(--tk-f); } .tok-p { color: var(--tk-p); }
+.rt-chart { margin: 0; border-radius: 12px; border: 1px solid var(--line); background: color-mix(in oklab, var(--surface-2) 80%, transparent); padding: 0.6rem 0.75rem; }
+.rt-chart-title { margin-bottom: 0.25rem; text-align: center; font-size: 0.8rem; font-weight: 700; }
+.rt-svg { display: block; width: 100%; height: auto; max-height: 190px; }
+.rt-grid { stroke: var(--line); stroke-width: 1; }
+.rt-axis { fill: var(--mute); font-size: 9px; }
+.rt-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.75rem; }
+.rt-pie-svg { width: 110px; height: 110px; flex-shrink: 0; }
+.rt-legend { margin: 0; padding: 0; list-style: none; font-size: 0.78rem; display: grid; gap: 0.2rem; }
+.rt-legend li { display: flex; align-items: center; gap: 0.4rem; }
+.rt-legend span { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* Quiz card: a still gradient border. The spinning sweep looked like a clock hand and pulled the eye off the question. */
+.hx-epic-still { animation: none; --ang: 135deg; }

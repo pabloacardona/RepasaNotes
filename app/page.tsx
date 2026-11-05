@@ -3,6 +3,7 @@ import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
 import { HeroMascot } from "@/components/landing/hero-mascot";
 import { RankEmblem } from "@/components/game/rank-emblem";
 import { RankLadder } from "@/components/game/rank-ladder";
+import { SocratesLogo } from "@/components/socrates-logo";
 import { Waves, Ripples } from "@/components/landing/waves";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MascotPicker } from "@/components/world/mascot-picker";
@@ -25,7 +26,7 @@ export default function Landing() {
       <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[var(--bg)]/70 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <RankEmblem tierIndex={3} size={36} effects={false} />
+            <SocratesLogo size={48} />
             <span className="hx-yellow font-display text-2xl font-bold tracking-wide">Repasa</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-5">

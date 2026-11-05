@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getQuiz } from "@/lib/data";
+import { getUserAvatar } from "@/lib/avatar-store";
 import { QuizRunner } from "./quiz-runner";
 
 export const metadata: Metadata = { title: "Resolver quiz" };
@@ -14,6 +15,8 @@ export default async function SolveQuizPage({ params }: PageProps<"/quiz/[id]">)
   if (!quiz) notFound();
   if (quiz.completedAt) redirect(`/quizzes/${quiz.id}`);
 
+  const avatar = await getUserAvatar(user.sub);
+
   return (
     <QuizRunner
       id={quiz.id}
@@ -21,6 +24,7 @@ export default async function SolveQuizPage({ params }: PageProps<"/quiz/[id]">)
       topic={quiz.topic}
       questions={quiz.questions}
       playerName={user.name}
+      playerAvatar={avatar}
     />
   );
 }

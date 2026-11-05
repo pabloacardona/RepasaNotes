@@ -7,6 +7,8 @@ import { scoreRun } from "@/lib/score";
 import { getGameProfile } from "@/lib/game";
 import { ACHIEVEMENTS, DAILY_GOAL } from "@/lib/gamification";
 import { RewardsCard, type Reward } from "@/components/game/rewards-card";
+import { RichText } from "@/components/rich-text";
+import { ShareButton } from "./share-button";
 import { ReviewButton } from "./review-button";
 import { ScoreCard } from "./score-card";
 import { ReinforceCard } from "./reinforce-card";
@@ -67,6 +69,8 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
         <RewardsCard reward={reward} fresh={fresh} />
         {mistakes.length > 0 && <ReinforceCard quizId={quiz.id} mistakes={mistakes.length} />}
 
+        <ShareButton quizId={quiz.id} canVariant={Boolean(quiz.noteId)} />
+
         <div className="grid gap-2 sm:grid-cols-2">
           <ReviewButton quizId={quiz.id} mode="all" label="Jugar de nuevo" />
           {mistakes.length > 0 ? <ReviewButton quizId={quiz.id} mode="errors" label="Repetir las falladas" /> : <Link href="/dashboard" className="hx-btn">Volver al inicio</Link>}
@@ -93,16 +97,16 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
               {mistakes.map(({ q, given, n }) => (
                 <li key={n} className="text-sm">
                   <p className="hx-mute text-xs font-bold uppercase tracking-widest">Pregunta {n}</p>
-                  <p className="font-semibold">{q.question}</p>
+                  <RichText text={q.question} className="font-semibold" compact />
                   <p className="mt-1">
-                    <span className="text-[var(--bad)]">✗ {given >= 0 ? `${LETTERS[given]}. ${q.options[given]}` : "Sin responder"}</span>
+                    <span className="text-[var(--bad)]">✗ {given >= 0 ? <>{LETTERS[given]}. <RichText text={q.options[given]} inlineOnly /></> : "Sin responder"}</span>
                   </p>
                   <p>
                     <span className="text-[var(--ok)]">
-                      ✓ {LETTERS[q.correctIndex]}. {q.options[q.correctIndex]}
+                      ✓ {LETTERS[q.correctIndex]}. <RichText text={q.options[q.correctIndex]} inlineOnly />
                     </span>
                   </p>
-                  <p className="hx-mute mt-1">{q.explanation}</p>
+                  <div className="hx-mute mt-1"><RichText text={q.explanation} compact /></div>
                 </li>
               ))}
             </ul>

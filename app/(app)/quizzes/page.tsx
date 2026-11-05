@@ -6,6 +6,7 @@ import { DIFFICULTY_LABEL } from "@/lib/validators";
 import { gradeFor } from "@/lib/ranks";
 import { formatDate } from "@/components/ui";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
+import { ForgeBanner } from "@/components/three/forge-banner";
 
 export const metadata: Metadata = { title: "Quizzes" };
 
@@ -25,7 +26,8 @@ export default async function QuizzesPage() {
   return (
     <>
       <Reveal>
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <ForgeBanner fallback={<p aria-hidden className="absolute bottom-3 right-6 text-7xl opacity-60">🔨</p>}>
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="hx-kicker">Tablón de misiones</p>
             <h1 className="hx-title hx-gold-text text-3xl sm:text-4xl">Mis quizzes</h1>
@@ -39,6 +41,7 @@ export default async function QuizzesPage() {
             + Nueva misión
           </Link>
         </div>
+        </ForgeBanner>
       </Reveal>
 
       {quizzes.length === 0 ? (
