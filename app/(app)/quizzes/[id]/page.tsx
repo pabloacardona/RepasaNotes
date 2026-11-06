@@ -12,6 +12,7 @@ import { ShareButton } from "./share-button";
 import { ReviewButton } from "./review-button";
 import { ScoreCard } from "./score-card";
 import { ReinforceCard } from "./reinforce-card";
+import { DockSpacer } from "@/components/world/companion-dock";
 import { ResultsWorld } from "./results-world";
 
 export const metadata: Metadata = { title: "Resultados" };
@@ -113,6 +114,7 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
           </details>
         )}
       </div>
+      <DockSpacer />
     </>
   );
 }

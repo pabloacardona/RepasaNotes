@@ -176,6 +176,23 @@ export function Repi({
         if (o instanceof SkinnedMesh) o.skeleton.update();
       });
     };
+    // The crab file has a few vertices with NaN skin weights, which turns the whole body into NaN. Bind them to the root bone.
+    model.traverse((o) => {
+      if (!(o instanceof SkinnedMesh)) return;
+      const w = o.geometry.attributes.skinWeight;
+      const idx = o.geometry.attributes.skinIndex;
+      let fixed = false;
+      for (let i = 0; i < w.count; i++) {
+        if (Number.isFinite(w.getX(i) + w.getY(i) + w.getZ(i) + w.getW(i))) continue;
+        w.setXYZW(i, 1, 0, 0, 0);
+        idx.setXYZW(i, 0, 0, 0, 0);
+        fixed = true;
+      }
+      if (fixed) {
+        w.needsUpdate = true;
+        idx.needsUpdate = true;
+      }
+    });
     b.add(model);
     settle();
     const box = new Box3().setFromObject(model, true);

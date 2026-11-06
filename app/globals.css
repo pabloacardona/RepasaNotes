@@ -707,3 +707,13 @@ html { scroll-behavior: smooth; }
 .wave-today { outline: 2px solid var(--neon); outline-offset: 2px; }
 @keyframes wave-ring { 0% { transform: translate(-50%, -50%) scale(0.15); opacity: 0.95; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .wave-on::before, .wave-on::after { animation: none; opacity: 0.4; transform: translate(-50%, -50%) scale(0.6); } }
+
+/* Companion dock: corners on a wide, tall screen; a strip above the stats bar on anything smaller. */
+.cdock-wide { display: none; }
+.cdock-small { display: flex; }
+.cdock-spacer { height: max(min(32dvh, 15rem), 9rem); }
+@media (min-width: 1280px) and (min-height: 640px) {
+  .cdock-wide { display: block; }
+  .cdock-small { display: none; }
+  .cdock-spacer { display: none; }
+}

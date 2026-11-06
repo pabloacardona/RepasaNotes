@@ -95,8 +95,9 @@ export function randomizeMascot(slot: MascotSlot = "main") {
  * Easy switching on any element: mouse wheel or touchpad scroll (either axis), a horizontal swipe on touch screens,
  * and the left / right arrow keys while the element has focus. Vertical touch scrolling is left alone.
  */
-export function useMascotGestures(ref: RefObject<HTMLElement | null>, opts: { wheel?: boolean; slot?: MascotSlot } = {}) {
+export function useMascotGestures(ref: RefObject<HTMLElement | null>, opts: { wheel?: boolean; slot?: MascotSlot; swipe?: boolean } = {}) {
   const wheel = opts.wheel ?? true;
+  const swipe = opts.swipe ?? true;
   const slot = opts.slot ?? "main";
   useEffect(() => {
     const el = ref.current;
@@ -121,7 +122,7 @@ export function useMascotGestures(ref: RefObject<HTMLElement | null>, opts: { wh
     };
     const onUp = (e: PointerEvent) => {
       const dx = e.clientX - x0;
-      if (e.pointerType !== "mouse" && Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(e.clientY - y0) * 1.4) stepMascot(dx < 0 ? 1 : -1, slot);
+      if (swipe && e.pointerType !== "mouse" && Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(e.clientY - y0) * 1.4) stepMascot(dx < 0 ? 1 : -1, slot);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
@@ -140,5 +141,5 @@ export function useMascotGestures(ref: RefObject<HTMLElement | null>, opts: { wh
       el.removeEventListener("pointerup", onUp);
       el.removeEventListener("keydown", onKey);
     };
-  }, [ref, wheel, slot]);
+  }, [ref, wheel, slot, swipe]);
 }

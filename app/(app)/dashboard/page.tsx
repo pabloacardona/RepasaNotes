@@ -5,6 +5,7 @@ import { getGameProfile } from "@/lib/game";
 import { getStudyStats } from "@/lib/stats";
 import { DAILY_GOAL } from "@/lib/gamification";
 import { DashboardHero } from "@/components/game/dashboard-hero";
+import { DockSpacer } from "@/components/world/companion-dock";
 import { DashboardCompanion } from "@/components/world/dashboard-companion";
 import { BadgeWall } from "@/components/game/badge-wall";
 import { RankLadder } from "@/components/game/rank-ladder";
@@ -128,6 +129,7 @@ export default async function Dashboard() {
           <RankLadder tierIndex={game.rank.tierIndex} xp={game.rank.xp} />
         </div>
       </details>
+      <DockSpacer />
     </>
   );
 }

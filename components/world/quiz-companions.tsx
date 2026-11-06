@@ -29,10 +29,11 @@ export function QuizCompanions({
 
   return (
     <>
-      <div className="pointer-events-none fixed left-1/2 top-[3.6rem] z-0 flex -translate-x-1/2 items-end gap-1 landscape:bottom-4 landscape:left-auto landscape:right-5 landscape:top-auto landscape:translate-x-0 landscape:flex-col-reverse landscape:items-end landscape:gap-1">
+      <div className="pointer-events-none fixed inset-x-0 top-[3.6rem] z-30 flex items-end justify-center gap-1 landscape:inset-x-auto landscape:bottom-4 landscape:right-5 landscape:top-auto landscape:justify-start landscape:flex-col-reverse landscape:items-end landscape:gap-1">
         <MascotStage
           slot="baby"
           picker
+          movable
           scrollToSwitch
           mood={babyMood}
           pulse={pulse}
@@ -44,6 +45,7 @@ export function QuizCompanions({
         />
         <MascotStage
           picker
+          movable
           scrollToSwitch
           mood={mood}
           pulse={pulse}
@@ -56,7 +58,7 @@ export function QuizCompanions({
 
       {/* Phone (portrait): one line under the models. */}
       {hydrated && (
-        <div aria-hidden className="pointer-events-none fixed inset-x-0 top-[calc(3.6rem+15dvh+0.5rem)] z-10 flex h-[9dvh] justify-center px-3 landscape:hidden">
+        <div aria-hidden className="pointer-events-none fixed inset-x-0 top-[calc(3.6rem+15dvh+0.5rem)] z-30 flex h-[9dvh] justify-center px-3 landscape:hidden">
           <div key={pulse} className="relative h-full w-full max-w-sm">
             <div className="absolute inset-0 flex items-center justify-center">
               <SayBubble text={cheer} />

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
 import { useMascot, useMascotGestures, type MascotSlot } from "@/lib/mascots";
+import { placeCompanion, readLayout, saveLayout, useCompanionLayout } from "@/lib/companion-layout";
 import { MascotPicker } from "./mascot-picker";
 import { cheerSeconds, factSeconds, nextFact } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
@@ -45,6 +46,7 @@ export function MascotStage({
   fps = 60,
   picker = false,
   say,
+  movable = false,
 }: {
   mood: Mood;
   pulse: number;
@@ -64,9 +66,11 @@ export function MascotStage({
   picker?: boolean;
   /** Fixed text for the bubble (the baby cheers the player on). Without it, the bubble shows a curious fact. */
   say?: string;
+  /** The player can drag this mascot anywhere on the screen and resize it (see lib/companion-layout.ts). */
+  movable?: boolean;
 }) {
   const zone = useRef<HTMLDivElement>(null);
-  useMascotGestures(zone, { slot });
+  useMascotGestures(zone, { slot, swipe: !movable });
   const enabled = useSyncExternalStore(subscribe, getCan3D, () => false);
   const { id } = useMascot(slot);
   const [ready, setReady] = useState(false);
@@ -85,6 +89,42 @@ export function MascotStage({
   }, []);
   // Render only while the mascot is on screen and the tab is visible.
   const root = useRef<HTMLDivElement>(null);
+  // Saved spot and size: written straight to the element, and kept inside the window when it is resized.
+  const layout = useCompanionLayout(slot);
+  useEffect(() => {
+    const el = root.current;
+    if (!movable || !el) return;
+    const apply = () => placeCompanion(el, layout);
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, [movable, layout]);
+  // Dragging: a press that moves more than a few pixels drags the mascot; a press that does not move is a tap.
+  const drag = useRef<{ dx: number; dy: number; sx: number; sy: number; moved: boolean; x: number; y: number } | null>(null);
+  const onDown = (e: React.PointerEvent) => {
+    const el = root.current;
+    if (!movable || !el || (e.pointerType === "mouse" && e.button !== 0)) return;
+    const r = el.getBoundingClientRect();
+    drag.current = { dx: e.clientX - (r.left + r.width / 2), dy: e.clientY - r.bottom, sx: e.clientX, sy: e.clientY, moved: false, x: 0, y: 0 };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    const el = root.current;
+    if (!d || !el) return;
+    if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 6) return;
+    d.moved = true;
+    setPickerOn(false);
+    d.x = (e.clientX - d.dx) / window.innerWidth;
+    d.y = (e.clientY - d.dy) / window.innerHeight;
+    placeCompanion(el, { x: d.x, y: d.y, scale: readLayout(slot).scale });
+  };
+  const onEnd = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d?.moved) return;
+    saveLayout(slot, { x: Math.min(1, Math.max(0, d.x)), y: Math.min(1, Math.max(0, d.y)) });
+  };
   const [onScreen, setOnScreen] = useState(true);
   const [tabOn, setTabOn] = useState(true);
   useEffect(() => {
@@ -106,14 +146,18 @@ export function MascotStage({
     <div ref={root} className={`pointer-events-none ${className}`} aria-hidden>
       <div
         ref={zone}
-        className={`absolute inset-0 z-20 touch-pan-y ${scrollToSwitch || picker ? "pointer-events-auto" : "pointer-events-none"}`}
-        title={scrollToSwitch ? "Desplaza o desliza para cambiar de mascota" : undefined}
+        className={`absolute inset-0 z-20 ${movable ? "cursor-grab touch-none active:cursor-grabbing" : "touch-pan-y"} ${scrollToSwitch || picker || movable ? "pointer-events-auto" : "pointer-events-none"}`}
+        onPointerDown={movable ? onDown : undefined}
+        onPointerMove={movable ? onMove : undefined}
+        onPointerCancel={movable ? onEnd : undefined}
+        onLostPointerCapture={movable ? onEnd : undefined}
+        title={movable ? "Arrástrame donde quieras" : scrollToSwitch ? "Desplaza para cambiar de mascota" : undefined}
         onPointerEnter={picker ? (e) => e.pointerType !== "touch" && showPicker() : undefined}
         onPointerLeave={picker ? () => hidePicker(700) : undefined}
         onPointerUp={
           picker
             ? (e) => {
-                if (e.pointerType === "touch") {
+                if (e.pointerType === "touch" && !drag.current?.moved) {
                   showPicker();
                   hidePicker(4000);
                 }
@@ -130,7 +174,7 @@ export function MascotStage({
           onBlurCapture={() => hidePicker(900)}
         >
           <div className={pickerOn ? "pointer-events-auto" : "pointer-events-none"}>
-            <MascotPicker embedded slot={slot} compact={slot === "baby"} />
+            <MascotPicker embedded slot={slot} compact={slot === "baby"} movable={movable} />
           </div>
         </div>
       )}
