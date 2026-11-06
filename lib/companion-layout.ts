@@ -7,6 +7,7 @@ import type { MascotSlot } from "./mascots";
 export type CompanionLayout = { x: number | null; y: number | null; scale: number };
 
 export const SCALES = [0.75, 1, 1.3, 1.6] as const;
+export const clampScale = (s: number) => Math.min(2.2, Math.max(0.5, s));
 const DEFAULT: CompanionLayout = { x: null, y: null, scale: 1 };
 const KEYS: Record<MascotSlot, string> = { main: "repasa_pos", baby: "repasa_pos_baby" };
 const EVENT = "repasa-layout";
@@ -18,7 +19,7 @@ function parse(raw: string | null): CompanionLayout {
   try {
     const v = JSON.parse(raw) as Partial<CompanionLayout>;
     const num = (n: unknown) => (typeof n === "number" && Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : null);
-    const scale = typeof v.scale === "number" && v.scale >= 0.5 && v.scale <= 2 ? v.scale : 1;
+    const scale = typeof v.scale === "number" && v.scale >= 0.5 && v.scale <= 2.5 ? v.scale : 1;
     const x = num(v.x);
     const y = num(v.y);
     return x === null || y === null ? { x: null, y: null, scale } : { x, y, scale };
@@ -54,7 +55,9 @@ export const resetLayout = (slot: MascotSlot) => saveLayout(slot, { x: null, y: 
 
 /** Next size in the S, M, L, XL cycle. */
 export function cycleScale(slot: MascotSlot) {
-  const i = SCALES.findIndex((s) => Math.abs(s - readLayout(slot).scale) < 0.01);
+  // Starts from the nearest preset, since a pinch can leave any size in between.
+  const cur = readLayout(slot).scale;
+  const i = SCALES.reduce((best, s, k) => (Math.abs(s - cur) < Math.abs(SCALES[best] - cur) ? k : best), 0);
   saveLayout(slot, { scale: SCALES[(i + 1) % SCALES.length] });
 }
 
@@ -77,15 +80,23 @@ export function useCompanionLayout(slot: MascotSlot): CompanionLayout {
  */
 export function placeCompanion(el: HTMLElement, layout: CompanionLayout) {
   const s = el.style;
-  s.transformOrigin = "50% 100%";
+  // The size is changed for real, never with a CSS transform: the 3D canvas measures its box in screen pixels, so a scaled
+  // box makes it draw at the wrong size and the edges of the canvas show.
+  s.width = "";
+  s.height = "";
+  const bw = el.offsetWidth;
+  const bh = el.offsetHeight;
+  if (layout.scale !== 1) {
+    s.width = `${bw * layout.scale}px`;
+    s.height = `${bh * layout.scale}px`;
+  }
+  s.transform = "";
   if (layout.x === null || layout.y === null) {
     for (const p of ["position", "left", "top", "right", "bottom", "margin"] as const) s[p] = "";
-    s.transform = layout.scale === 1 ? "" : `scale(${layout.scale})`;
     return;
   }
-  // Size without the scale (offsetWidth ignores transforms), so the clamp uses the real footprint.
-  const w = el.offsetWidth * layout.scale;
-  const h = el.offsetHeight * layout.scale;
+  const w = bw * layout.scale;
+  const h = bh * layout.scale;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const x = Math.min(Math.max(layout.x * vw, w / 2), Math.max(w / 2, vw - w / 2));
@@ -96,5 +107,5 @@ export function placeCompanion(el: HTMLElement, layout: CompanionLayout) {
   s.right = "auto";
   s.bottom = "auto";
   s.margin = "0";
-  s.transform = `translate(-50%, -100%) scale(${layout.scale})`;
+  s.transform = "translate(-50%, -100%)";
 }

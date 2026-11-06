@@ -102,15 +102,27 @@ export function useMascotGestures(ref: RefObject<HTMLElement | null>, opts: { wh
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // One scroll gesture changes the mascot exactly once, however hard or long it is. After a step the wheel stays locked
+    // until the events stop for a moment, so a touchpad's inertia (or a fast spin) cannot skip through several mascots.
+    // One scroll gesture changes the mascot exactly once, however hard or long it is. After a step the wheel stays locked
+    // until the events stop for a moment, so a touchpad's inertia (or a fast spin) cannot skip through several mascots.
     let acc = 0;
-    let last = 0;
+    let locked = false;
+    let lastEvent = 0;
     const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return; // a touchpad pinch resizes the mascot instead (see MascotStage)
       e.preventDefault();
+      // A pause between events ends the gesture. The event time is used (not a timer), so a busy page cannot fake a pause.
+      if (e.timeStamp - lastEvent > 180) {
+        locked = false;
+        acc = 0;
+      }
+      lastEvent = e.timeStamp;
+      if (locked) return;
       acc += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      const now = performance.now();
-      if (Math.abs(acc) >= 50 && now - last > 260) {
+      if (Math.abs(acc) >= 30) {
         stepMascot(acc > 0 ? 1 : -1, slot);
-        last = now;
+        locked = true;
         acc = 0;
       }
     };

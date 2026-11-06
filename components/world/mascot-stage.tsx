@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
 import { useMascot, useMascotGestures, type MascotSlot } from "@/lib/mascots";
-import { placeCompanion, readLayout, saveLayout, useCompanionLayout } from "@/lib/companion-layout";
+import { clampScale, placeCompanion, readLayout, saveLayout, useCompanionLayout } from "@/lib/companion-layout";
 import { MascotPicker } from "./mascot-picker";
 import { cheerSeconds, factSeconds, nextFact } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
@@ -101,9 +101,47 @@ export function MascotStage({
   }, [movable, layout]);
   // Dragging: a press that moves more than a few pixels drags the mascot; a press that does not move is a tap.
   const drag = useRef<{ dx: number; dy: number; sx: number; sy: number; moved: boolean; x: number; y: number } | null>(null);
+  // Pinch: two fingers on a touch screen, or the pinch gesture of a touchpad (the browser sends it as ctrl + wheel).
+  const fingers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ d0: number; s0: number; s: number } | null>(null);
+  const gap = () => {
+    const [a, b] = [...fingers.current.values()];
+    return Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+  };
+  useEffect(() => {
+    const zoneEl = zone.current;
+    if (!movable || !zoneEl) return;
+    let pending: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey || !root.current) return;
+      e.preventDefault();
+      pending = clampScale((pending ?? readLayout(slot).scale) * Math.exp(-e.deltaY * 0.01));
+      placeCompanion(root.current, { ...readLayout(slot), scale: pending });
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (pending !== null) saveLayout(slot, { scale: pending });
+        pending = null;
+      }, 160);
+    };
+    zoneEl.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      clearTimeout(timer);
+      zoneEl.removeEventListener("wheel", onWheel);
+    };
+  }, [movable, slot]);
   const onDown = (e: React.PointerEvent) => {
     const el = root.current;
     if (!movable || !el || (e.pointerType === "mouse" && e.button !== 0)) return;
+    if (e.pointerType === "touch") {
+      fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (fingers.current.size === 2) {
+        drag.current = null;
+        pinch.current = { d0: gap(), s0: readLayout(slot).scale, s: readLayout(slot).scale };
+        setPickerOn(false);
+        return;
+      }
+    }
     const r = el.getBoundingClientRect();
     drag.current = { dx: e.clientX - (r.left + r.width / 2), dy: e.clientY - r.bottom, sx: e.clientX, sy: e.clientY, moved: false, x: 0, y: 0 };
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -111,6 +149,12 @@ export function MascotStage({
   const onMove = (e: React.PointerEvent) => {
     const d = drag.current;
     const el = root.current;
+    if (fingers.current.has(e.pointerId)) fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch.current && el && fingers.current.size === 2) {
+      pinch.current.s = clampScale((pinch.current.s0 * gap()) / pinch.current.d0);
+      placeCompanion(el, { ...readLayout(slot), scale: pinch.current.s });
+      return;
+    }
     if (!d || !el) return;
     if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 6) return;
     d.moved = true;
@@ -119,7 +163,15 @@ export function MascotStage({
     d.y = (e.clientY - d.dy) / window.innerHeight;
     placeCompanion(el, { x: d.x, y: d.y, scale: readLayout(slot).scale });
   };
-  const onEnd = () => {
+  const onEnd = (e: React.PointerEvent) => {
+    fingers.current.delete(e.pointerId);
+    if (pinch.current) {
+      if (fingers.current.size < 2) {
+        saveLayout(slot, { scale: pinch.current.s });
+        pinch.current = null;
+      }
+      return;
+    }
     const d = drag.current;
     drag.current = null;
     if (!d?.moved) return;
@@ -139,6 +191,7 @@ export function MascotStage({
       document.removeEventListener("visibilitychange", vis);
     };
   }, []);
+  // The 3D canvas is larger than the stage on every side (the camera backs off to match), so hops, sparkles and a big scale never touch its edges.
   // The fact is drawn in the browser (it is random), so nothing is rendered until the page has hydrated.
   const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
 
@@ -183,7 +236,7 @@ export function MascotStage({
       </div>
 
       {enabled ? (
-        <div className="absolute inset-0 transition-opacity duration-700" style={{ opacity: ready ? 1 : 0 }}>
+        <div className="absolute -inset-[17%] transition-opacity duration-700" style={{ opacity: ready ? 1 : 0 }}>
           <MascotCanvas
             mascot={id}
             mood={mood}
