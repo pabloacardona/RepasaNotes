@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MOOD_LABEL, type Mood } from "@/lib/mood";
 import { useMascot, useMascotGestures, type MascotSlot } from "@/lib/mascots";
-import { clampScale, placeCompanion, readLayout, saveLayout, useCompanionLayout } from "@/lib/companion-layout";
+import { MAX_Y, clampScale, placeCompanion, readLayout, saveLayout, useCompanionLayout } from "@/lib/companion-layout";
 import { MascotPicker } from "./mascot-picker";
 import { cheerSeconds, factSeconds, nextFact } from "@/lib/quotes";
 import type { TrophyTier } from "./trophy";
@@ -94,7 +94,11 @@ export function MascotStage({
   useEffect(() => {
     const el = root.current;
     if (!movable || !el) return;
-    const apply = () => placeCompanion(el, layout);
+    const apply = () => {
+      placeCompanion(el, layout);
+      // Near the top of the screen the speech bubble goes under the mascot instead of above it.
+      el.dataset.below = el.getBoundingClientRect().top < 150 ? "true" : "false";
+    };
     apply();
     window.addEventListener("resize", apply);
     return () => window.removeEventListener("resize", apply);
@@ -175,7 +179,7 @@ export function MascotStage({
     const d = drag.current;
     drag.current = null;
     if (!d?.moved) return;
-    saveLayout(slot, { x: Math.min(1, Math.max(0, d.x)), y: Math.min(1, Math.max(0, d.y)) });
+    saveLayout(slot, { x: Math.min(1, Math.max(0, d.x)), y: Math.min(MAX_Y, Math.max(0, d.y)) });
   };
   const [onScreen, setOnScreen] = useState(true);
   const [tabOn, setTabOn] = useState(true);
@@ -196,7 +200,7 @@ export function MascotStage({
   const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
 
   return (
-    <div ref={root} className={`pointer-events-none ${className}`} aria-hidden>
+    <div ref={root} className={`group/stage pointer-events-none ${className}`} aria-hidden>
       <div
         ref={zone}
         className={`absolute inset-0 z-20 ${movable ? "cursor-grab touch-none active:cursor-grabbing" : "touch-pan-y"} ${scrollToSwitch || picker || movable ? "pointer-events-auto" : "pointer-events-none"}`}
@@ -220,7 +224,7 @@ export function MascotStage({
       />
       {picker && (
         <div
-          className={`pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center transition duration-200 ${pickerOn ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
+          className={`pointer-events-none absolute inset-x-0 bottom-[var(--lift,0px)] z-30 flex justify-center transition duration-200 ${pickerOn ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
           onPointerEnter={showPicker}
           onPointerLeave={() => hidePicker(700)}
           onFocusCapture={showPicker}
@@ -231,7 +235,8 @@ export function MascotStage({
           </div>
         </div>
       )}
-      <div className={`absolute inset-x-0 z-10 flex justify-center top-0 ${bubbleClassName}`}>
+      {/* A movable mascot can be tiny, so its bubble stands above it (below it near the top of the screen) and never covers it. */}
+      <div className={`absolute z-10 flex justify-center ${movable ? "left-1/2 w-[17rem] max-w-[90vw] -translate-x-1/2" : "inset-x-0"} ${movable ? "bottom-full mb-1 group-data-[below=true]/stage:bottom-auto group-data-[below=true]/stage:top-full group-data-[below=true]/stage:mb-0 group-data-[below=true]/stage:mt-1" : "top-0"} ${bubbleClassName}`}>
         {hydrated && (say ? <SayBubble key={`${mood}-${pulse}-${say}`} text={say} /> : <FactBubble key={`${mood}-${pulse}`} />)}
       </div>
 

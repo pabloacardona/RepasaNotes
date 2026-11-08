@@ -7,6 +7,9 @@ import type { MascotSlot } from "./mascots";
 export type CompanionLayout = { x: number | null; y: number | null; scale: number };
 
 export const SCALES = [0.75, 1, 1.3, 1.6] as const;
+/** A mascot may sink below the bottom edge by the empty strip under its feet (about 20% of its height), so it reaches the corner. */
+export const MAX_Y = 1.3;
+export const FEET_SLACK = 0.2;
 export const clampScale = (s: number) => Math.min(2.2, Math.max(0.5, s));
 const DEFAULT: CompanionLayout = { x: null, y: null, scale: 1 };
 const KEYS: Record<MascotSlot, string> = { main: "repasa_pos", baby: "repasa_pos_baby" };
@@ -18,10 +21,10 @@ function parse(raw: string | null): CompanionLayout {
   if (!raw) return DEFAULT;
   try {
     const v = JSON.parse(raw) as Partial<CompanionLayout>;
-    const num = (n: unknown) => (typeof n === "number" && Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : null);
+    const num = (n: unknown, max = 1) => (typeof n === "number" && Number.isFinite(n) ? Math.min(max, Math.max(0, n)) : null);
     const scale = typeof v.scale === "number" && v.scale >= 0.5 && v.scale <= 2.5 ? v.scale : 1;
     const x = num(v.x);
-    const y = num(v.y);
+    const y = num(v.y, MAX_Y);
     return x === null || y === null ? { x: null, y: null, scale } : { x, y, scale };
   } catch {
     return DEFAULT;
@@ -93,6 +96,7 @@ export function placeCompanion(el: HTMLElement, layout: CompanionLayout) {
   s.transform = "";
   if (layout.x === null || layout.y === null) {
     for (const p of ["position", "left", "top", "right", "bottom", "margin"] as const) s[p] = "";
+    s.removeProperty("--lift");
     return;
   }
   const w = bw * layout.scale;
@@ -100,7 +104,9 @@ export function placeCompanion(el: HTMLElement, layout: CompanionLayout) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const x = Math.min(Math.max(layout.x * vw, w / 2), Math.max(w / 2, vw - w / 2));
-  const y = Math.min(Math.max(layout.y * vh, h), Math.max(h, vh));
+  // The strip under the feet is empty, so the box may hang below the window by that much. The picker is lifted by the same amount.
+  const y = Math.min(Math.max(layout.y * vh, h), Math.max(h, vh + h * FEET_SLACK));
+  s.setProperty("--lift", `${Math.max(0, y - vh)}px`);
   s.position = "fixed";
   s.left = `${x}px`;
   s.top = `${y}px`;
