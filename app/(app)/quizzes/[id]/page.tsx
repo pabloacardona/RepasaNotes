@@ -70,7 +70,7 @@ export default async function ResultsPage({ params, searchParams }: PageProps<"/
         <RewardsCard reward={reward} fresh={fresh} />
         {mistakes.length > 0 && <ReinforceCard quizId={quiz.id} mistakes={mistakes.length} />}
 
-        <ShareButton quizId={quiz.id} canVariant={Boolean(quiz.noteId)} />
+        <ShareButton quizId={quiz.id} title={quiz.title} topic={quiz.topic} canVariant={Boolean(quiz.noteId)} />
 
         <div className="grid gap-2 sm:grid-cols-2">
           <ReviewButton quizId={quiz.id} mode="all" label="Jugar de nuevo" />

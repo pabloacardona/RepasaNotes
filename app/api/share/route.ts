@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { and, desc, eq } from "drizzle-orm";
 import { getDb, sharedQuizzes } from "@/lib/db";
 import { requireApiUser } from "@/lib/auth";
 import { getNote, getQuiz } from "@/lib/data";
 
 // Publishes one of the user's quizzes as a link. mode "fixed": same questions for all (shuffled per visitor).
 // mode "variant": the AI writes a different quiz for each visitor from the same note.
+// Sharing the same quiz in the same mode again returns the link that already exists (and its play count), so the QR
+// that was printed or projected yesterday keeps working and the links do not pile up.
 export async function POST(req: Request) {
   const { session, error } = await requireApiUser();
   if (error) return error;
@@ -25,12 +28,26 @@ export async function POST(req: Request) {
     noteContent = note.content;
   }
 
-  const [created] = await getDb()
+  const title = quiz.title.replace(/^(Repaso|Repetición): /, "");
+  const db = getDb();
+
+  const sameTitle = await db
+    .select()
+    .from(sharedQuizzes)
+    .where(and(eq(sharedQuizzes.userId, session.sub), eq(sharedQuizzes.mode, mode), eq(sharedQuizzes.title, title)))
+    .orderBy(desc(sharedQuizzes.createdAt));
+  const questionsKey = JSON.stringify(quiz.questions);
+  const existing = sameTitle.find((row) => JSON.stringify(row.questions) === questionsKey && (mode === "fixed" || row.noteContent === noteContent));
+  if (existing) {
+    return NextResponse.json({ id: existing.id, path: `/s/${existing.id}`, plays: existing.plays, reused: true });
+  }
+
+  const [created] = await db
     .insert(sharedQuizzes)
     .values({
       userId: session.sub,
       mode,
-      title: quiz.title.replace(/^(Repaso|Repetición): /, ""),
+      title,
       topic: quiz.topic,
       difficulty: quiz.difficulty,
       count: quiz.questions.length,
@@ -39,5 +56,5 @@ export async function POST(req: Request) {
     })
     .returning({ id: sharedQuizzes.id });
 
-  return NextResponse.json({ id: created.id, path: `/s/${created.id}` }, { status: 201 });
+  return NextResponse.json({ id: created.id, path: `/s/${created.id}`, plays: 0, reused: false }, { status: 201 });
 }

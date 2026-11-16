@@ -6,6 +6,7 @@ import { DIFFICULTY_LABEL } from "@/lib/validators";
 import { gradeFor } from "@/lib/ranks";
 import { formatDate } from "@/components/ui";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
+import { ShareButton } from "./[id]/share-button";
 
 export const metadata: Metadata = { title: "Quizzes" };
 
@@ -93,9 +94,12 @@ export default async function QuizzesPage() {
                         )}
                       </p>
                     </div>
-                    <Link href={isDone ? `/quizzes/${q.id}` : `/quiz/${q.id}`} className={`hx-btn !px-4 !py-2 text-sm ${isDone ? "" : "hx-btn-cyan"}`}>
-                      {isDone ? "Resultados" : "Jugar"}
-                    </Link>
+                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                      <ShareButton quizId={q.id} title={q.title} topic={q.topic} canVariant={Boolean(q.noteId)} compact />
+                      <Link href={isDone ? `/quizzes/${q.id}` : `/quiz/${q.id}`} className={`hx-btn !px-4 !py-2 text-sm ${isDone ? "" : "hx-btn-cyan"}`}>
+                        {isDone ? "Resultados" : "Jugar"}
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </StaggerItem>

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  const { tab } = await searchParams;
+  const { tab, error } = await searchParams;
   const initial = tab === "registro" ? "register" : "login";
 
   return (
@@ -35,7 +35,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             <SocratesLogo size={52} />
             Repasa
           </Link>
-          <AuthForm initial={initial} />
+          <AuthForm initial={initial} returnError={typeof error === "string" ? error : undefined} />
         </div>
       </div>
     </main>

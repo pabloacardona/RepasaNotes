@@ -32,6 +32,7 @@ export async function listQuizzes(userId: string) {
       id: quizzes.id,
       title: quizzes.title,
       topic: quizzes.topic,
+      noteId: quizzes.noteId,
       difficulty: quizzes.difficulty,
       score: quizzes.score,
       total: quizzes.total,

@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { Button, FieldMessage, Spinner, inputClass } from "@/components/ui";
 import { loginSchema, registerSchema } from "@/lib/validators";
 import { firebaseAuth, firebaseEnabled } from "@/lib/firebase-client";
+import { neonAuthClient } from "@/lib/neon-auth-client";
 
 // Firebase error codes -> messages a player understands.
 function firebaseMessage(err: unknown) {
@@ -21,13 +22,20 @@ function firebaseMessage(err: unknown) {
 type Mode = "login" | "register";
 type Fields = { name: string; email: string; password: string };
 
-export function AuthForm({ initial }: { initial: Mode }) {
+// Errors that /auth/google sends back in the URL (?error=...).
+const RETURN_ERRORS: Record<string, string> = {
+  google: "No se pudo iniciar sesión con Google. Intenta de nuevo.",
+  unverified: "Google no tiene verificado ese correo, así que no podemos usarlo.",
+};
+
+export function AuthForm({ initial, returnError }: { initial: Mode; returnError?: string }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(initial);
   const [values, setValues] = useState<Fields>({ name: "", email: "", password: "" });
   const [touched, setTouched] = useState<Partial<Record<keyof Fields, boolean>>>({});
-  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>(returnError && RETURN_ERRORS[returnError] ? { form: RETURN_ERRORS[returnError] } : {});
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const schema = mode === "register" ? registerSchema : loginSchema;
   const result = schema.safeParse(values);
@@ -68,18 +76,17 @@ export function AuthForm({ initial }: { initial: Mode }) {
     router.refresh();
   }
 
+  // Google through Neon Auth: the browser leaves for Google and comes back to /auth/google, which opens the app session.
   async function withGoogle() {
-    setLoading(true);
+    setGoogleLoading(true);
     setServerErrors({});
     try {
-      const { GoogleAuthProvider, signInWithPopup } = await import("firebase/auth");
-      const cred = await signInWithPopup(firebaseAuth(), new GoogleAuthProvider());
-      await exchange(cred.user);
-    } catch (err) {
-      const msg = err instanceof Error && !(err as { code?: string }).code ? err.message : firebaseMessage(err);
-      if (msg) setServerErrors({ form: msg });
-    } finally {
-      setLoading(false);
+      const { error } = await neonAuthClient.signIn.social({ provider: "google", callbackURL: "/auth/google", errorCallbackURL: "/login?error=google" });
+      if (error) throw error;
+      // On success the page is already navigating away; keep the spinner until it does.
+    } catch {
+      setServerErrors({ form: RETURN_ERRORS.google });
+      setGoogleLoading(false);
     }
   }
 
@@ -232,20 +239,20 @@ export function AuthForm({ initial }: { initial: Mode }) {
           {mode === "register" ? "Crear cuenta" : "Iniciar sesión"}
         </Button>
 
-        {firebaseEnabled && (
-          <>
-            <p className="hx-mute flex items-center gap-3 text-xs before:h-px before:flex-1 before:bg-[var(--line)] after:h-px after:flex-1 after:bg-[var(--line)]">o</p>
-            <button type="button" onClick={withGoogle} disabled={loading} className="hx-btn w-full gap-2 !py-3">
-              <svg aria-hidden width="18" height="18" viewBox="0 0 48 48">
-                <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z" />
-                <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z" />
-                <path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z" />
-                <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z" />
-              </svg>
-              Continuar con Google
-            </button>
-          </>
-        )}
+        <p className="hx-mute flex items-center gap-3 text-xs before:h-px before:flex-1 before:bg-[var(--line)] after:h-px after:flex-1 after:bg-[var(--line)]">o</p>
+        <button type="button" onClick={withGoogle} disabled={loading || googleLoading} className="hx-btn w-full gap-2 !py-3">
+          {googleLoading ? (
+            <Spinner />
+          ) : (
+            <svg aria-hidden width="18" height="18" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z" />
+              <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z" />
+              <path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z" />
+              <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z" />
+            </svg>
+          )}
+          Continuar con Google
+        </button>
       </form>
     </>
   );
