@@ -17,7 +17,7 @@ export default async function NewQuizPage({ searchParams }: PageProps<"/quizzes/
 
   return (
     <>
-      <ForgeBanner fallback={<p aria-hidden className="absolute bottom-3 right-6 text-7xl opacity-60">🔨</p>}>
+      <ForgeBanner>
         <div>
           <p className="hx-kicker">Preparar misión</p>
           <h1 className="hx-title hx-gold-text text-3xl sm:text-4xl">Forja tu quiz</h1>
