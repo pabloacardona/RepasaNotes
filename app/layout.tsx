@@ -27,6 +27,13 @@ export const metadata: Metadata = {
     locale: "es_CO",
     type: "website",
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icons/socrates_icono_512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
