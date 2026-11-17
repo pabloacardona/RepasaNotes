@@ -29,8 +29,8 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/icons/socrates.svg", type: "image/svg+xml" },
       { url: "/favicon.ico" },
-      { url: "/icons/socrates_icono_512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: "/apple-icon.png",
   },
