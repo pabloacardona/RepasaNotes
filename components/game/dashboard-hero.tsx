@@ -89,7 +89,7 @@ export function DashboardHero({
                 </span>
               )}
             </div>
-            <Link href="/quizzes/nuevo" className="hx-btn hx-btn-gold mt-4 w-full !px-6 !py-3 sm:mt-5 sm:w-auto">
+            <Link href="/quizzes/nuevo" data-cta="play" className="hx-btn hx-btn-gold mt-4 w-full !px-6 !py-3 sm:mt-5 sm:w-auto">
               ▶ Jugar para subir
             </Link>
           </div>
@@ -98,18 +98,18 @@ export function DashboardHero({
 
       {/* Streak + stats */}
       <div className="grid gap-5">
-        <div className={`hx-panel p-3.5 ${atRisk ? "border-[var(--bad)]" : ""}`}>
+        <div className={`hx-panel p-3.5 ${atRisk ? "border-[var(--bad)]" : streak.activeToday ? "fire-panel" : ""}`}>
           <div className="flex items-center justify-center gap-3 sm:justify-start">
-            <StreakFlame size={44} active={streak.activeToday || atRisk} days={streak.current} />
+            <StreakFlame size={streak.activeToday ? 58 : 44} active={streak.activeToday || atRisk} days={streak.current} />
             <div className="min-w-0 sm:flex-1 max-sm:text-center">
               <p className="flex items-baseline gap-2 max-sm:justify-center">
-                <span className="font-display text-2xl font-bold leading-none">
+                <span className={`font-display font-bold leading-none ${streak.activeToday ? "fire-text text-4xl" : "text-2xl"}`}>
                   <AnimatedNumber from={0} value={streak.current} />
                 </span>
                 <span className="hx-kicker">días de racha</span>
               </p>
               <p className={`mt-0.5 text-sm ${atRisk ? "hx-blink font-bold text-[var(--bad)]" : "hx-mute"}`}>
-                {atRisk ? "¡Juega hoy o la pierdes!" : streak.activeToday ? "Asegurada hoy" : "Juega hoy para empezar"} · mejor {streak.best}
+                {atRisk ? "¡Juega hoy o la pierdes!" : streak.activeToday ? <b className="fire-text">🔥 Racha en llamas · asegurada hoy</b> : "Juega hoy para empezar"} · mejor {streak.best}
               </p>
             </div>
           </div>
@@ -117,7 +117,7 @@ export function DashboardHero({
             {week.map((d, i) => (
               <span
                 key={d.date}
-                className={`wave-cell ${d.count > 0 ? "wave-on" : ""} ${i === week.length - 1 ? "wave-today" : ""}`}
+                className={`fire-cell ${d.count > 0 ? "fire-on" : ""} ${i === week.length - 1 ? "fire-today" : ""}`}
                 style={{ ["--i" as string]: i }}
                 title={`${d.date}: ${d.count} respuestas`}
               />

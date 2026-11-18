@@ -841,9 +841,23 @@ html, body { overflow-x: clip; }
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
   mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
   width: min(125vw, 520px);
-  right: -3.5rem;
+  right: -6rem;
   top: 0;
 }
 @media (min-width: 640px) {
-  .socrates-mark { width: 700px; right: -12%; top: 50%; transform: translateY(-52%); }
+  .socrates-mark { width: 700px; right: -22%; top: 50%; transform: translateY(-52%); }
 }
+
+/* ---------- Streak week: burning cells ----------
+   A played day is a coal with a tongue of fire licking up out of it (two tongues, out of step). Only transform and
+   opacity animate, so it stays cheap on a phone. A missed day is cold basalt. */
+.fire-cell { position: relative; display: block; height: 1.9rem; border-radius: 0.6rem; border: 1px solid var(--line); background: linear-gradient(160deg, var(--track), color-mix(in oklab, var(--track) 70%, #000)); }
+.fire-on { border-color: #ffae4a; background: radial-gradient(120% 150% at 50% 118%, #fff2a8 0%, #ffb02e 26%, #ff5a14 58%, #6e1405 100%); box-shadow: 0 0 14px 1px rgba(255, 110, 20, 0.6), inset 0 -8px 12px rgba(255, 224, 130, 0.4); }
+.fire-on::before, .fire-on::after { content: ""; position: absolute; left: 50%; bottom: 40%; pointer-events: none; transform-origin: 50% 100%; clip-path: polygon(50% 0, 66% 24%, 86% 52%, 82% 86%, 50% 100%, 18% 86%, 14% 52%, 34% 24%); background: radial-gradient(ellipse at 50% 90%, #fffbe0 0 16%, #ffc21a 38%, #ff5a0a 66%, rgba(255, 60, 0, 0) 78%); }
+.fire-on::before { width: 78%; height: 150%; margin-left: -39%; animation: fire-lick 0.85s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -0.19s); }
+.fire-on::after { width: 46%; height: 105%; margin-left: -8%; opacity: 0.9; animation: fire-lick 0.6s ease-in-out infinite reverse; animation-delay: calc(var(--i, 0) * -0.13s); }
+@keyframes fire-lick { 0%, 100% { transform: scale(1, 1) skewX(0deg); opacity: 0.95; } 30% { transform: scale(0.88, 1.2) skewX(5deg); opacity: 1; } 60% { transform: scale(1.06, 0.92) skewX(-4deg); opacity: 0.85; } }
+.fire-today { outline: 2px solid #ffb02e; outline-offset: 2px; }
+.fire-text { background: linear-gradient(180deg, #fff6c0 0%, #ffb300 45%, #ff5a0a 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; filter: drop-shadow(0 0 8px rgba(255, 110, 20, 0.55)); }
+.fire-panel { border-color: color-mix(in oklab, #ff7a1a 70%, transparent); box-shadow: var(--shadow), 0 0 0 1px rgba(255, 122, 26, 0.35), 0 10px 34px rgba(255, 90, 10, 0.28), inset 0 -22px 40px -18px rgba(255, 110, 20, 0.28); }
+@media (prefers-reduced-motion: reduce) { .fire-on::before, .fire-on::after { animation: none; } }

@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { AnimatedNumber } from "@/components/motion/animated-number";
 import { celebrate } from "@/components/confetti";
@@ -16,7 +17,28 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
   const [open, setOpen] = useState<Seg | null>(null);
   const [day, setDay] = useState(week.length - 1);
   const [folded, setFolded] = useState(false);
+  // On a phone the bar steps aside while the page's main play button is on screen, so it never covers it.
+  const pathname = usePathname();
+  const [ctaOnScreen, setCtaOnScreen] = useState(false);
   const [left, setLeft] = useState<{ h: number; m: number } | null>(null);
+
+  useEffect(() => {
+    const targets = document.querySelectorAll("[data-cta='play']");
+    if (targets.length === 0) return;
+    const seen = new Set<Element>();
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) seen.add(e.target);
+        else seen.delete(e.target);
+      }
+      setCtaOnScreen(seen.size > 0);
+    });
+    targets.forEach((t) => io.observe(t));
+    return () => {
+      io.disconnect();
+      setCtaOnScreen(false);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let saved = false;
@@ -58,7 +80,7 @@ export function StatsDock({ streak, today, week, stats }: HudData) {
   const spring = { type: "spring" as const, stiffness: 320, damping: 30 };
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center">
+    <div className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center transition-[opacity,transform] duration-200 ${ctaOnScreen ? "max-md:translate-y-6 max-md:opacity-0 max-md:[&_*]:!pointer-events-none" : ""}`}>
       <AnimatePresence mode="wait" initial={false}>
         {folded ? (
           <motion.button
