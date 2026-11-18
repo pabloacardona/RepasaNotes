@@ -836,15 +836,14 @@ html, body { overflow-x: clip; }
   z-index: 0;
   aspect-ratio: 1;
   background: url("/icons/socrates_mark.webp") center / contain no-repeat;
-  opacity: 0.5;
-  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 40%, transparent 96%);
-  mask-image: linear-gradient(90deg, #000 0%, #000 40%, transparent 96%);
-  width: min(112vw, 520px);
-  right: -34%;
-  top: -4%;
+  opacity: 0.1;
+  /* Socrates looks right: his face is on the right side of the image, so the fade eats the back of his head on the left. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
+  width: min(125vw, 520px);
+  right: -1rem;
+  top: 0;
 }
-:root[data-theme="light"] .socrates-mark { opacity: 0.38; }
 @media (min-width: 640px) {
-  .socrates-mark { width: 800px; right: auto; left: -34%; top: 50%; transform: translateY(-52%); opacity: 0.55; }
-  :root[data-theme="light"] .socrates-mark { opacity: 0.42; }
+  .socrates-mark { width: 700px; right: -4%; top: 50%; transform: translateY(-52%); }
 }
