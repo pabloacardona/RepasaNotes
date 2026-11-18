@@ -536,12 +536,50 @@ function ConfirmDialog({
   );
 }
 
+// Shown only to people who played a shared quiz without an account: turns the score they just got into a reason to sign up.
+function SignupPitch({ hits, total }: { hits: number; total: number }) {
+  const good = hits * 2 >= total;
+  return (
+    <section aria-label="Crea tu cuenta en Repasa" className="hx-tier-panel mt-6 rounded-2xl border-2 bg-[var(--surface-2)] p-4 text-center sm:p-5" style={{ ["--tc" as string]: "#e7c88a" }}>
+      <p className="hx-kicker justify-center">{good ? "Tienes madera de crack" : "Esto apenas empieza"}</p>
+      <h2 className="mt-1 font-display text-2xl font-bold leading-tight sm:text-3xl">
+        Ahora hazlo con <span className="hx-gold-text">tus propios apuntes</span>
+      </h2>
+      <p className="hx-mute mt-2 text-sm leading-snug sm:text-base">
+        Este quiz lo armó alguien más. En Repasa lo conviertes en tuyo: pegas tus notas y la IA te prepara el repaso en segundos.
+      </p>
+      <ul className="mx-auto mt-4 grid max-w-sm gap-2 text-left text-sm">
+        {[
+          ["📜", "Sube tus apuntes, un PDF o hasta fotos del cuaderno"],
+          ["⚡", "Quizzes con IA al instante, sobre lo que tú estudias"],
+          ["🏆", "Gana XP, mantén tu racha y sube de Hierro a Retador"],
+          ["🔗", "Comparte tus quizzes con un QR, como este"],
+        ].map(([icon, text]) => (
+          <li key={text} className="flex items-start gap-2.5">
+            <span aria-hidden className="text-lg leading-none">{icon}</span>
+            <span className="leading-snug">{text}</span>
+          </li>
+        ))}
+      </ul>
+      <Link href="/login?tab=registro" className="hx-btn hx-btn-gold hx-shine mt-5 w-full !py-3 text-base sm:text-lg">
+        Crear mi cuenta gratis →
+      </Link>
+      <p className="mt-3 text-sm">
+        <span className="hx-mute">¿Ya tienes cuenta? </span>
+        <Link href="/login" className="font-bold underline-offset-4 hover:underline">
+          Inicia sesión
+        </Link>
+      </p>
+    </section>
+  );
+}
+
 function SharedResults({ questions, answers, points, onAgain }: { questions: Question[]; answers: number[]; points: number; onAgain: () => void }) {
   const hits = answers.filter((a, i) => a === questions[i].correctIndex).length;
   const wrong = questions.map((q, i) => ({ q, given: answers[i], n: i + 1 })).filter(({ q, given }) => given !== q.correctIndex);
   return (
     <div className="hx anim-fade-in fixed inset-0 z-50 overflow-y-auto bg-[var(--bg)]/95 p-4 backdrop-blur-md">
-      <div className="hx-epic pop-in mx-auto my-6 w-full max-w-lg p-5 sm:p-7">
+      <div className="hx-epic hx-epic-still modal-in mx-auto my-6 w-full max-w-lg p-5 sm:p-7">
         <p className="hx-kicker text-center">Resultado</p>
         <p className="mt-1 text-center font-display text-5xl font-bold">
           {hits}<span className="hx-mute text-3xl"> / {questions.length}</span>
@@ -551,6 +589,7 @@ function SharedResults({ questions, answers, points, onAgain }: { questions: Que
           <Btn variant="gold" onClick={onAgain}>Intentar de nuevo</Btn>
           <Link href="/" className="hx-btn !px-3 !py-2 text-sm">Conocer Repasa</Link>
         </div>
+        <SignupPitch hits={hits} total={questions.length} />
         {wrong.length > 0 && (
           <ul className="mt-6 space-y-4 border-t border-[var(--line)] pt-4">
             {wrong.map(({ q, given, n }) => (
