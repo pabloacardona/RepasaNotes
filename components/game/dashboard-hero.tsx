@@ -33,6 +33,7 @@ export function DashboardHero({
   const doneQuests = quests.filter((q) => q.done).length;
 
   function onMove(e: PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== "mouse") return; // a finger drag must not run the spring tilt
     const r = e.currentTarget.getBoundingClientRect();
     px.set(((e.clientX - r.left) / r.width) * 2 - 1);
     py.set(((e.clientY - r.top) / r.height) * 2 - 1);

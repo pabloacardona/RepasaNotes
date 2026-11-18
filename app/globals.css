@@ -778,3 +778,8 @@ html, body { overflow-x: clip; }
   .hx-bg::after { display: none; }
   .rank-rays, .rank-spark, .rank-sheen::after { display: none; }
 }
+
+@media (max-width: 767px), (pointer: coarse) {
+  .hx-dock { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in oklab, var(--surface) 96%, transparent); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+  html { scroll-behavior: auto; }
+}

@@ -8,7 +8,7 @@ import { DashboardHero } from "@/components/game/dashboard-hero";
 import { DockSpacer } from "@/components/world/companion-dock";
 import { DashboardCompanion } from "@/components/world/dashboard-companion";
 import { BadgeWall } from "@/components/game/badge-wall";
-import { RankLadder } from "@/components/game/rank-ladder";
+import { RankPath } from "@/components/game/rank-path";
 import { Card, LinkButton } from "@/components/ui";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { AnimatedBar } from "@/components/motion/animated-bar";
@@ -120,16 +120,8 @@ export default async function Dashboard() {
       <div className="mt-6">
         <BadgeWall achievements={game.achievements} />
       </div>
-      <details className="hx-panel group mb-6 p-4 sm:p-5">
-        <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
-          <span className="hx-kicker">Camino de rangos</span>
-          <span aria-hidden className="text-xs transition-transform group-open:rotate-180">▼</span>
-        </summary>
-        <div className="mt-4">
-          <RankLadder tierIndex={game.rank.tierIndex} xp={game.rank.xp} />
-        </div>
-      </details>
-      <DockSpacer />
+      <RankPath tierIndex={game.rank.tierIndex} xp={game.rank.xp} />
+      <DockSpacer hideOnPhone />
     </>
   );
 }

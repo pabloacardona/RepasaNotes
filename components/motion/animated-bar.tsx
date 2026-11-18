@@ -1,18 +1,28 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-// Progress bar that grows when it scrolls into view.
+// Progress bar that grows when it scrolls into view (CSS transition, no animation library).
 export function AnimatedBar({ percent, className, delay = 0 }: { percent: number; className: string; delay?: number }) {
-  const reduce = useReducedMotion();
+  const ref = useRef<HTMLSpanElement>(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        setShown(true);
+        io.disconnect();
+      }
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   return (
-    <motion.span
-      className={`block h-full rounded-full ${className}`}
-      initial={reduce ? false : { width: 0 }}
-      whileInView={{ width: `${Math.max(percent, 3)}%` }}
-      viewport={{ once: true }}
-      transition={{ type: "spring", stiffness: 60, damping: 16, delay }}
-      style={reduce ? { width: `${Math.max(percent, 3)}%` } : undefined}
+    <span
+      ref={ref}
+      className={`block h-full rounded-full motion-reduce:transition-none ${className}`}
+      style={{ width: `${shown ? Math.max(percent, 3) : 0}%`, transition: "width 0.9s cubic-bezier(0.22, 1, 0.36, 1)", transitionDelay: `${delay}s` }}
     />
   );
 }

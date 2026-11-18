@@ -64,6 +64,6 @@ export function CompanionDock({ mood, babyMood, streak }: { mood: Mood; babyMood
 }
 
 /** Empty space at the end of a page, only while the small dock is on, so the last block can scroll clear of the mascots. */
-export function DockSpacer() {
-  return <div aria-hidden className="cdock-spacer" />;
+export function DockSpacer({ hideOnPhone = false }: { hideOnPhone?: boolean }) {
+  return <div aria-hidden className={`cdock-spacer ${hideOnPhone ? "max-md:hidden" : ""}`} />;
 }
