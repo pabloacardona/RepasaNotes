@@ -826,3 +826,25 @@ html, body { overflow-x: clip; }
 @keyframes modal-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .modal-in { animation: modal-in 0.22s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .modal-in { animation: none; } }
+
+/* ---------- Landing: Socrates mark as a faded watermark behind the mascots ----------
+   The logo is drawn large, low in opacity, and a mask fades it out toward the right so it melts into the page.
+   Desktop: it sits behind the mascot column. Phone: it leans in from the right edge and is cropped by it, enough to recognise. */
+.socrates-mark {
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+  aspect-ratio: 1;
+  background: url("/icons/socrates_mark.webp") center / contain no-repeat;
+  opacity: 0.26;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 28%, transparent 92%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 28%, transparent 92%);
+  width: min(78vw, 360px);
+  right: -26%;
+  top: 2%;
+}
+:root[data-theme="light"] .socrates-mark { opacity: 0.2; }
+@media (min-width: 640px) {
+  .socrates-mark { width: 560px; right: auto; left: -14%; top: 50%; transform: translateY(-52%); opacity: 0.3; }
+  :root[data-theme="light"] .socrates-mark { opacity: 0.22; }
+}

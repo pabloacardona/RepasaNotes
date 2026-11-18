@@ -94,6 +94,7 @@ export default function Landing() {
             </div>
 
             <div className="relative mx-auto w-full max-w-md">
+              <span aria-hidden className="socrates-mark" />
               <Ripples className="absolute inset-0" />
               <HeroMascot className="relative h-[400px] w-full sm:h-[470px]" />
               <div className="hx-panel hx-epic-soft absolute -bottom-4 left-0 right-0 mx-auto w-[92%] p-3">
