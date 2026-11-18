@@ -841,9 +841,9 @@ html, body { overflow-x: clip; }
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
   mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
   width: min(125vw, 520px);
-  right: -1rem;
+  right: -3.5rem;
   top: 0;
 }
 @media (min-width: 640px) {
-  .socrates-mark { width: 700px; right: -4%; top: 50%; transform: translateY(-52%); }
+  .socrates-mark { width: 700px; right: -12%; top: 50%; transform: translateY(-52%); }
 }
