@@ -424,9 +424,20 @@ Reglas:
 - Longitud del content: máximo ${NOTE_MAX} caracteres.
 - suitable=false solo si las imágenes no contienen texto de estudio legible.`;
 
+// Models that can read images. The text candidates cannot be reused as they are: the default gateway model
+// (gpt-oss-120b) and Groq's are text-only, so a photo sent to them fails. Order: Google (if keyed), Claude through its own
+// key (if keyed), then a vision model through the gateway, which authenticates by itself on Vercel.
+function buildVisionCandidates(): Candidate[] {
+  const env = process.env;
+  const list: Candidate[] = [];
+  if (env.GOOGLE_GENERATIVE_AI_API_KEY) list.push({ name: "google", model: google(env.GOOGLE_MODEL ?? "gemini-flash-latest") });
+  if (env.ANTHROPIC_API_KEY) list.push({ name: "anthropic", model: anthropic(env.ANTHROPIC_VISION_MODEL ?? "claude-haiku-4-5-20251001") });
+  list.push({ name: "gateway", model: (env.AI_GATEWAY_VISION_MODEL ?? "google/gemini-2.5-flash") as unknown as LanguageModel });
+  return list;
+}
+
 export async function transcribeNotes(images: { data: Uint8Array; mediaType: string }[], titleHint: string) {
-  const vision = CANDIDATES.filter((c) => c.name !== "groq");
-  if (vision.length === 0) throw new AIGenerationError("La IA configurada no puede leer imágenes. Configura GOOGLE_GENERATIVE_AI_API_KEY.");
+  const vision = buildVisionCandidates();
   let output: z.infer<typeof NoteSchema> | undefined;
   let last: unknown;
   for (const c of vision) {
@@ -439,7 +450,7 @@ export async function transcribeNotes(images: { data: Uint8Array; mediaType: str
             role: "user",
             content: [
               { type: "text", text: `Nombre sugerido: ${titleHint}. Convierte estas ${images.length} imagen(es) en un apunte.` },
-              ...images.map((im) => ({ type: "image" as const, image: im.data, mediaType: im.mediaType })),
+              ...images.map((im) => ({ type: "file" as const, data: im.data, mediaType: im.mediaType })),
             ],
           },
         ],
@@ -451,7 +462,7 @@ export async function transcribeNotes(images: { data: Uint8Array; mediaType: str
       break;
     } catch (err) {
       last = err;
-      console.warn(`ai vision provider "${c.name}" failed`);
+      console.warn(`ai vision provider "${c.name}" failed: ${err instanceof Error ? err.message.slice(0, 200).replace(/s+/g, " ") : "unknown error"}`);
     }
   }
   if (!output) throw toUserError(last);
