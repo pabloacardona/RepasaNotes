@@ -113,7 +113,8 @@ Reglas:
 - La explicación (1-2 frases) dice por qué la respuesta correcta es la correcta.
 - No repitas preguntas.
 - Escribe todo en español.
-- Formato visual (solo cuando aporte): si la pregunta trata de código, incluye el fragmento en un bloque con tres comillas invertidas y el lenguaje (${FENCE}js ... ${FENCE}), de pocas líneas. Usa ${TICK}código${TICK} en línea para nombres de funciones o variables. Una opción puede ser un fragmento corto en línea.
+- Código: si el tema es de programación y la pregunta muestra o analiza código, el código SIEMPRE va dentro del enunciado en un bloque con tres comillas invertidas y el lenguaje (${FENCE}js ... ${FENCE}), con saltos de línea e indentación reales (nunca en una sola línea de texto corrido ni como texto normal), de máximo 8 líneas. Para comandos de consola usa ${FENCE}bash con un comando por línea. Las opciones que sean código van como fragmento corto en línea con comillas simples invertidas.
+- Formato visual (solo cuando aporte): Usa ${TICK}código${TICK} en línea para nombres de funciones o variables. Una opción puede ser un fragmento corto en línea.
 - Si el apunte contiene datos numéricos o un bloque ${FENCE}chart, puedes incluir un gráfico en el enunciado con un bloque ${FENCE}chart con JSON válido: {"type":"bar"|"line"|"pie","title":"...","labels":[...],"values":[...]} (máximo 8 puntos, valores numéricos). No inventes datos que no estén en el apunte.`;
 
 export async function generateQuestions(opts: {

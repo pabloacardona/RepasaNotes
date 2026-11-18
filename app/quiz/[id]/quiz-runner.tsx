@@ -313,9 +313,9 @@ export function QuizRunner({
         </div>
       </header>
 
-      <main className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-3 pt-[calc(3.6rem+15dvh+9dvh)] sm:px-6 landscape:pt-3">
+      <main className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-2 pt-[calc(3.5rem+11dvh+5.5dvh)] sm:px-6 sm:pb-3 landscape:pt-3">
 
-        <div className={`hx-epic hx-epic-still ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative mx-auto flex max-h-full min-h-0 w-full max-w-[560px] flex-col p-3 sm:p-5`}>
+        <div className={`hx-epic hx-epic-still ${streak >= 8 ? "hx-epic-hot hx-epic-blaze" : streak >= 3 ? "hx-epic-hot" : ""} relative mx-auto flex max-h-full min-h-0 w-full max-w-[560px] flex-col p-2.5 sm:p-5`}>
           <FireBorder streak={streak} />
           <div className="flex shrink-0 items-center justify-between gap-2">
             <p className="hx-kicker">
@@ -327,23 +327,23 @@ export function QuizRunner({
           </div>
 
           {/* Only this area scrolls, and only if a long question does not fit. The padding gives the option scale-up and its glow room, so the scroll box never clips them. */}
-          <div className="-mx-6 min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-6 pt-3">
+          <div className="-mx-3 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 pt-2 sm:-mx-6 sm:px-6 sm:pb-6 sm:pt-3">
             <AnimatePresence mode="wait" initial={false} custom={direction}>
               <motion.section
                 key={current}
                 custom={direction}
-                initial={reduce ? false : { opacity: 0, x: 24 * direction, filter: "blur(6px)" }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                exit={reduce ? undefined : { opacity: 0, x: -24 * direction, filter: "blur(6px)" }}
-                transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                initial={reduce ? false : { opacity: 0, x: 24 * direction }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={reduce ? undefined : { opacity: 0, x: -24 * direction }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
                 className={feedback?.kind === "miss" ? "anim-shake" : ""}
               >
-                <div role="heading" aria-level={1} className="font-display text-lg font-bold leading-snug sm:text-[1.35rem]">
+                <div role="heading" aria-level={1} className="font-display text-[0.98rem] font-bold leading-snug sm:text-[1.35rem]">
                   <RichText text={q.question} />
                 </div>
 
                 {!answered && (
-                  <div className="mt-3">
+                  <div className="mt-2 sm:mt-3">
                     {hints[current] ? (
                       <p className="rounded-xl border-l-4 border-[var(--neon)] bg-[var(--neon)]/10 px-3 py-2 text-sm">💡 {hints[current]}</p>
                     ) : (
@@ -359,7 +359,7 @@ export function QuizRunner({
                   </div>
                 )}
 
-                <ul className="mt-4 space-y-2">
+                <ul className="mt-2.5 space-y-1.5 sm:mt-4 sm:space-y-2">
                   {q.options.map((opt, i) => {
                     const isCorrect = i === q.correctIndex;
                     const isChosen = i === chosen;
@@ -367,9 +367,9 @@ export function QuizRunner({
                     return (
                       <motion.li
                         key={i}
-                        initial={reduce ? false : { opacity: 0, y: 18 }}
+                        initial={reduce ? false : { opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.06 * i + 0.1, type: "spring", stiffness: 320, damping: 24 }}
+                        transition={{ delay: 0.03 * i, duration: 0.2, ease: "easeOut" }}
                       >
                         <button
                           ref={(el) => {
@@ -395,17 +395,17 @@ export function QuizRunner({
 
                 <div aria-live="polite">
                   {answered && (
-                    <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-2">
+                    <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-2.5 space-y-1.5 sm:mt-4 sm:space-y-2">
                       {feedback && (
                         <p
-                          className={`font-display text-lg font-bold ${feedback.kind === "hit" ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}
+                          className={`font-display text-base font-bold sm:text-lg ${feedback.kind === "hit" ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}
                           style={{ textShadow: `0 0 20px color-mix(in oklab, ${feedback.kind === "hit" ? "var(--ok)" : "var(--bad)"} 50%, transparent)` }}
                         >
                           {feedback.message}
                           {feedback.kind === "hit" && <span className="ml-2 rounded-full bg-[var(--ok)]/15 px-2 py-0.5 text-sm">+{Math.round(feedback.gained / 10)} XP</span>}
                         </p>
                       )}
-                      <div className="rounded-xl border-l-4 border-[var(--neon)] bg-[var(--neon)]/10 px-3.5 py-2.5 text-sm sm:text-base">
+                      <div className="rounded-xl border-l-4 border-[var(--neon)] bg-[var(--neon)]/10 px-3 py-1.5 text-[0.82rem] leading-snug sm:px-3.5 sm:py-2.5 sm:text-base">
                         <span className="font-bold">Explicación:</span> <RichText text={q.explanation} />
                       </div>
                     </motion.div>
@@ -422,7 +422,7 @@ export function QuizRunner({
           )}
 
           {/* Controls */}
-          <div className="mt-3 flex shrink-0 items-center gap-2">
+          <div className="mt-2 flex shrink-0 items-center gap-2 sm:mt-3">
             <Btn onClick={() => goTo(current - 1)} disabled={current === 0} aria-label="Anterior">
               ←<span className="hidden sm:inline">Anterior</span>
             </Btn>

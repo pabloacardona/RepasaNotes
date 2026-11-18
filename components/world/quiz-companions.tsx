@@ -41,7 +41,7 @@ export function QuizCompanions({
           streak={0}
           say={cheer}
           bubbleClassName="portrait:hidden !top-auto bottom-full mb-1"
-          className="relative h-[12dvh] w-[84px] landscape:h-[min(18dvh,120px)] landscape:w-[min(11vw,110px)]"
+          className="relative h-[9dvh] w-[64px] sm:h-[12dvh] sm:w-[84px] landscape:h-[min(18dvh,120px)] landscape:w-[min(11vw,110px)]"
         />
         <MascotStage
           picker
@@ -52,13 +52,13 @@ export function QuizCompanions({
           lastHit={lastHit}
           streak={streak}
           bubbleClassName="portrait:hidden"
-          className="relative h-[15dvh] w-[132px] landscape:h-[min(32dvh,250px)] landscape:w-[min(20vw,230px)]"
+          className="relative h-[11dvh] w-[96px] sm:h-[15dvh] sm:w-[132px] landscape:h-[min(32dvh,250px)] landscape:w-[min(20vw,230px)]"
         />
       </div>
 
       {/* Phone (portrait): one line under the models. */}
       {hydrated && (
-        <div aria-hidden className="pointer-events-none fixed inset-x-0 top-[calc(3.6rem+15dvh+0.5rem)] z-30 flex h-[9dvh] justify-center px-3 landscape:hidden">
+        <div aria-hidden className="pointer-events-none fixed inset-x-0 top-[calc(3.5rem+11dvh+0.25rem)] z-30 flex h-[5dvh] justify-center px-3 landscape:hidden">
           <div key={pulse} className="relative h-full w-full max-w-sm">
             <div className="absolute inset-0 flex items-center justify-center">
               <SayBubble text={cheer} />

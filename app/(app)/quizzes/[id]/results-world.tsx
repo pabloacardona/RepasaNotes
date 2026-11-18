@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { InteractiveBackdrop } from "@/components/world/interactive-backdrop";
 import { CompanionDock } from "@/components/world/companion-dock";
 import { moodFor } from "@/lib/mood";
 
-// Quiet scene behind the results: the soft backdrop and a both mascots on top of the page. No trophy, no pile of effects.
+// Quiet scene behind the results: just the static page background and both mascots on top of it.
+// The interactive particle backdrop is gone here: it ran a full-screen canvas loop on a page that only shows a score.
 export function ResultsWorld({ score, total, bestStreak }: { score: number; total: number; bestStreak: number }) {
   const mood = useMemo(
     () =>
@@ -15,10 +15,5 @@ export function ResultsWorld({ score, total, bestStreak }: { score: number; tota
       }),
     [score, total],
   );
-  return (
-    <>
-      <InteractiveBackdrop streak={bestStreak} calm />
-      <CompanionDock mood={mood} babyMood={score * 2 >= total ? "happy" : "determined"} streak={bestStreak} />
-    </>
-  );
+  return <CompanionDock mood={mood} babyMood={score * 2 >= total ? "happy" : "determined"} streak={bestStreak} />;
 }

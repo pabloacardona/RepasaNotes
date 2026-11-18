@@ -98,17 +98,53 @@ function tokenize(code: string, lang: string): Tok[] {
   return out;
 }
 
-function CodeBlock({ code, lang = "", compact }: { code: string; lang?: string; compact?: boolean }) {
+const SHELL = /^(sh|bash|shell|zsh|console|terminal|cmd|powershell|ps1)$/;
+
+function Tokens({ code, lang }: { code: string; lang: string }) {
   return (
-    <figure className={`rt-code ${compact ? "rt-code-compact" : ""}`}>
-      {lang && <figcaption className="rt-lang">{lang}</figcaption>}
+    <>
+      {tokenize(code, lang).map((tk, i) => (
+        <span key={i} className={tk.t === "x" ? undefined : `tok-${tk.t}`}>
+          {tk.v}
+        </span>
+      ))}
+    </>
+  );
+}
+
+// Code drawn as a terminal window: title bar with the three dots, dark screen, monospace, and a "$" prompt on shell commands.
+function CodeBlock({ code, lang = "", compact }: { code: string; lang?: string; compact?: boolean }) {
+  const shell = SHELL.test(lang);
+  const lines = code.split("\n");
+  return (
+    <figure className={`rt-code rt-term ${compact ? "rt-code-compact" : ""}`}>
+      <figcaption className="rt-term-bar">
+        <i aria-hidden />
+        <i aria-hidden />
+        <i aria-hidden />
+        <span>{shell || !lang ? "terminal" : `terminal · ${lang}`}</span>
+      </figcaption>
       <pre tabIndex={0}>
         <code>
-          {tokenize(code, lang).map((tk, i) => (
-            <span key={i} className={tk.t === "x" ? undefined : `tok-${tk.t}`}>
-              {tk.v}
-            </span>
-          ))}
+          {shell ? (
+            lines.map((line, n) => {
+              const prompted = /^[$>] /.test(line);
+              const isCmd = line.trim() !== "" && (prompted || !/^\s/.test(line));
+              return (
+                <span key={n} className="rt-line">
+                  {isCmd && (
+                    <span className="rt-prompt" aria-hidden>
+                      ${" "}
+                    </span>
+                  )}
+                  <Tokens code={prompted ? line.slice(2) : line} lang={lang} />
+                  {n < lines.length - 1 ? "\n" : null}
+                </span>
+              );
+            })
+          ) : (
+            <Tokens code={code} lang={lang} />
+          )}
         </code>
       </pre>
     </figure>

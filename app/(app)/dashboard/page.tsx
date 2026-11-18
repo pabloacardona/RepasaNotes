@@ -37,7 +37,7 @@ export default async function Dashboard() {
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4 text-center sm:mb-6 sm:text-left max-sm:justify-center">
         <div>
           <p className="text-muted first-letter:uppercase">{today}</p>
           <h1 className="text-2xl font-bold sm:text-3xl">Hola, {firstName}</h1>
@@ -47,8 +47,8 @@ export default async function Dashboard() {
       <DashboardCompanion streak={game.streak.current} />
       <DashboardHero hud={hud} quests={game.quests} bonus={game.questsBonus} />
       <Card className="mb-6 grid gap-0 overflow-hidden p-0 md:grid-cols-[1.5fr_1fr]">
-        <div className="p-5 sm:p-6">
-          <h2 className="text-lg font-bold">Puntaje por tema</h2>
+        <div className="p-4 sm:p-6">
+          <h2 className="text-center text-lg font-bold sm:text-left">Puntaje por tema</h2>
           {stats.topics.length === 0 ? (
             <EmptyTopics hasNotes={stats.notesCount > 0} />
           ) : (
@@ -76,7 +76,7 @@ export default async function Dashboard() {
           )}
         </div>
 
-        <div className="border-t border-line bg-yellow-soft p-5 sm:p-6 md:border-l md:border-t-0">
+        <div className="border-t border-line bg-yellow-soft p-4 text-center sm:p-6 sm:text-left md:border-l md:border-t-0">
           {showWeakest ? (
             <>
               <p className="text-sm font-bold uppercase tracking-widest">Por reforzar</p>
@@ -128,8 +128,8 @@ export default async function Dashboard() {
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <Card className="h-full p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
-      <p className="text-sm text-ink-soft">{label}</p>
+    <Card className="h-full p-3 text-center transition sm:p-4 sm:text-left sm:hover:-translate-y-0.5 sm:hover:shadow-lg">
+      <p className="text-xs text-ink-soft sm:text-sm">{label}</p>
       <p className="mt-0.5 font-display text-2xl font-bold sm:text-3xl">{value}</p>
     </Card>
   );

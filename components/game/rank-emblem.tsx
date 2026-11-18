@@ -134,7 +134,7 @@ export function RankEmblem({
         width={size}
         height={size}
         viewBox="0 -4 120 138"
-        className={`relative ${locked ? "grayscale" : "hx-bob"}`}
+        className={`rank-crest relative ${locked ? "grayscale" : "hx-bob"}`}
         style={{ filter: locked ? "drop-shadow(0 4px 4px rgba(0,0,0,.4))" : `drop-shadow(0 0 ${glowPx}px ${tier.color}) drop-shadow(0 5px 6px rgba(0,0,0,.5))`, overflow: "visible" }}
       >
         <defs>
@@ -226,7 +226,7 @@ export function RankEmblem({
 
         {/* Halo: two rune rings turning against each other */}
         {sp.halo && !locked && (
-          <g fill="none" stroke={g}>
+          <g fill="none" stroke={g} className="rank-fx-svg">
             <ellipse cx="60" cy="62" rx="57" ry="20" strokeWidth="1.8" strokeDasharray="4 8" opacity="0.85" transform="rotate(-16 60 62)">
               <animateTransform attributeName="transform" type="rotate" from="-16 60 62" to="344 60 62" dur="16s" repeatCount="indefinite" />
             </ellipse>
@@ -394,7 +394,7 @@ export function RankEmblem({
           </g>
         )}
         {!locked && (
-          <circle cx="53" cy="50" r="2.2" fill="#fff">
+          <circle cx="53" cy="50" r="2.2" fill="#fff" className="rank-fx-svg">
             <animate attributeName="opacity" values="0.1;1;0.1" dur="2.4s" repeatCount="indefinite" />
           </circle>
         )}

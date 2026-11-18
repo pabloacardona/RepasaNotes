@@ -43,9 +43,9 @@ export function DashboardHero({
   return (
     <section aria-label="Tu progreso" className="hx mb-6 grid gap-5 lg:grid-cols-[1.5fr_1fr]">
       {/* Rank */}
-      <div className="hx-panel hx-tier-panel relative flex items-center self-start overflow-hidden p-3 sm:p-4" style={{ ["--tc" as string]: tier.color }}>
+      <div className="hx-panel hx-tier-panel relative flex items-center justify-center self-start overflow-hidden p-4 sm:p-4 max-sm:w-full" style={{ ["--tc" as string]: tier.color }}>
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 opacity-40" style={{ background: `radial-gradient(circle, ${tier.color}, transparent 65%)` }} />
-        <div className="relative flex w-full flex-wrap items-center gap-3 sm:gap-5">
+        <div className="relative flex w-full flex-col items-center gap-3 text-center sm:flex-row sm:flex-wrap sm:gap-5 sm:text-left">
           <motion.div
             onPointerMove={reduce ? undefined : onMove}
             onPointerLeave={reset}
@@ -59,9 +59,9 @@ export function DashboardHero({
           >
             <RankEmblem tierIndex={rank.tierIndex} division={rank.division} size={170} />
           </motion.div>
-          <div className="min-w-0 flex-1">
-            <p className="hx-kicker">Tu rango</p>
-            <h1 className="hx-title hx-rank mt-1 text-5xl sm:text-6xl" style={{ ["--tg2" as string]: tier.glow }}>
+          <div className="w-full min-w-0 sm:w-auto sm:flex-1">
+            <p className="hx-kicker max-sm:justify-center">Tu rango</p>
+            <h1 className="hx-title hx-rank mt-1 text-4xl sm:text-6xl" style={{ ["--tg2" as string]: tier.glow }}>
               {rank.label}
             </h1>
             <div className="relative mt-4">
@@ -72,7 +72,7 @@ export function DashboardHero({
                 <span key={p} aria-hidden className="hx-tick" style={{ left: `${p}%` }} />
               ))}
             </div>
-            <div className="mt-2 flex items-center justify-between gap-3">
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-between">
               <p className="hx-mute">
                 {rank.nextLabel ? (
                   <>
@@ -89,7 +89,7 @@ export function DashboardHero({
                 </span>
               )}
             </div>
-            <Link href="/quizzes/nuevo" className="hx-btn hx-btn-gold mt-5 !px-6 !py-3">
+            <Link href="/quizzes/nuevo" className="hx-btn hx-btn-gold mt-4 w-full !px-6 !py-3 sm:mt-5 sm:w-auto">
               ▶ Jugar para subir
             </Link>
           </div>
@@ -99,10 +99,10 @@ export function DashboardHero({
       {/* Streak + stats */}
       <div className="grid gap-5">
         <div className={`hx-panel p-3.5 ${atRisk ? "border-[var(--bad)]" : ""}`}>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3 sm:justify-start">
             <StreakFlame size={44} active={streak.activeToday || atRisk} days={streak.current} />
-            <div className="min-w-0 flex-1">
-              <p className="flex items-baseline gap-2">
+            <div className="min-w-0 sm:flex-1 max-sm:text-center">
+              <p className="flex items-baseline gap-2 max-sm:justify-center">
                 <span className="font-display text-2xl font-bold leading-none">
                   <AnimatedNumber from={0} value={streak.current} />
                 </span>
@@ -126,7 +126,7 @@ export function DashboardHero({
         </div>
 
         <div className="hx-panel p-4">
-          <div className="flex items-baseline justify-between gap-2">
+          <div className="flex items-baseline justify-between gap-2 max-sm:flex-col max-sm:items-center max-sm:gap-0.5">
             <p className="hx-kicker">Hoy</p>
             <p className="hx-mute text-sm tabular-nums">
               <b className="text-[var(--fg)]">{today.answered}</b> / {today.goal} preguntas
