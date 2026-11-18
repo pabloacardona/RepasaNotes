@@ -25,6 +25,7 @@ export default async function SolveQuizPage({ params }: PageProps<"/quiz/[id]">)
       questions={quiz.questions}
       playerName={user.name}
       playerAvatar={avatar}
+      canVariant={Boolean(quiz.noteId)}
     />
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import QRCode from "qrcode";
 import { Spinner } from "@/components/ui";
@@ -85,14 +85,25 @@ export function ShareButton({
   topic = null,
   canVariant,
   compact = false,
+  intro = false,
+  onStart,
 }: {
   quizId: string;
   title: string;
   topic?: string | null;
   canVariant: boolean;
   compact?: boolean;
+  /** Opens on its own, with no trigger button, as the step right before a quiz starts. Closing it by any means calls onStart. */
+  intro?: boolean;
+  onStart?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(intro);
+  // Portals need the document: render them only in the browser (false on the server, true once hydrated).
+  const inBrowser = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const [projecting, setProjecting] = useState(false);
   const [mode, setMode] = useState<Mode>("fixed");
   const [shared, setShared] = useState<Partial<Record<Mode, Shared>>>({});
@@ -129,7 +140,14 @@ export function ShareButton({
     void load("fixed");
   }
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (intro) void load("fixed");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intro]);
+
   function close() {
+    if (intro) onStart?.();
     setOpen(false);
     setProjecting(false);
     setNotice(null);
@@ -150,6 +168,7 @@ export function ShareButton({
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = previous;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, projecting]);
 
   function flash(message: string) {
@@ -196,22 +215,23 @@ export function ShareButton({
 
   return (
     <>
-      <button onClick={openModal} className={compact ? "hx-btn !px-3 !py-2 text-sm" : "hx-btn w-full"} aria-label={compact ? `Compartir con QR: ${cleanTitle}` : undefined} title="Compartir con QR">
+      {!intro && <button onClick={openModal} className={compact ? "hx-btn !px-3 !py-2 text-sm" : "hx-btn w-full"} aria-label={compact ? `Compartir con QR: ${cleanTitle}` : undefined} title="Compartir con QR">
         <span aria-hidden>{compact ? "▦" : "🔗"}</span> {compact ? "QR" : "Compartir este quiz"}
-      </button>
+      </button>}
 
       {open &&
+        inBrowser &&
         createPortal(
           <div className="hx anim-fade-in fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/70 p-3" onClick={close}>
             <div role="dialog" aria-modal="true" aria-labelledby="share-title" className="hx-epic hx-epic-still modal-in my-auto w-full max-w-md p-5 sm:p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 id="share-title" className="font-display text-xl font-bold sm:text-2xl">
-                    Compartir con QR
+                    {intro ? "Comparte antes de empezar" : "Compartir con QR"}
                   </h2>
                   <p className="hx-mute truncate text-sm">{cleanTitle}</p>
                 </div>
-                <button onClick={close} aria-label="Cerrar" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--line-strong)]">
+                <button onClick={close} aria-label={intro ? "Empezar sin compartir" : "Cerrar"} title={intro ? "Empezar sin compartir" : undefined} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--line-strong)]">
                   ✕
                 </button>
               </div>
@@ -285,6 +305,12 @@ export function ShareButton({
                 </>
               )}
 
+              {intro && (
+                <button onClick={close} className="hx-btn hx-btn-gold mt-3 w-full !py-3 text-base">
+                  Empezar quiz ▶
+                </button>
+              )}
+
               <p role="status" aria-live="polite" className="mt-3 min-h-5 text-center text-sm font-bold text-[var(--ok)]">
                 {notice}
               </p>
@@ -299,6 +325,7 @@ export function ShareButton({
         )}
 
       {open &&
+        inBrowser &&
         projecting &&
         current?.qr &&
         createPortal(

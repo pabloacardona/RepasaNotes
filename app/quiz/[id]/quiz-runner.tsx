@@ -17,6 +17,7 @@ import { CalmBackdrop } from "@/components/world/calm-backdrop";
 import { QuizCompanions } from "@/components/world/quiz-companions";
 import { Avatar } from "@/components/avatar";
 import { RichText } from "@/components/rich-text";
+import { ShareButton } from "@/app/(app)/quizzes/[id]/share-button";
 import type { Question } from "@/lib/db/schema";
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -56,6 +57,7 @@ export function QuizRunner({
   playerName,
   playerAvatar,
   shared = false,
+  canVariant = false,
 }: {
   id: string;
   title: string;
@@ -64,6 +66,7 @@ export function QuizRunner({
   playerName?: string;
   playerAvatar?: string | null;
   shared?: boolean;
+  canVariant?: boolean;
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState(0);
@@ -85,6 +88,8 @@ export function QuizRunner({
   const [hintLoading, setHintLoading] = useState(false);
   const [hintError, setHintError] = useState<string | null>(null);
   const [localDone, setLocalDone] = useState(false);
+  // Your own quiz opens with the share window; the clock and the keys wait until it is closed. Shared copies skip it.
+  const [intro, setIntro] = useState(!shared);
 
   const q = questions[current];
   const chosen = answers[current];
@@ -109,13 +114,14 @@ export function QuizRunner({
     finished: submitting,
   });
   useEffect(() => {
+    if (intro) return;
     const t = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [intro]);
 
   const choose = useCallback(
     (i: number) => {
-      if (answers[current] !== -1 || dialog) return;
+      if (answers[current] !== -1 || dialog || intro) return;
       setAnswers((a) => a.map((v, idx) => (idx === current ? i : v)));
       if (i === q.correctIndex) {
         const next = streak + 1;
@@ -136,7 +142,7 @@ export function QuizRunner({
         setFeedback({ kind: "miss", message: pick(NUDGES), gained: 0, key: Date.now() });
       }
     },
-    [answers, current, dialog, q.correctIndex, streak, seconds],
+    [answers, current, dialog, intro, q.correctIndex, streak, seconds],
   );
 
   const goTo = useCallback(
@@ -207,7 +213,7 @@ export function QuizRunner({
   // Keyboard: 1-4 / A-D answer, arrows or Enter navigate, Esc closes dialogs.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (intro || e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
       if (dialog) {
         if (e.key === "Escape") setDialog(null);
         return;
@@ -225,7 +231,7 @@ export function QuizRunner({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [answered, choose, current, dialog, goTo, isLast, q.options.length]);
+  }, [answered, choose, current, dialog, goTo, intro, isLast, q.options.length]);
 
   const lastHit = track.lastResult === null ? null : track.lastResult === "hit";
   const xp = Math.round(points / 10);
@@ -446,6 +452,8 @@ export function QuizRunner({
           </div>
         </div>
       </main>
+
+      {intro && <ShareButton intro quizId={id} title={title} topic={topic} canVariant={canVariant} onStart={() => setIntro(false)} />}
 
       {localDone && (
         <SharedResults
