@@ -821,3 +821,8 @@ html, body { overflow-x: clip; }
   .q-key { height: 1.5rem; width: 1.5rem; font-size: 0.8rem; }
   .rt-term pre { font-size: 0.72rem; padding: 0.45rem 0.6rem; }
 }
+
+/* Dialog entrance without scaling: a scale animation makes the box look the wrong size while it opens. */
+@keyframes modal-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.modal-in { animation: modal-in 0.22s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .modal-in { animation: none; } }

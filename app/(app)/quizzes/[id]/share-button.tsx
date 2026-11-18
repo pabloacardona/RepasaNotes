@@ -118,7 +118,7 @@ export function ShareButton({
       setBusy(false);
       return setError(data?.error ?? "No se pudo crear el enlace. Intenta de nuevo.");
     }
-    const url = `${window.location.origin}${data.path}`;
+    const url = typeof data.url === "string" ? data.url : `${window.location.origin}${data.path}`;
     const qr = await QRCode.toDataURL(url, { ...QR_OPTIONS, width: 720 }).catch(() => null);
     setShared((s) => ({ ...s, [m]: { url, plays: Number(data.plays) || 0, qr } }));
     setBusy(false);
@@ -202,8 +202,8 @@ export function ShareButton({
 
       {open &&
         createPortal(
-          <div className="hx anim-fade-in fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/65 p-3 backdrop-blur-sm" onClick={close}>
-            <div role="dialog" aria-modal="true" aria-labelledby="share-title" className="hx-epic pop-in my-auto w-full max-w-md p-5 sm:p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="hx anim-fade-in fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/70 p-3" onClick={close}>
+            <div role="dialog" aria-modal="true" aria-labelledby="share-title" className="hx-epic hx-epic-still modal-in my-auto w-full max-w-md p-5 sm:p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 id="share-title" className="font-display text-xl font-bold sm:text-2xl">
@@ -236,7 +236,7 @@ export function ShareButton({
 
               <div className="mt-4 text-center">
                 {current?.qr ? (
-                  <button onClick={() => setProjecting(true)} className="group relative mx-auto block rounded-2xl bg-white p-2 shadow-lg transition hover:scale-[1.02]" aria-label="Ampliar el QR a pantalla completa">
+                  <button onClick={() => setProjecting(true)} className="group relative mx-auto block rounded-2xl bg-white p-2 shadow-lg transition" aria-label="Ampliar el QR a pantalla completa">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={current.qr} alt={`Código QR para jugar ${cleanTitle}`} width={240} height={240} className="h-auto w-[min(240px,62vw)]" />
                     <span className="absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-[#1d1826]/85 px-3 py-0.5 text-xs font-bold text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">Ampliar</span>

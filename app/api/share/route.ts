@@ -4,6 +4,15 @@ import { getDb, sharedQuizzes } from "@/lib/db";
 import { requireApiUser } from "@/lib/auth";
 import { getNote, getQuiz } from "@/lib/data";
 
+// The link that goes into the QR must open for anyone. The address the owner is browsing from can be a protected
+// deployment alias (Vercel sends visitors without a Vercel login to its sign-in page, and the quiz never starts), so
+// when the production domain is known the QR always points there.
+function publicUrl(req: Request, path: string) {
+  const prod = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const origin = prod ? `https://${prod}` : new URL(req.url).origin;
+  return `${origin}${path}`;
+}
+
 // Publishes one of the user's quizzes as a link. mode "fixed": same questions for all (shuffled per visitor).
 // mode "variant": the AI writes a different quiz for each visitor from the same note.
 // Sharing the same quiz in the same mode again returns the link that already exists (and its play count), so the QR
@@ -39,7 +48,7 @@ export async function POST(req: Request) {
   const questionsKey = JSON.stringify(quiz.questions);
   const existing = sameTitle.find((row) => JSON.stringify(row.questions) === questionsKey && (mode === "fixed" || row.noteContent === noteContent));
   if (existing) {
-    return NextResponse.json({ id: existing.id, path: `/s/${existing.id}`, plays: existing.plays, reused: true });
+    return NextResponse.json({ id: existing.id, path: `/s/${existing.id}`, url: publicUrl(req, `/s/${existing.id}`), plays: existing.plays, reused: true });
   }
 
   const [created] = await db
@@ -56,5 +65,5 @@ export async function POST(req: Request) {
     })
     .returning({ id: sharedQuizzes.id });
 
-  return NextResponse.json({ id: created.id, path: `/s/${created.id}`, plays: 0, reused: false }, { status: 201 });
+  return NextResponse.json({ id: created.id, path: `/s/${created.id}`, url: publicUrl(req, `/s/${created.id}`), plays: 0, reused: false }, { status: 201 });
 }
