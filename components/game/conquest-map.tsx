@@ -33,7 +33,7 @@ export function ConquestMap({ topics }: { topics: Topic[] }) {
           <StaggerItem key={t.topic} className="group relative hover:z-30">
             <div className="hx-panel hx-lift h-full p-4" tabIndex={0}>
               <div className="flex items-center gap-3">
-                <RankEmblem tierIndex={m.tierIndex} size={64} />
+                <RankEmblem tierIndex={m.tierIndex} size={64} effects={false} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold">{t.topic}</p>
                   <p className="font-display text-sm font-bold uppercase tracking-wider" style={{ color: m.tier.glow }}>
