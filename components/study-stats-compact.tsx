@@ -61,7 +61,7 @@ export function CompactStats({ stats }: { stats: StudyStats }) {
     <section aria-label="Estadísticas de estudio" className="hx-panel p-3 sm:p-4">
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         {tiles.map((t) => (
-          <div key={t.label} className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)]/70 px-3 py-2 text-center transition-colors hover:border-[var(--neon)]">
+          <div key={t.label} className="min-w-0 rounded-xl last:col-span-2 sm:last:col-span-1 border border-[var(--line)] bg-[var(--surface-2)]/70 px-3 py-2 text-center transition-colors hover:border-[var(--neon)]">
             <dd className="font-display text-xl font-bold leading-tight tabular-nums">{t.value}</dd>
             <dt className="hx-mute text-[0.65rem] font-bold uppercase tracking-widest">{t.label}</dt>
             {t.note}
@@ -72,7 +72,7 @@ export function CompactStats({ stats }: { stats: StudyStats }) {
       <div className="mt-3 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-end">
         <div>
           <p className="hx-kicker mb-1">Últimas 8 semanas</p>
-          <div className="flex h-10 items-end gap-1" role="img" aria-label="Preguntas por semana">
+          <div className="flex h-10 items-end gap-1 [&>span]:max-w-4 [&>span]:flex-1 sm:[&>span]:w-4 sm:[&>span]:flex-none" role="img" aria-label="Preguntas por semana">
             {stats.weeks.map((w, i) => (
               <span
                 key={w.start}
@@ -89,7 +89,7 @@ export function CompactStats({ stats }: { stats: StudyStats }) {
             <ul className="flex flex-wrap gap-2">
               {best.map((t) => (
                 <li key={t.topic} className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-2)]/70 py-1 pl-3 pr-1 text-sm">
-                  <span className="max-w-[9rem] truncate font-semibold">{t.topic}</span>
+                  <span className="max-w-[7.5rem] truncate sm:max-w-[9rem] font-semibold">{t.topic}</span>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${t.pct >= 70 ? "bg-[var(--ok)]/20 text-[var(--ok)]" : t.pct >= 50 ? "bg-[var(--hi)]/20 text-[var(--hi)]" : "bg-[var(--bad)]/20 text-[var(--bad)]"}`}>{t.pct}%</span>
                 </li>
               ))}

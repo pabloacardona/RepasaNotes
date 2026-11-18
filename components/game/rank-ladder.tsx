@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { TIERS } from "@/lib/ranks";
 import { RankEmblem } from "./rank-emblem";
@@ -21,7 +20,6 @@ const TAGLINE = [
 // The whole ladder, clickable. Ranks you have not reached stay locked but show how good they look,
 // and the next goal is selected by default with the XP still missing.
 export function RankLadder({ tierIndex, xp, preview = false }: { tierIndex: number; xp: number; preview?: boolean }) {
-  const reduce = useReducedMotion();
   const next = Math.min(tierIndex + 1, TIERS.length - 1);
   const [sel, setSel] = useState(preview ? 3 : next);
   const t = TIERS[sel];
@@ -30,13 +28,13 @@ export function RankLadder({ tierIndex, xp, preview = false }: { tierIndex: numb
   const fill = preview ? 100 : ((tierIndex + Math.min(1, (xp - TIERS[tierIndex].min) / Math.max(1, (TIERS[Math.min(tierIndex + 1, TIERS.length - 1)].min - TIERS[tierIndex].min)))) / (TIERS.length - 1)) * 100;
 
   return (
-    <div className="hx-panel p-4 sm:p-5" style={{ ["--tc" as string]: t.color }}>
+    <div className="hx-panel min-w-0 p-3 sm:p-5" style={{ ["--tc" as string]: t.color }}>
       <div className="flex items-baseline justify-between gap-2">
         <p className="hx-kicker">{preview ? "Los 10 rangos" : "La escalera"}</p>
         {!preview && <p className="hx-mute text-sm">{xp.toLocaleString("es-CO")} XP</p>}
       </div>
 
-      <div className="relative mt-4 overflow-x-auto pb-2 [scrollbar-width:thin]">
+      <div className="relative mt-4 overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:thin]">
         <div className="relative mx-auto flex w-max min-w-full items-end justify-between gap-2 px-2 pt-6">
           <div aria-hidden className="absolute inset-x-8 bottom-[11px] h-[6px] border-2 border-[var(--line-strong)] bg-[var(--track)]">
             <span className="block h-full bg-[var(--b2)] transition-all duration-700" style={{ width: `${fill}%` }} />
@@ -66,14 +64,9 @@ export function RankLadder({ tierIndex, xp, preview = false }: { tierIndex: numb
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
+      <div
           key={sel}
-          initial={reduce ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduce ? undefined : { opacity: 0, y: -8 }}
-          transition={{ type: "spring", stiffness: 420, damping: 30 }}
-          className="hx-tier-panel mt-3 flex flex-wrap items-center gap-5 rounded-2xl border-2 bg-[var(--surface-2)] p-4"
+          className="anim-rise hx-tier-panel mt-3 flex flex-col items-center gap-3 rounded-2xl text-center sm:flex-row sm:flex-wrap sm:gap-5 sm:text-left border-2 bg-[var(--surface-2)] p-4"
         >
           <RankEmblem tierIndex={sel} division={null} size={118} effects />
           <div className="min-w-0 flex-1">
@@ -90,8 +83,7 @@ export function RankLadder({ tierIndex, xp, preview = false }: { tierIndex: numb
               </p>
             )}
           </div>
-        </motion.div>
-      </AnimatePresence>
+        </div>
     </div>
   );
 }

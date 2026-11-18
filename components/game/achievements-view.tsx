@@ -20,12 +20,14 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
     <GameShell>
       {/* Header: rank */}
       <Reveal>
-        <section className="hx-panel p-6 sm:p-8">
-          <div className="flex flex-wrap items-center gap-6">
-            <RankEmblem tierIndex={rank.tierIndex} division={rank.division} size={168} />
-            <div className="min-w-0 flex-1">
-              <p className="hx-kicker">Rango actual</p>
-              <h1 className="hx-title hx-gold-text text-4xl sm:text-5xl" style={{ ["--tg1" as string]: rank.tier.glow, ["--tg2" as string]: rank.tier.color, ["--tg3" as string]: rank.tier.glow }}>{rank.label}</h1>
+        <section className="hx-panel p-4 sm:p-8">
+          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:gap-6 sm:text-left">
+            <div className="max-sm:[zoom:0.78]">
+              <RankEmblem tierIndex={rank.tierIndex} division={rank.division} size={168} />
+            </div>
+            <div className="w-full min-w-0 sm:w-auto sm:flex-1">
+              <p className="hx-kicker max-sm:justify-center">Rango actual</p>
+              <h1 className="hx-title hx-gold-text text-3xl sm:text-5xl" style={{ ["--tg1" as string]: rank.tier.glow, ["--tg2" as string]: rank.tier.color, ["--tg3" as string]: rank.tier.glow }}>{rank.label}</h1>
               <div className="mt-3 flex items-center gap-3">
                 <div className="hx-bar flex-1">
                   <span style={{ width: `${Math.max(rank.pct, 3)}%` }} />
@@ -41,7 +43,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
                   "Estás en la cima de la liga."
                 )}
               </p>
-              <dl className="mt-5 grid grid-cols-3 gap-3 text-center">
+              <dl className="mt-4 grid grid-cols-3 gap-2 text-center sm:mt-5 sm:gap-3">
                 <Stat label="Puntos de logro" value={`${p.achievementPoints}`} sub={`de ${maxPoints}`} />
                 <Stat label="Logros" value={`${done}`} sub={`de ${achievements.length}`} />
                 <Stat label="Temas conquistados" value={`${conquered}`} sub={`de ${topics.length}`} />
@@ -53,7 +55,7 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
 
       {/* Ladder */}
       <Reveal>
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           <RankLadder tierIndex={rank.tierIndex} xp={rank.xp} />
         </div>
       </Reveal>
@@ -69,9 +71,9 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
 
       {/* Achievements */}
       {CATEGORIES.map((cat) => (
-        <section key={cat} className="mt-8" aria-label={`Logros de ${cat}`}>
+        <section key={cat} className="cv-auto mt-6 sm:mt-8" aria-label={`Logros de ${cat}`}>
           <h2 className="hx-kicker mb-3">{cat}</h2>
-          <Stagger className="grid gap-4 sm:grid-cols-2">
+          <Stagger className="grid gap-3 sm:grid-cols-2 sm:gap-4">
             {achievements
               .filter((a) => a.category === cat)
               .map((a) => (
@@ -88,9 +90,9 @@ export function AchievementsView({ profile: p }: { profile: GameProfile }) {
 
 function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="bg-[var(--fg)]/5 px-2 py-2">
+    <div className="min-w-0 bg-[var(--fg)]/5 px-1 py-2 sm:px-2">
       <dd className="hx-title text-2xl">{value}</dd>
-      <dt className="hx-mute text-[0.62rem] font-bold uppercase tracking-wider">{label}</dt>
+      <dt className="hx-mute break-words text-[0.58rem] font-bold uppercase leading-tight tracking-wide sm:text-[0.62rem] sm:tracking-wider">{label}</dt>
       <p className="hx-mute text-[0.6rem]">{sub}</p>
     </div>
   );

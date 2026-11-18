@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -40,7 +39,6 @@ function NoteProgress({ stats }: { stats: NoteStats | null }) {
 
 export function NotesList({ notes }: { notes: NoteItem[] }) {
   const router = useRouter();
-  const reduce = useReducedMotion();
   const [topic, setTopic] = useState<string>("Todos");
   const [query, setQuery] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -103,14 +101,14 @@ export function NotesList({ notes }: { notes: NoteItem[] }) {
             className="w-full rounded-full border border-[var(--line-strong)] bg-[var(--surface)] py-2.5 pl-11 pr-4 outline-none transition focus:border-[var(--neon)] focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--neon)_25%,transparent)]"
           />
         </label>
-        <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="Filtrar por tema">
+        <div className="-mx-4 flex w-[calc(100%+2rem)] gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:w-auto sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar por tema">
           {topics.map((t) => (
             <button
               key={t}
               onClick={() => setTopic(t)}
               aria-pressed={topic === t}
-              className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition-all duration-200 ${
-                topic === t ? "border-transparent bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-[#2a2012] shadow-[0_0_18px_color-mix(in_oklab,var(--b1)_55%,transparent)]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--neon)]"
+              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors duration-200 ${
+                topic === t ? "border-transparent bg-gradient-to-r from-[var(--b1)] to-[var(--b2)] text-[#2a2012] sm:shadow-[0_0_18px_color-mix(in_oklab,var(--b1)_55%,transparent)]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--neon)]"
               }`}
             >
               {t}
@@ -128,20 +126,12 @@ export function NotesList({ notes }: { notes: NoteItem[] }) {
       {filtered.length === 0 ? (
         <p className="hx-mute py-10 text-center">No hay apuntes que coincidan.</p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
-          <AnimatePresence initial={false}>
-            {filtered.map((n, i) => {
+        <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+          {filtered.map((n, i) => {
               const h = hue(n.topic);
               const confirming = confirmId === n.id;
               return (
-                <motion.li
-                  key={n.id}
-                  layout={reduce ? false : "position"}
-                  initial={reduce ? false : { opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduce ? undefined : { opacity: 0, scale: 0.96 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 26, delay: Math.min(i * 0.04, 0.3) }}
-                >
+                <li key={n.id} className="anim-rise cv-auto min-w-0" style={{ animationDelay: `${Math.min(i * 0.04, 0.24)}s` }}>
                   <div className="hx-panel hx-lift flex h-full flex-col gap-3 p-4" style={{ ["--tc" as string]: `hsl(${h} 90% 62%)` }}>
                     <div className="flex items-start gap-3">
                       <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl" style={{ background: `hsl(${h} 90% 62% / 0.18)`, border: `1px solid hsl(${h} 90% 62% / 0.5)` }}>
@@ -188,10 +178,9 @@ export function NotesList({ notes }: { notes: NoteItem[] }) {
                       )}
                     </div>
                   </div>
-                </motion.li>
+                </li>
               );
             })}
-          </AnimatePresence>
         </ul>
       )}
     </>

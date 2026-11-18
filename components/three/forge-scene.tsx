@@ -788,7 +788,7 @@ function strikeTempo(t: number, t0: number) {
 type Phase = { mode: "chop" | "rest"; blows: number; restAct: AnimationAction | null };
 
 function Smith({ low, shared }: { low: boolean; shared: Shared }) {
-  const gltf = useGLTF("/3d/forge/smith.glb");
+  const gltf = useGLTF("/3d/forge/smith.opt.glb");
   const root = useRef<Group>(null);
   const hammerHead = useRef<Object3D>(null);
   const face = useRef<MeshStandardMaterial>(null);
@@ -1225,7 +1225,7 @@ export default function ForgeScene({ low, active, onReady }: { low: boolean; act
   return (
     <Canvas
       frameloop={active ? "always" : "never"}
-      dpr={low ? [1, 1.25] : [1, 1.75]}
+      dpr={low ? 1 : [1, 1.75]}
       shadows={low ? false : { type: PCFSoftShadowMap }}
       camera={{ fov: 30, near: 0.1, far: 40, position: [1, 1.3, 6] }}
       gl={{ antialias: !low, alpha: false, powerPreference: "high-performance" }}

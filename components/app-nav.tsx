@@ -53,7 +53,7 @@ export function AppNav({ name, avatar, game }: { name: string; avatar?: string |
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-[var(--bg)]/80 text-ink backdrop-blur-xl">
+    <header className="sticky top-0 z-20 border-b border-line bg-[var(--bg)] text-ink sm:bg-[var(--bg)]/80 sm:backdrop-blur-xl">
       <nav className="relative z-30 mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2 sm:flex-nowrap sm:gap-4 sm:px-6">
         <Link href="/dashboard" className="flex items-center gap-2 font-display text-2xl font-bold tracking-wide">
           <SocratesLogo size={48} />

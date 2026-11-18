@@ -181,12 +181,18 @@ export function MascotStage({
     if (!d?.moved) return;
     saveLayout(slot, { x: Math.min(1, Math.max(0, d.x)), y: Math.min(MAX_Y, Math.max(0, d.y)) });
   };
-  const [onScreen, setOnScreen] = useState(true);
+  // Starts false: a stage hidden with display:none (the dock variant that does not match this screen) never reports as
+  // visible, so it never creates a WebGL context, never downloads the model and never loads three.js.
+  const [onScreen, setOnScreen] = useState(false);
+  const [seen, setSeen] = useState(false);
   const [tabOn, setTabOn] = useState(true);
   useEffect(() => {
     const el = root.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting), { rootMargin: "60px" });
+    const io = new IntersectionObserver(([e]) => {
+      setOnScreen(e.isIntersecting);
+      if (e.isIntersecting) setSeen(true);
+    }, { rootMargin: "60px" });
     io.observe(el);
     const vis = () => setTabOn(document.visibilityState === "visible");
     document.addEventListener("visibilitychange", vis);
@@ -240,7 +246,7 @@ export function MascotStage({
         {hydrated && (say ? <SayBubble key={`${mood}-${pulse}-${say}`} text={say} /> : <FactBubble key={`${mood}-${pulse}`} />)}
       </div>
 
-      {enabled ? (
+      {enabled && seen ? (
         <div className="absolute -inset-[17%] transition-opacity duration-700" style={{ opacity: ready ? 1 : 0 }}>
           <MascotCanvas
             mascot={id}
@@ -255,7 +261,7 @@ export function MascotStage({
           />
         </div>
       ) : null}
-      {(!enabled || !ready) && (
+      {(!enabled || !seen || !ready) && (
         <div className="absolute inset-0 grid place-items-center">
           <span className="text-7xl drop-shadow-xl">{MOOD_EMOJI[mood]}</span>
         </div>

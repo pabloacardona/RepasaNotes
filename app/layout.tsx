@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -7,6 +7,15 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 // Sets the theme before the first paint: the saved choice, else the system preference (dark by default).
 const THEME_SCRIPT = `try{var t=localStorage.getItem("repasa_theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="dark"}`;
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#15121a" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f1ea" },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(

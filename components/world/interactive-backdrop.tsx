@@ -40,6 +40,9 @@ export function InteractiveBackdrop({
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Phones: half the particles, no links, 30 fps. The backdrop is soft light, so it reads the same and costs far less.
+    const coarse = window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768;
+    const MIN_FRAME = coarse ? 30 : 0;
 
     let w = 0;
     let h = 0;
@@ -95,7 +98,7 @@ export function InteractiveBackdrop({
       off.width = Math.max(2, Math.ceil(w / 4));
       off.height = Math.max(2, Math.ceil(h / 4));
       tick = 0;
-      const target = Math.round(COUNT * Math.min(1, (w * h) / (1280 * 720)) + 24);
+      const target = Math.round((COUNT * Math.min(1, (w * h) / (1280 * 720)) + 24) * (coarse ? 0.5 : 1));
       while (parts.length < target) parts.push(make());
       parts.length = Math.min(parts.length, target + 80);
     }
@@ -131,6 +134,10 @@ export function InteractiveBackdrop({
     let flashHue = 150;
 
     function frame(now: number) {
+      if (now - last < MIN_FRAME) {
+        if (!reduce) raf = requestAnimationFrame(frame);
+        return;
+      }
       const dt = Math.min((now - last) / 16.667, 3);
       last = now;
       const t = now / 1000;
@@ -220,7 +227,7 @@ export function InteractiveBackdrop({
 
       // Frame budget: if frames keep taking too long, switch to the light version (no links).
       slow = slow * 0.95 + Math.min(dt, 4) * 0.05;
-      lite = slow > 1.6;
+      lite = coarse || slow > 1.6;
 
       // Particles.
       for (let i = parts.length - 1; i >= 0; i--) {

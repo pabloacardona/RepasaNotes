@@ -115,8 +115,8 @@ export default function HeroScene() {
   return (
     <Canvas
       camera={{ position: [0, 0, 6.2], fov: 42 }}
-      dpr={[1, 1.75]}
-      gl={{ antialias: true, alpha: true }}
+      dpr={[1, 1.5]}
+      gl={{ antialias: true, alpha: true, powerPreference: "default" }}
       aria-label="Fichas de respuesta A, B, C y D flotando en 3D"
       role="img"
     >

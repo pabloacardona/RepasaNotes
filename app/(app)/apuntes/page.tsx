@@ -19,13 +19,13 @@ export default async function NotesPage() {
       <Reveal>
         <header className="text-center">
           <p className="hx-kicker justify-center">Tu biblioteca</p>
-          <h1 className="mt-1 font-display text-4xl font-bold sm:text-5xl">Mis apuntes</h1>
+          <h1 className="mt-1 font-display text-3xl font-bold sm:text-5xl">Mis apuntes</h1>
           <p className="hx-mute mx-auto mt-2 max-w-md">
             {notes.length === 0
               ? "Aquí vive todo lo que estudias. Empieza con tu primer apunte."
               : `${notes.length} ${notes.length === 1 ? "apunte" : "apuntes"} en ${topics} ${topics === 1 ? "tema" : "temas"}. Elige uno y conviértelo en un quiz.`}
           </p>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3 [&>a:first-child]:col-span-2">
             <Link href="/apuntes/nuevo#ia" className="hx-btn hx-btn-gold">
               💡 Crear con IA
             </Link>
@@ -39,11 +39,11 @@ export default async function NotesPage() {
         </header>
       </Reveal>
 
-      <div className="mt-6">
+      <div className="mt-5 sm:mt-6">
         <CompactStats stats={stats} />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <NotesList
           notes={notes.map((n) => ({
             id: n.id,

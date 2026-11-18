@@ -13,7 +13,7 @@ export default async function NewNotePage({ searchParams }: PageProps<"/apuntes/
     <>
       <header className="mb-6 text-center">
         <p className="hx-kicker justify-center">Mis apuntes</p>
-        <h1 className="mt-1 font-display text-4xl font-bold">Nuevo apunte</h1>
+        <h1 className="mt-1 font-display text-3xl font-bold sm:text-4xl">Nuevo apunte</h1>
         <p className="hx-mute mx-auto mt-2 max-w-md">Escríbelo, súbelo o pídele a la IA que lo redacte.</p>
       </header>
       <NoteForm topics={topics} initialTopic={typeof tema === "string" ? tema.slice(0, 80) : ""} />

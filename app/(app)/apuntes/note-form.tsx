@@ -74,7 +74,7 @@ export function NoteForm({
       />
     )}
     <form onSubmit={onSubmit} noValidate className="grid gap-5">
-      <div className="hx-panel grid gap-5 p-5 sm:p-6">
+      <div className="hx-panel grid gap-4 p-4 sm:gap-5 sm:p-6">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="title" className="mb-1.5 block font-bold">Título</label>
@@ -113,7 +113,7 @@ export function NoteForm({
             id="content"
             value={values.content}
             onChange={(e) => setValues((v) => ({ ...v, content: e.target.value }))}
-            rows={14}
+            rows={12}
             className={`${inputClass(err("content") ? "error" : undefined)} resize-y leading-relaxed`}
             placeholder="Pega aquí tus notas de clase…"
           />
@@ -135,7 +135,7 @@ export function NoteForm({
         </p>
       )}
 
-      <div className="flex flex-wrap justify-center gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:justify-center">
         <LinkButton href="/apuntes" variant="outline">Cancelar</LinkButton>
         <Button type="submit" disabled={saving}>
           {saving && <Spinner />}

@@ -10,6 +10,11 @@ const subscribe = () => () => {};
 function getCan3D() {
   try {
     const c = document.createElement("canvas");
+    // Phones get the still forge: ~6 MB of model and textures plus a continuous WebGL loop is what made the page feel slow.
+    if (window.innerWidth < 640) return false;
+    const net = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    // Data saver or a 2G/3G link: the scene is ~6 MB of model and textures, show the still forge instead.
+    if (net?.saveData || /^(slow-2g|2g|3g)$/.test(net?.effectiveType ?? "")) return false;
     return !!(c.getContext("webgl2") || c.getContext("webgl")) && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   } catch {
     return false;

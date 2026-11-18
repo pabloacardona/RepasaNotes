@@ -84,12 +84,13 @@ export default function MascotCanvas({
 }) {
   const [fit, setFit] = useState({ w: 1, h: 1 });
   const light = useLightTheme();
+  const coarse = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
   return (
     <Canvas
-      dpr={[1, fps < 60 ? 1.25 : 1.5]}
+      dpr={[1, coarse ? 1.25 : fps < 60 ? 1.25 : 1.5]}
       frameloop={!active ? "never" : fps < 60 ? "demand" : "always"}
       camera={{ position: [0, 0.62, 3.1], fov: 36, near: 0.1, far: 30 }}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      gl={{ antialias: !coarse, alpha: true, powerPreference: coarse ? "default" : "high-performance" }}
       onCreated={({ gl }) => {
         gl.outputColorSpace = SRGBColorSpace;
         gl.toneMapping = ACESFilmicToneMapping;

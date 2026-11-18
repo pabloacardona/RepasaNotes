@@ -717,3 +717,64 @@ html { scroll-behavior: smooth; }
   .cdock-small { display: none; }
   .cdock-spacer { display: none; }
 }
+
+/* ---------- Page transition (replaces the JS fade in app/template.tsx) ---------- */
+@keyframes page-fade { from { opacity: 0; } to { opacity: 1; } }
+.page-fade { animation: page-fade 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) { .page-fade { animation: none; } }
+
+/* ---------- Mobile / touch performance ----------
+   Phones repaint every frame of a blur, a drop-shadow animation or a conic-gradient spin on the CPU/GPU budget of the
+   whole page. On narrow or touch-first screens keep the look (colours, static glow) but drop what costs per frame. */
+html { -webkit-tap-highlight-color: transparent; text-size-adjust: 100%; }
+a, button, [role="button"], input, select, textarea, summary { touch-action: manipulation; }
+
+@media (max-width: 767px), (pointer: coarse) {
+  /* Live blur of what is behind a panel is the most expensive thing on the page: use a near-opaque fill instead. */
+  .hx-panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in oklab, var(--panel) 94%, var(--bg)); }
+  .hx-panel-soft { background: color-mix(in oklab, var(--panel) 82%, var(--bg)); }
+
+  /* Large blurs: keep a static, cheaper version. */
+  .aurora { filter: none; animation: none; opacity: 0.8; }
+  .hx-neon-ring::before { animation: none; filter: blur(4px); }
+  .rank-aura { filter: none; animation-duration: 3.6s; }
+
+  /* Infinite animations that repaint or run a filter: freeze them (state still reads through colour and glow). */
+  .hx-glow { animation: none; filter: drop-shadow(0 0 8px var(--glow, var(--accent))); }
+  .hx-shine::after { animation: none; display: none; }
+  .hx-bar > span::after { animation: none; }
+  .hx-btn-gold { animation: none; }
+  .hx-epic, .hx-epic-soft { animation: none; }
+  .rank-rays { animation-duration: 60s; }
+  .hx-banner { animation-duration: 0.6s; filter: none; }
+  @keyframes hx-banner { 0% { opacity: 0; transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
+
+  /* Only the heavy hover effects do not apply to touch. */
+  .hx-lift:hover { transform: none; box-shadow: var(--shadow); }
+}
+
+/* Off-screen sections skip layout and paint until they get close. Opt in with the class on long lists and cards. */
+.cv-auto { content-visibility: auto; contain-intrinsic-size: auto 240px; }
+
+/* ---------- Scroll reveal (components/motion/reveal.tsx) ---------- */
+.rv { opacity: 0; transform: translateY(22px); transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+.rv.in { opacity: 1; transform: none; }
+.rv-item { opacity: 0; transform: translateY(16px); transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.rv-group.in > .rv-item { opacity: 1; transform: none; }
+.rv-group.in > .rv-item:nth-child(2) { transition-delay: 0.05s; }
+.rv-group.in > .rv-item:nth-child(3) { transition-delay: 0.1s; }
+.rv-group.in > .rv-item:nth-child(4) { transition-delay: 0.15s; }
+.rv-group.in > .rv-item:nth-child(5) { transition-delay: 0.2s; }
+.rv-group.in > .rv-item:nth-child(6) { transition-delay: 0.25s; }
+.rv-group.in > .rv-item:nth-child(7) { transition-delay: 0.3s; }
+.rv-group.in > .rv-item:nth-child(8) { transition-delay: 0.35s; }
+.rv-group.in > .rv-item:nth-child(n + 9) { transition-delay: 0.4s; }
+@media (prefers-reduced-motion: reduce) { .rv, .rv-item { opacity: 1; transform: none; transition: none; } }
+
+/* ---------- Mobile: no page-wide horizontal scroll, lighter chrome ---------- */
+html, body { overflow-x: clip; }
+@media (max-width: 767px), (pointer: coarse) {
+  .hx-bob { animation: none; }
+  .hx-bg::after { display: none; }
+  .rank-rays, .rank-spark, .rank-sheen::after { display: none; }
+}
