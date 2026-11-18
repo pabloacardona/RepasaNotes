@@ -4,6 +4,7 @@ import { getDb, notes, quizzes } from "./db";
 import { addDays, dayKey } from "./stats";
 import { scoreRun } from "./score";
 import { rankFromXp, topicMastery } from "./ranks";
+import { buildTopicResolver } from "./topics";
 import {
   DAILY_BONUS_XP,
   DAILY_GOAL,
@@ -33,8 +34,9 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
       })
       .from(quizzes)
       .where(and(eq(quizzes.userId, userId), isNotNull(quizzes.completedAt))),
-    db.select({ id: notes.id }).from(notes).where(eq(notes.userId, userId)),
+    db.select({ id: notes.id, topic: notes.topic }).from(notes).where(eq(notes.userId, userId)),
   ]);
+  const topicOf = buildTopicResolver([...rows.map((r) => r.topic), ...noteRows.map((n) => n.topic)]);
 
   const today = dayKey(opts.now ?? new Date());
   const perDay = new Map<string, { answered: number; correct: number; quizzes: number }>();
@@ -60,10 +62,11 @@ export async function getGameProfile(userId: string, opts: { excludeQuizId?: str
     bestCombo = Math.max(bestCombo, bestStreak);
     if (r.total > 0 && score === r.total) perfect += 1;
     if (r.difficulty === "dificil" && r.total > 0 && score / r.total >= 0.7) hardWins += 1;
-    const tt = topicTally.get(r.topic) ?? { answered: 0, correct: 0 };
+    const topicKey = topicOf(r.topic);
+    const tt = topicTally.get(topicKey) ?? { answered: 0, correct: 0 };
     tt.answered += answers.filter((a) => a !== -1).length;
     tt.correct += score;
-    topicTally.set(r.topic, tt);
+    topicTally.set(topicKey, tt);
 
     const key = dayKey(r.completedAt!);
     const d = perDay.get(key) ?? { answered: 0, correct: 0, quizzes: 0 };

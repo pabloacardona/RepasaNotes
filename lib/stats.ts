@@ -1,6 +1,7 @@
 import "server-only";
 import { and, eq, isNotNull } from "drizzle-orm";
-import { getDb, quizzes } from "./db";
+import { getDb, notes, quizzes } from "./db";
+import { buildTopicResolver } from "./topics";
 
 // Study statistics built from finished quizzes. Days are counted in Colombia time.
 const TZ = "America/Bogota";
@@ -33,6 +34,9 @@ export async function getStudyStats(userId: string, now = new Date()) {
     .from(quizzes)
     .where(and(eq(quizzes.userId, userId), isNotNull(quizzes.completedAt)));
 
+  const noteTopics = await getDb().select({ topic: notes.topic }).from(notes).where(eq(notes.userId, userId));
+  const topicOf = buildTopicResolver([...rows.map((r) => r.topic), ...noteTopics.map((n) => n.topic)]);
+
   const total = empty();
   const byTopic = new Map<string, Tally>();
   const byNote = new Map<string, Tally>();
@@ -50,7 +54,7 @@ export async function getStudyStats(userId: string, now = new Date()) {
         else t.wrong += 1;
       }
     });
-    for (const [map, key] of [[byTopic, r.topic], [byNote, r.noteId]] as const) {
+    for (const [map, key] of [[byTopic, topicOf(r.topic)], [byNote, r.noteId]] as const) {
       if (!key) continue;
       const acc = map.get(key) ?? empty();
       acc.answered += t.answered;

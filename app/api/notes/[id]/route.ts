@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { getDb, notes } from "@/lib/db";
 import { requireApiUser } from "@/lib/auth";
-import { getNote } from "@/lib/data";
+import { getNote, listNotes } from "@/lib/data";
+import { resolveNewTopic } from "@/lib/topics";
 import { noteSchema, fieldErrors } from "@/lib/validators";
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
@@ -29,9 +30,11 @@ export async function PUT(req: Request, ctx: RouteContext<"/api/notes/[id]">) {
     return NextResponse.json({ errors: fieldErrors(parsed.error) }, { status: 400 });
   }
 
+  const others = (await listNotes(session.sub)).filter((n) => n.id !== id).map((n) => n.topic);
+  const topic = resolveNewTopic(parsed.data.topic, others);
   const [note] = await getDb()
     .update(notes)
-    .set({ ...parsed.data, updatedAt: new Date() })
+    .set({ ...parsed.data, topic, updatedAt: new Date() })
     .where(and(eq(notes.id, id), eq(notes.userId, session.sub)))
     .returning();
   return note ? NextResponse.json({ note }) : notFound();

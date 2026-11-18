@@ -1,6 +1,13 @@
 import "server-only";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { getDb, notes, quizzes } from "./db";
+import { buildTopicResolver } from "./topics";
+
+/** Topics of all the notes of a user, one entry per note (repeats are the weight when topics are grouped). */
+export async function listNoteTopics(userId: string) {
+  const rows = await getDb().select({ topic: notes.topic }).from(notes).where(eq(notes.userId, userId));
+  return rows.map((r) => r.topic);
+}
 
 export async function listNotes(userId: string) {
   return getDb()
@@ -53,18 +60,21 @@ export async function getStats(userId: string) {
       .select({ topic: quizzes.topic, score: quizzes.score, total: quizzes.total })
       .from(quizzes)
       .where(and(eq(quizzes.userId, userId), isNotNull(quizzes.completedAt))),
-    db.select({ id: notes.id }).from(notes).where(eq(notes.userId, userId)),
+    db.select({ id: notes.id, topic: notes.topic }).from(notes).where(eq(notes.userId, userId)),
   ]);
+  // Same subject written two ways ("Desarrollo web" / "HTML y CSS") is one row, not two.
+  const topicOf = buildTopicResolver([...done.map((q) => q.topic), ...noteRows.map((n) => n.topic)]);
 
   const byTopic = new Map<string, { sum: number; n: number }>();
   let sum = 0;
   for (const q of done) {
     const pct = q.total ? ((q.score ?? 0) / q.total) * 100 : 0;
     sum += pct;
-    const t = byTopic.get(q.topic) ?? { sum: 0, n: 0 };
+    const key = topicOf(q.topic);
+    const t = byTopic.get(key) ?? { sum: 0, n: 0 };
     t.sum += pct;
     t.n += 1;
-    byTopic.set(q.topic, t);
+    byTopic.set(key, t);
   }
 
   const topics: TopicStat[] = [...byTopic.entries()]

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { listNotes } from "@/lib/data";
+import { buildTopicResolver } from "@/lib/topics";
 import { getStudyStats } from "@/lib/stats";
 import { CompactStats } from "@/components/study-stats-compact";
 import { Reveal } from "@/components/motion/reveal";
@@ -12,7 +13,8 @@ export const metadata: Metadata = { title: "Mis apuntes" };
 export default async function NotesPage() {
   const user = await requireUser();
   const [notes, stats] = await Promise.all([listNotes(user.sub), getStudyStats(user.sub)]);
-  const topics = new Set(notes.map((n) => n.topic)).size;
+  const topicOf = buildTopicResolver(notes.map((n) => n.topic));
+  const topics = new Set(notes.map((n) => topicOf(n.topic))).size;
 
   return (
     <>
@@ -48,7 +50,7 @@ export default async function NotesPage() {
           notes={notes.map((n) => ({
             id: n.id,
             title: n.title,
-            topic: n.topic,
+            topic: topicOf(n.topic),
             updatedAt: n.updatedAt.toISOString(),
             preview: n.content.slice(0, 160),
             stats: stats.byNote[n.id] ?? null,
